@@ -12,11 +12,17 @@
       <FILE id="E3ekYK" name="magic.xml" compile="0" resource="1" file="Resources/magic.xml"/>
     </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
+      <FILE id="iE974d" name="ResponseCurve.cpp" compile="1" resource="0"
+            file="Source/ResponseCurve.cpp"/>
+      <FILE id="n61h7O" name="ResponseCurve.h" compile="0" resource="0" file="Source/ResponseCurve.h"/>
+      <FILE id="fpAlCP" name="FilterModule.cpp" compile="1" resource="0"
+            file="Source/FilterModule.cpp"/>
+      <FILE id="TS8KcU" name="FilterModule.h" compile="0" resource="0" file="Source/FilterModule.h"/>
       <FILE id="ZIXKn6" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="of0qUf" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="BEeiGF" name="PluginEditor.cpp" compile="1" resource="0"
+      <FILE id="BEeiGF" name="PluginEditor.cpp" compile="0" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="CZDMBB" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
     </GROUP>

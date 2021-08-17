@@ -8,24 +8,41 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "ResponseCurve.h"
 
 //==============================================================================
 BiztortionAudioProcessor::BiztortionAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
+     : MagicProcessor(BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ), filterModule(apvts, getSampleRate())
 #endif
 {
+    FOLEYS_SET_SOURCE_PATH(__FILE__);
+
+    magicState.setGuiValueTree(BinaryData::magic_xml, BinaryData::magic_xmlSize);
+
+    // MAGIC GUI: add visualizations to Editor
+    outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>("output");
+    oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>("waveform");
+    analyser = magicState.createAndAddObject<foleys::MagicAnalyser>("analyser");
+    magicState.addBackgroundProcessing(analyser);
 }
 
 BiztortionAudioProcessor::~BiztortionAudioProcessor()
 {
+}
+
+void BiztortionAudioProcessor::initialiseBuilder(foleys::MagicGUIBuilder& builder)
+{
+    builder.registerJUCEFactories();
+
+    builder.registerFactory("ResponseCurveComponent", &ResponseCurveComponentItem::factory);
 }
 
 //==============================================================================
@@ -95,6 +112,11 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+
+    filterModule.prepareToPlay(sampleRate, samplesPerBlock);
+
+    oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
+    analyser->prepareToPlay(sampleRate, samplesPerBlock);
 }
 
 void BiztortionAudioProcessor::releaseResources()
@@ -144,43 +166,18 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    filterModule.processBlock(buffer, midiMessages);
 
-        // ..do something to the data...
-    }
+    oscilloscope->pushSamples(buffer);
+    analyser->pushSamples(buffer);
 }
 
-//==============================================================================
-bool BiztortionAudioProcessor::hasEditor() const
-{
-    return true; // (change this to false if you choose to not supply an editor)
-}
+juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::createParameterLayout() {
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-juce::AudioProcessorEditor* BiztortionAudioProcessor::createEditor()
-{
-    return new BiztortionAudioProcessorEditor (*this);
-}
+    FilterModule::addFilterParameters(layout);
 
-//==============================================================================
-void BiztortionAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
-{
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
-}
-
-void BiztortionAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
-{
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    return layout;
 }
 
 //==============================================================================
