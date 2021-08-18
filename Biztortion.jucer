@@ -7,10 +7,7 @@
               cppLanguageStandard="latest" companyWebsite="https://github.com/killbizz"
               companyName="KillBizz" companyEmail="gabriel.bizzo@hotmail.it">
   <MAINGROUP id="WGhc7c" name="Biztortion">
-    <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources">
-      <FILE id="SoAGWX" name="Logo.png" compile="0" resource="1" file="Resources/Logo.png"/>
-      <FILE id="E3ekYK" name="magic.xml" compile="0" resource="1" file="Resources/magic.xml"/>
-    </GROUP>
+    <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources"/>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
       <FILE id="iE974d" name="ResponseCurve.cpp" compile="1" resource="0"
             file="Source/ResponseCurve.cpp"/>
@@ -48,13 +45,11 @@
         <MODULEPATH id="juce_graphics" path="C:/JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="C:/JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="C:/JUCE/modules"/>
-        <MODULEPATH id="foleys_gui_magic" path="../../../LIBRERIA/Coding"/>
         <MODULEPATH id="juce_cryptography" path="C:/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="foleys_gui_magic" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
