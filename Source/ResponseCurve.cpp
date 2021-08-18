@@ -21,8 +21,10 @@ ResponseCurveComponent::ResponseCurveComponent(juce::AudioProcessor& p) : audioP
     monoChainUpdate();
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
-        param->addListener(this);
-        std::cout << param->getName(100);
+        if (param->getLabel() == juce::String("Filter")) {
+            param->addListener(this);
+            std::cout << param->getName(100);
+        }
     }
     startTimerHz(60);
 }
@@ -30,7 +32,9 @@ ResponseCurveComponent::ResponseCurveComponent(juce::AudioProcessor& p) : audioP
 ResponseCurveComponent::~ResponseCurveComponent() {
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
-        param->removeListener(this);
+        if (param->getLabel() == juce::String("Filter")) {
+            param->removeListener(this);
+        }
     }
 }
 

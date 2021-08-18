@@ -44,31 +44,36 @@ void FilterModule::addFilterParameters(juce::AudioProcessorValueTreeState::Param
         "LowCut Freq",
         "LowCut Freq",
         juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20.f
+        20.f,
+        "Filter"
         );
     auto highCutFreq = std::make_unique<juce::AudioParameterFloat>(
         "HighCut Freq",
         "HighCut Freq",
         juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20000.f
+        20000.f,
+        "Filter"
         );
     auto peakFreq = std::make_unique<juce::AudioParameterFloat>(
         "Peak Freq",
         "Peak Freq",
         juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        800.f
+        800.f,
+        "Filter"
         );
     auto peakGain = std::make_unique<juce::AudioParameterFloat>(
         "Peak Gain",
         "Peak Gain",
         juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
-        0.0f
+        0.0f,
+        "Filter"
         );
     auto peakQuality = std::make_unique<juce::AudioParameterFloat>(
         "Peak Quality",
         "Peak Quality",
         juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-        1.f
+        1.f,
+        "Filter"
         );
 
     juce::StringArray stringArray;
@@ -84,12 +89,16 @@ void FilterModule::addFilterParameters(juce::AudioProcessorValueTreeState::Param
         "LowCut Slope",
         "LowCut Slope",
         stringArray,
-        0);
+        0,
+        "Filter"
+        );
     auto highCutSlope = std::make_unique<juce::AudioParameterChoice>(
         "HighCut Slope",
         "HighCut Slope",
         stringArray,
-        0);
+        0,
+        "Filter"
+        );
 
     auto lowCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("LowCut", "LowCut", 
         "|", std::move(lowCutFreq), std::move(lowCutSlope));
