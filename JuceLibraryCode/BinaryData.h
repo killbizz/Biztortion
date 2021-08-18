@@ -12,7 +12,7 @@ namespace BinaryData
     const int            Logo_pngSize = 57997;
 
     extern const char*   magic_xml;
-    const int            magic_xmlSize = 3517;
+    const int            magic_xmlSize = 3582;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
     const int namedResourceListSize = 2;

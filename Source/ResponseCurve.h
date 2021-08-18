@@ -64,19 +64,3 @@ private:
     juce::Atomic<bool> parameterChanged{ false };
     MonoChain monoChain;
 };
-
-class ResponseCurveComponentItem : public foleys::GuiItem {
-public:
-    FOLEYS_DECLARE_GUI_FACTORY(ResponseCurveComponentItem);
-
-    ResponseCurveComponentItem(foleys::MagicGUIBuilder&, const juce::ValueTree&);
-    //std::vector<foleys::SettableProperty> getSettableProperties() const override;
-    //// Override update() to set the values to your custom component
-    void update() override;
-    juce::Component* getWrappedComponent() override;
-
-private:
-    ResponseCurveComponent responseCurve;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ResponseCurveComponentItem)
-};

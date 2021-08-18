@@ -14,14 +14,12 @@
 //==============================================================================
 /**
 */
-class BiztortionAudioProcessor  : public foleys::MagicProcessor
+class BiztortionAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
     BiztortionAudioProcessor();
     ~BiztortionAudioProcessor() override;
-
-    void initialiseBuilder(foleys::MagicGUIBuilder& builder) override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -32,6 +30,13 @@ public:
    #endif
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+    //==============================================================================
+    juce::AudioProcessorEditor* createEditor() override;
+    bool hasEditor() const override;
+
+    void getStateInformation(juce::MemoryBlock& destData) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
 
     //==============================================================================
     const juce::String getName() const override;

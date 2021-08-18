@@ -861,7 +861,8 @@ static const unsigned char temp_binary_data_1[] =
 "                       radius=\"0\"/>\r\n"
 "    </Types>\r\n"
 "  </Style>\r\n"
-"  <View id=\"root\" resizable=\"1\" resize-corner=\"1\">\r\n"
+"  <View id=\"root\" resizable=\"1\" resize-corner=\"0\" width=\"800\" height=\"600\"\r\n"
+"        min-width=\"700\" min-height=\"500\">\r\n"
 "    <View id=\"plot-view\" class=\"plot-view\" background-color=\"00000000\"\r\n"
 "          padding=\"0\" margin=\"4\" border=\"0\" radius=\"0\" border-color=\"00993333\"\r\n"
 "          tab-color=\"\">\r\n"
@@ -911,7 +912,7 @@ static const unsigned char temp_binary_data_1[] =
 "      </Palettes>\r\n"
 "    </Style>\r\n"
 "  </Styles>\r\n"
-"</magic>\r\n";
+"</magic>";
 
 const char* magic_xml = (const char*) temp_binary_data_1;
 
@@ -927,7 +928,7 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
     switch (hash)
     {
         case 0x7cb93db5:  numBytes = 57997; return Logo_png;
-        case 0x7ee40a85:  numBytes = 3517; return magic_xml;
+        case 0x7ee40a85:  numBytes = 3582; return magic_xml;
         default: break;
     }
 

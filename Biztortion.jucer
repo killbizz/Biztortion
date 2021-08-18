@@ -22,7 +22,7 @@
             file="Source/PluginProcessor.cpp"/>
       <FILE id="of0qUf" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="BEeiGF" name="PluginEditor.cpp" compile="0" resource="0"
+      <FILE id="BEeiGF" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="CZDMBB" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
     </GROUP>

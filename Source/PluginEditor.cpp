@@ -15,7 +15,10 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+
+    // construct sliders etc...
+
+    setSize (700, 600);
 }
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
@@ -37,4 +40,5 @@ void BiztortionAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+
 }

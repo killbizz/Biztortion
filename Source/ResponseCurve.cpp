@@ -145,20 +145,3 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));
 }
-
-ResponseCurveComponentItem::ResponseCurveComponentItem(foleys::MagicGUIBuilder& builder,
-    const juce::ValueTree& node) : foleys::GuiItem(builder, node),
-    responseCurve(*builder.getMagicState().getProcessor())
-{
-    addAndMakeVisible(responseCurve);
-}
-
-void ResponseCurveComponentItem::update()
-{
-
-}
-
-juce::Component* ResponseCurveComponentItem::getWrappedComponent()
-{
-    return &responseCurve;
-}

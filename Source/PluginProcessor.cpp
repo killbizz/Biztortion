@@ -13,7 +13,7 @@
 //==============================================================================
 BiztortionAudioProcessor::BiztortionAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : MagicProcessor(BusesProperties()
+     : AudioProcessor(BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
@@ -23,26 +23,11 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                        ), filterModule(apvts, getSampleRate())
 #endif
 {
-    FOLEYS_SET_SOURCE_PATH(__FILE__);
-
-    magicState.setGuiValueTree(BinaryData::magic_xml, BinaryData::magic_xmlSize);
-
-    // MAGIC GUI: add visualizations to Editor
-    outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>("output");
-    oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>("waveform");
-    analyser = magicState.createAndAddObject<foleys::MagicAnalyser>("analyser");
-    magicState.addBackgroundProcessing(analyser);
+    
 }
 
 BiztortionAudioProcessor::~BiztortionAudioProcessor()
 {
-}
-
-void BiztortionAudioProcessor::initialiseBuilder(foleys::MagicGUIBuilder& builder)
-{
-    builder.registerJUCEFactories();
-
-    builder.registerFactory("ResponseCurveComponent", &ResponseCurveComponentItem::factory);
 }
 
 //==============================================================================
@@ -115,8 +100,8 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 
     filterModule.prepareToPlay(sampleRate, samplesPerBlock);
 
-    oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
-    analyser->prepareToPlay(sampleRate, samplesPerBlock);
+    /*oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
+    analyser->prepareToPlay(sampleRate, samplesPerBlock);*/
 }
 
 void BiztortionAudioProcessor::releaseResources()
@@ -168,8 +153,42 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
     filterModule.processBlock(buffer, midiMessages, getSampleRate());
 
-    oscilloscope->pushSamples(buffer);
-    analyser->pushSamples(buffer);
+    /*oscilloscope->pushSamples(buffer);
+    analyser->pushSamples(buffer);*/
+}
+
+bool BiztortionAudioProcessor::hasEditor() const
+{
+    return true; // (change this to false if you choose to not supply an editor)
+}
+
+juce::AudioProcessorEditor* BiztortionAudioProcessor::createEditor()
+{
+    // return new BiztortionAudioProcessorEditor(*this);
+    return new juce::GenericAudioProcessorEditor(*this);
+}
+
+//==============================================================================
+void BiztortionAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+{
+    // You should use this method to store your parameters in the memory block.
+    // You could do that either as raw data, or use the XML or ValueTree classes
+    // as intermediaries to make it easy to save and load complex data.
+
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
+}
+
+void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+{
+    // You should use this method to restore your parameters from this memory block,
+    // whose contents will have been created by the getStateInformation() call.
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if (tree.isValid())
+    {
+        apvts.replaceState(tree);
+        filterModule.updateFilters(getSampleRate());
+    }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::createParameterLayout() {
