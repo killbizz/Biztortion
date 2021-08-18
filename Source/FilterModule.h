@@ -103,16 +103,15 @@ public:
 
     static void addFilterParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
 
-    void updateFilters();
-    void updatePeakFilter(const FilterChainSettings& chainSettings);
-    void updateLowCutFilter(const FilterChainSettings& chainSettings);
-    void updateHighCutFilter(const FilterChainSettings& chainSettings);
+    void updateFilters(double);
+    void updatePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
+    void updateLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
+    void updateHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
 
     void prepareToPlay(double sampleRate, int samplesPerBlock);
-    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&);
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double);
 
 private:
     juce::AudioProcessorValueTreeState& apvts;
-    double sampleRate;
     MonoChain leftChain, rightChain;
 };

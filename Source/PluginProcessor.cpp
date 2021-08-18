@@ -166,7 +166,7 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    filterModule.processBlock(buffer, midiMessages);
+    filterModule.processBlock(buffer, midiMessages, getSampleRate());
 
     oscilloscope->pushSamples(buffer);
     analyser->pushSamples(buffer);
