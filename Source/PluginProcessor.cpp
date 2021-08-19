@@ -98,10 +98,10 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 
+    oscilloscope.clear();
+
     filterModule.prepareToPlay(sampleRate, samplesPerBlock);
 
-    /*oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
-    analyser->prepareToPlay(sampleRate, samplesPerBlock);*/
 }
 
 void BiztortionAudioProcessor::releaseResources()
@@ -151,10 +151,10 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    oscilloscope.processBlock(buffer.getReadPointer(0) , buffer.getNumSamples());
+
     filterModule.processBlock(buffer, midiMessages, getSampleRate());
 
-    /*oscilloscope->pushSamples(buffer);
-    analyser->pushSamples(buffer);*/
 }
 
 bool BiztortionAudioProcessor::hasEditor() const
@@ -164,8 +164,8 @@ bool BiztortionAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* BiztortionAudioProcessor::createEditor()
 {
-    // return new BiztortionAudioProcessorEditor(*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new BiztortionAudioProcessorEditor(*this);
+    // return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================

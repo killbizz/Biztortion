@@ -59,13 +59,9 @@ public:
     juce::AudioProcessorValueTreeState apvts{
       *this, nullptr, "Parameters", createParameterLayout()
     };
+    drow::AudioOscilloscope oscilloscope;
 
 private:
-
-    // GUI MAGIC: define that as last member of your AudioProcessor
-    foleys::MagicLevelSource* outputMeter = nullptr;
-    foleys::MagicPlotSource* oscilloscope = nullptr;
-    foleys::MagicPlotSource* analyser = nullptr;
 
     FilterModule filterModule;
 

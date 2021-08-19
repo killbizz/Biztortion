@@ -17,6 +17,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // editor's size to whatever you need it to be.
 
     // construct sliders etc...
+    addAndMakeVisible(audioProcessor.oscilloscope);
 
     setSize (700, 600);
 }
@@ -40,5 +41,7 @@ void BiztortionAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-
+    auto bounds = getLocalBounds();
+    auto oscilloscopeArea = bounds.removeFromTop(getHeight() / 2);
+    audioProcessor.oscilloscope.setBounds(oscilloscopeArea);
 }
