@@ -152,7 +152,7 @@ void ResponseCurveComponent::resized()
 {
     using namespace juce;
 
-    // BACKGROUND GRID
+    // --- BACKGROUND GRID ---
 
     background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
 
@@ -246,17 +246,28 @@ void ResponseCurveComponent::resized()
 
         g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::lightgrey);
         g.drawFittedText(str, r, juce::Justification::centred, 1);
+
+        // ANALYZER LABELS
+
+        str.clear();
+        str << (gDb - 24.f);
+        r.setX(1);
+        textWidth = g.getCurrentFont().getStringWidth(str);
+        r.setSize(textWidth, fontHeight);
+        g.setColour(Colours::lightgrey);
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
 {
-    // returns a dimesion reduced rectangle as bounds of the component in order to render even
-    // its margin
+    // returns a dimesion reduced rectangle as bounds in order to avoid margin collisions
     auto bounds = getLocalBounds();
+
     //bounds.reduce(10, //JUCE_LIVE_CONSTANT(5), 
     //    8 //JUCE_LIVE_CONSTANT(5)
     //    );
+
     bounds.removeFromTop(12);
     bounds.removeFromBottom(2);
     bounds.removeFromLeft(20);
@@ -267,6 +278,7 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
 
 juce::Rectangle<int> ResponseCurveComponent::getAnalysysArea()
 {
+    // renderArea = container ; analysysArea = content of responseCurve
     auto bounds = getRenderArea();
     bounds.removeFromTop(4);
     bounds.removeFromBottom(4);
