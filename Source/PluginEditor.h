@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "ResponseCurve.h"
 
 //==============================================================================
 /**
@@ -28,6 +29,10 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
+
+    ResponseCurveComponent responseCurveComponent;
+
+    std::vector<juce::Component*> getComps();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };
