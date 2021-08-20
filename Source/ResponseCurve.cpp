@@ -17,7 +17,7 @@
 //==============================================================================
 
 // component for the response curve in order to paint the curve only in his area
-ResponseCurveComponent::ResponseCurveComponent(juce::AudioProcessor& p) : audioProcessor(*dynamic_cast<BiztortionAudioProcessor*>(&p)) {
+ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p) : audioProcessor(p) {
     monoChainUpdate();
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
@@ -73,7 +73,9 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll(Colours::black);
 
-    auto responseArea = getLocalBounds();
+    g.drawImage(background, getLocalBounds().toFloat());
+
+    auto responseArea = getAnalysysArea();
     auto responseWidth = responseArea.getWidth();
 
     auto& lowcut = monoChain.get<ChainPositions::LowCut>();
@@ -139,9 +141,82 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
         responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
     }
     // drawing response area
-    // g.setColour(Colours::orange);
-    // g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
+     g.setColour(Colours::orange);
+     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
     // drawing response curve
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));
+}
+
+void ResponseCurveComponent::resized()
+{
+    using namespace juce;
+    background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
+
+    Graphics g(background);
+
+    Array<float> freqs
+    {
+        20, 30, 40, 50, 100,
+        200, 300, 400, 500, 1000,
+        2000, 3000, 4000, 5000, 10000,
+        20000
+    };
+
+    auto renderArea = getAnalysysArea();
+    auto left = renderArea.getX();
+    auto right = renderArea.getRight();
+    auto top = renderArea.getY();
+    auto bottom = renderArea.getBottom();
+    auto width = renderArea.getWidth();
+
+    // caching x infos related to the container dimensions
+    Array<float> xs;
+    for (auto f : freqs) {
+        auto normX = mapFromLog10(f, 20.f, 20000.f);
+        xs.add(left + width * normX);
+    }
+
+    g.setColour(Colours::dimgrey);
+    for (auto x : xs) {
+        // g.drawVerticalLine(getWidth() * normX, 0.f, getHeight());
+        g.drawVerticalLine(x, top, bottom);
+    }
+
+    Array<float> gains
+    {
+        -24, -12, 0, 12, 24
+    };
+    for (auto gDb : gains) {
+        // range of sliders = -24, +24
+        auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
+        // g.drawHorizontalLine(y, 0, getWidth());
+        g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::darkgrey);
+        g.drawHorizontalLine(y, left, right);
+    }
+}
+
+juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
+{
+    // returns a dimesion reduced rectangle as bounds of the component in order to render even
+    // its margin
+    auto bounds = getLocalBounds();
+    //bounds.reduce(10, //JUCE_LIVE_CONSTANT(5), 
+    //    8 //JUCE_LIVE_CONSTANT(5)
+    //    );
+    bounds.removeFromTop(12);
+    bounds.removeFromBottom(2);
+    bounds.removeFromLeft(20);
+    bounds.removeFromRight(20);
+
+    return bounds;
+}
+
+juce::Rectangle<int> ResponseCurveComponent::getAnalysysArea()
+{
+    auto bounds = getRenderArea();
+    bounds.removeFromTop(4);
+    bounds.removeFromBottom(4);
+
+    return bounds;
 }
