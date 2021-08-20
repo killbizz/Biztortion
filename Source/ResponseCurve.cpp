@@ -151,17 +151,12 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 void ResponseCurveComponent::resized()
 {
     using namespace juce;
+
+    // BACKGROUND GRID
+
     background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
 
     Graphics g(background);
-
-    Array<float> freqs
-    {
-        20, 30, 40, 50, 100,
-        200, 300, 400, 500, 1000,
-        2000, 3000, 4000, 5000, 10000,
-        20000
-    };
 
     auto renderArea = getAnalysysArea();
     auto left = renderArea.getX();
@@ -170,16 +165,24 @@ void ResponseCurveComponent::resized()
     auto bottom = renderArea.getBottom();
     auto width = renderArea.getWidth();
 
-    // caching x infos related to the container dimensions
+    // GRID LINES
+
+    g.setColour(Colours::dimgrey);
+
+    Array<float> freqs
+    {
+        20, /*30, 40,*/ 50, 100,
+        200, /*300, 400,*/ 500, 1000,
+        2000, /*3000, 4000,*/ 5000, 10000,
+        20000
+    };
+    // caching x infos related to the container dimensions in an array
     Array<float> xs;
     for (auto f : freqs) {
         auto normX = mapFromLog10(f, 20.f, 20000.f);
         xs.add(left + width * normX);
     }
-
-    g.setColour(Colours::dimgrey);
     for (auto x : xs) {
-        // g.drawVerticalLine(getWidth() * normX, 0.f, getHeight());
         g.drawVerticalLine(x, top, bottom);
     }
 
@@ -190,10 +193,40 @@ void ResponseCurveComponent::resized()
     for (auto gDb : gains) {
         // range of sliders = -24, +24
         auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
-        // g.drawHorizontalLine(y, 0, getWidth());
         g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::darkgrey);
         g.drawHorizontalLine(y, left, right);
     }
+
+    // GRID LABELS
+
+    g.setColour(Colours::lightgrey);
+    const int fontHeight = 10;
+    g.setFont(fontHeight);
+
+    for (int i = 0; i < freqs.size(); ++i) {
+        auto f = freqs[i];
+        auto x = xs[i];
+
+        bool addKHz = false;
+        String str;
+        if (f > 999.f) {
+            addKHz = true;
+            f /= 1000.f;
+        }
+        str << f;
+        if (addKHz) {
+            str << "k";
+        }
+        str << "Hz";
+
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+        r.setCentre(x, 0);
+        r.setY(1);
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
+    }
+
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
