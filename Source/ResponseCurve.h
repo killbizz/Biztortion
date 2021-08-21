@@ -68,12 +68,7 @@ private:
     juce::Image background;
 
     // for the FFT analyzer
-    SingleChannelSampleFifo<BiztortionAudioProcessor::BlockType>* leftChannelFifo;
-    // buffer to feed a single channel FFTDataGenerator
-    juce::AudioBuffer<float> monoBuffer;
-    FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
-    AnalyzerPathGenerator<juce::Path> pathProducer;
-    juce::Path leftChannelFFTPath;
+    PathProducer leftPathProducer, rightPathProducer;
 
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysysArea();

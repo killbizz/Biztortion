@@ -18,10 +18,9 @@
 
 // component for the response curve in order to paint the curve only in his area
 ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p) 
-    : audioProcessor(p), leftChannelFifo(&audioProcessor.leftChannelFifo) {
-
-    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048);
-    monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
+    : audioProcessor(p),
+      leftPathProducer(audioProcessor.leftChannelFifo), 
+      rightPathProducer(audioProcessor.rightChannelFifo) {
 
     monoChainUpdate();
 
@@ -50,48 +49,11 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
 }
 
 void ResponseCurveComponent::timerCallback() {
-    juce::AudioBuffer<float> tempIncomingBuffer;
-    while (leftChannelFifo->getNumCompleteBuffersAvailable() > 0) {
-        if (leftChannelFifo->getAudioBuffer(tempIncomingBuffer)) {
-            // notice that with these operations monoBuffer never changes size
-            auto size = tempIncomingBuffer.getNumSamples();
-            // left shifting of audio data in the buffer (losting the first block)
-            juce::FloatVectorOperations::copy(
-                monoBuffer.getWritePointer(0, 0), 
-                monoBuffer.getReadPointer(0, size),
-                monoBuffer.getNumSamples() - size);
-            // appending fresh audio data block in the buffer
-            juce::FloatVectorOperations::copy(
-                monoBuffer.getWritePointer(0, monoBuffer.getNumSamples() - size),
-                tempIncomingBuffer.getReadPointer(0, 0),
-                size);
-            // negativeInfinity = minimum magnitude value to display in the analyzer
-            leftChannelFFTDataGenerator.produceFFTDataForRendering(monoBuffer, -48.f);
-        }
-    }
-    /*
-    * if there are FFT data buffers to pull
-    *   uf we can pull a buffer
-    *       generate a path
-    */
-    const auto fftBounds = getAnalysysArea().toFloat();
-    const auto fftSize = leftChannelFFTDataGenerator.getFFTSize();
-    // binWidth = sampleRate / fftSize
-    const auto binWidth = audioProcessor.getSampleRate() / (double) fftSize;
-    while (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
-        std::vector<float> fftData;
-        if (leftChannelFFTDataGenerator.getFFTData(fftData)) {
-            pathProducer.generatePath(fftData, fftBounds, fftSize, binWidth, -48.f);
-        }
-    }
-    /*
-    * while there are paths that can be pulled
-    *   pull as many as we can
-    *       display the most recent path
-    */
-    while (pathProducer.getNumPathsAvailable() > 0) {
-        pathProducer.getPath(leftChannelFFTPath);
-    }
+    
+    auto fftBounds = getAnalysysArea().toFloat();
+    auto sampleRate = audioProcessor.getSampleRate();
+    leftPathProducer.process(fftBounds, sampleRate);
+    rightPathProducer.process(fftBounds, sampleRate);
 
     if (parameterChanged.compareAndSetBool(false, true)) {
         monoChainUpdate();
@@ -200,11 +162,17 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     g.strokePath(responseCurve, PathStrokeType(2.f));
 
     // FFT ANALYZER
-
+    auto leftChannelFFTPath = leftPathProducer.getPath();
     leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), 
         responseArea.getY()));
     g.setColour(Colours::skyblue);
     g.strokePath(leftChannelFFTPath, PathStrokeType(1));
+
+    auto rightChannelFFTPath = rightPathProducer.getPath();
+    rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(),
+        responseArea.getY()));
+    g.setColour(Colours::lightyellow);
+    g.strokePath(rightChannelFFTPath, PathStrokeType(1));
 }
 
 void ResponseCurveComponent::resized()
@@ -337,7 +305,7 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
 
 juce::Rectangle<int> ResponseCurveComponent::getAnalysysArea()
 {
-    // renderArea = container ; analysysArea = content of responseCurve
+    // renderArea = container ; analysysArea = content of responseCurve and FFT analyzer
     auto bounds = getRenderArea();
     bounds.removeFromTop(4);
     bounds.removeFromBottom(4);
