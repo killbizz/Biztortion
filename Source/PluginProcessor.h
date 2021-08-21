@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "FilterModule.h"
+#include "FFTAnalyzer.h"
 
 //==============================================================================
 /**
@@ -60,6 +61,10 @@ public:
       *this, nullptr, "Parameters", createParameterLayout()
     };
     drow::AudioOscilloscope oscilloscope;
+
+    using BlockType = juce::AudioBuffer<float>;
+    SingleChannelSampleFifo<BlockType> leftChannelFifo{ Channel::Left };
+    SingleChannelSampleFifo<BlockType> rightChannelFifo{ Channel::Right };
 
 private:
 

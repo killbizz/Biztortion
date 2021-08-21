@@ -102,6 +102,9 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 
     filterModule.prepareToPlay(sampleRate, samplesPerBlock);
 
+    leftChannelFifo.prepare(samplesPerBlock);
+    rightChannelFifo.prepare(samplesPerBlock);
+
 }
 
 void BiztortionAudioProcessor::releaseResources()
@@ -154,6 +157,9 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     oscilloscope.processBlock(buffer.getReadPointer(0) , buffer.getNumSamples());
 
     filterModule.processBlock(buffer, midiMessages, getSampleRate());
+
+    leftChannelFifo.update(buffer);
+    rightChannelFifo.update(buffer);
 
 }
 
