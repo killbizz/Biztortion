@@ -201,7 +201,9 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 
     // FFT ANALYZER
 
-    g.setColour(Colours::blue);
+    leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), 
+        responseArea.getY()));
+    g.setColour(Colours::skyblue);
     g.strokePath(leftChannelFFTPath, PathStrokeType(1));
 }
 
