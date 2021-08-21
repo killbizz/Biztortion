@@ -64,7 +64,16 @@ private:
     BiztortionAudioProcessor& audioProcessor;
     juce::Atomic<bool> parameterChanged{ false };
     MonoChain monoChain;
+    // for the grid
     juce::Image background;
+
+    // for the FFT analyzer
+    SingleChannelSampleFifo<BiztortionAudioProcessor::BlockType>* leftChannelFifo;
+    // buffer to feed a single channel FFTDataGenerator
+    juce::AudioBuffer<float> monoBuffer;
+    FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
+    AnalyzerPathGenerator<juce::Path> pathProducer;
+    juce::Path leftChannelFFTPath;
 
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysysArea();

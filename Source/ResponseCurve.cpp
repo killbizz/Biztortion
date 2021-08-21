@@ -17,8 +17,14 @@
 //==============================================================================
 
 // component for the response curve in order to paint the curve only in his area
-ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p) : audioProcessor(p) {
+ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p) 
+    : audioProcessor(p), leftChannelFifo(&audioProcessor.leftChannelFifo) {
+
+    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048);
+    monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
+
     monoChainUpdate();
+
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
         if (param->getLabel() == juce::String("Filter")) {
@@ -44,11 +50,55 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
 }
 
 void ResponseCurveComponent::timerCallback() {
+    juce::AudioBuffer<float> tempIncomingBuffer;
+    while (leftChannelFifo->getNumCompleteBuffersAvailable() > 0) {
+        if (leftChannelFifo->getAudioBuffer(tempIncomingBuffer)) {
+            // notice that with these operations monoBuffer never changes size
+            auto size = tempIncomingBuffer.getNumSamples();
+            // left shifting of audio data in the buffer (losting the first block)
+            juce::FloatVectorOperations::copy(
+                monoBuffer.getWritePointer(0, 0), 
+                monoBuffer.getReadPointer(0, size),
+                monoBuffer.getNumSamples() - size);
+            // appending fresh audio data block in the buffer
+            juce::FloatVectorOperations::copy(
+                monoBuffer.getWritePointer(0, monoBuffer.getNumSamples() - size),
+                tempIncomingBuffer.getReadPointer(0, 0),
+                size);
+            // negativeInfinity = minimum magnitude value to display in the analyzer
+            leftChannelFFTDataGenerator.produceFFTDataForRendering(monoBuffer, -48.f);
+        }
+    }
+    /*
+    * if there are FFT data buffers to pull
+    *   uf we can pull a buffer
+    *       generate a path
+    */
+    const auto fftBounds = getAnalysysArea().toFloat();
+    const auto fftSize = leftChannelFFTDataGenerator.getFFTSize();
+    // binWidth = sampleRate / fftSize
+    const auto binWidth = audioProcessor.getSampleRate() / (double) fftSize;
+    while (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
+        std::vector<float> fftData;
+        if (leftChannelFFTDataGenerator.getFFTData(fftData)) {
+            pathProducer.generatePath(fftData, fftBounds, fftSize, binWidth, -48.f);
+        }
+    }
+    /*
+    * while there are paths that can be pulled
+    *   pull as many as we can
+    *       display the most recent path
+    */
+    while (pathProducer.getNumPathsAvailable() > 0) {
+        pathProducer.getPath(leftChannelFFTPath);
+    }
+
     if (parameterChanged.compareAndSetBool(false, true)) {
         monoChainUpdate();
         // signal a repaint
-        repaint();
     }
+
+    repaint();
 }
 
 void ResponseCurveComponent::monoChainUpdate()
@@ -83,6 +133,8 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     auto& highcut = monoChain.get<ChainPositions::HighCut>();
 
     auto sampleRate = audioProcessor.getSampleRate();
+
+    // RESPONSE AREA AND RESPONSE CURVE
 
     std::vector<double> magnitudes;
     // one magnitude per pixel
@@ -146,6 +198,11 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     // drawing response curve
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));
+
+    // FFT ANALYZER
+
+    g.setColour(Colours::blue);
+    g.strokePath(leftChannelFFTPath, PathStrokeType(1));
 }
 
 void ResponseCurveComponent::resized()
