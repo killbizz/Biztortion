@@ -300,3 +300,21 @@ struct AnalyzerPathGenerator
 private:
     Fifo<PathType> pathFifo;
 };
+
+// class for a single channel fft analyzer
+struct PathProducer
+{
+    PathProducer(SingleChannelSampleFifo<juce::AudioBuffer<float>>& scsf);
+    void process(juce::Rectangle<float> fftBounds, double sampleRate);
+    juce::Path getPath() { return leftChannelFFTPath; }
+private:
+    SingleChannelSampleFifo<juce::AudioBuffer<float>>* leftChannelFifo;
+
+    juce::AudioBuffer<float> monoBuffer;
+
+    FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
+
+    AnalyzerPathGenerator<juce::Path> pathProducer;
+
+    juce::Path leftChannelFFTPath;
+};
