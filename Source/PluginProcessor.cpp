@@ -102,6 +102,15 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 
     filterModule.prepareToPlay(sampleRate, samplesPerBlock);
 
+    //test signal preparation
+    /*juce::dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumOutputChannels();
+    spec.sampleRate = sampleRate;
+    osc.initialise([](float x) { return std::sin(x); });
+    osc.prepare(spec);
+    osc.setFrequency(1000);*/
+
     leftChannelFifo.prepare(samplesPerBlock);
     rightChannelFifo.prepare(samplesPerBlock);
 
@@ -157,6 +166,12 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     oscilloscope.processBlock(buffer.getReadPointer(0) , buffer.getNumSamples());
 
     filterModule.processBlock(buffer, midiMessages, getSampleRate());
+
+    // test signal
+    /*buffer.clear();
+    juce::dsp::AudioBlock<float> block(buffer);
+    juce::dsp::ProcessContextReplacing<float> stereoContext(block);
+    osc.process(stereoContext);*/
 
     leftChannelFifo.update(buffer);
     rightChannelFifo.update(buffer);

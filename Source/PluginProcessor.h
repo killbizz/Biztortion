@@ -70,6 +70,9 @@ private:
 
     FilterModule filterModule;
 
+    // test signal
+    // juce::dsp::Oscillator<float> osc;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessor)
 };
