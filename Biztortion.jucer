@@ -9,6 +9,8 @@
   <MAINGROUP id="WGhc7c" name="Biztortion">
     <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources"/>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
+      <FILE id="Lcm8LE" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/FFTAnalyzer.cpp"/>
+      <FILE id="tEMxkJ" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/FFTAnalyzer.h"/>
       <FILE id="iE974d" name="ResponseCurve.cpp" compile="1" resource="0"
             file="Source/ResponseCurve.cpp"/>
       <FILE id="n61h7O" name="ResponseCurve.h" compile="0" resource="0" file="Source/ResponseCurve.h"/>
