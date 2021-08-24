@@ -99,6 +99,7 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     // initialisation that you need..
 
     oscilloscope.clear();
+    oscilloscope.setHorizontalZoom(0.1f);
 
     filterModule.prepareToPlay(sampleRate, samplesPerBlock);
 
