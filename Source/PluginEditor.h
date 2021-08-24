@@ -39,6 +39,10 @@ public:
     void resized() override;
 
 private:
+
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using Attachment = APVTS::SliderAttachment;
+
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
@@ -51,6 +55,13 @@ private:
         highCutSlider,
         lowCutSlopeSlider,
         highCutSlopeSlider;
+    Attachment peakFreqSliderAttachment,
+        peakGainSliderAttachment,
+        peakQualitySliderAttachment,
+        lowCutFreqSliderAttachment,
+        highCutSliderAttachment,
+        lowCutSlopeSliderAttachment,
+        highCutSlopeSliderAttachment;
     ResponseCurveComponent responseCurveComponent;
 
     // fft analyzer

@@ -12,7 +12,14 @@
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), 
-    responseCurveComponent(p), analyzerComponent(p)
+    responseCurveComponent(p), analyzerComponent(p),
+    peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
+    peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
+    peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
+    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
+    highCutSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutSlider),
+    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -24,7 +31,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
     setSize (700, 600);
     setResizable(true, true);
-    setResizeLimits(600, 500, 900, 800);
+    setResizeLimits(600, 500, 1500, 750);
 }
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
