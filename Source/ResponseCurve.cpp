@@ -192,7 +192,7 @@ void ResponseCurveComponent::resized()
     auto bottom = renderArea.getBottom();
     auto width = renderArea.getWidth();
 
-    // GRID LINES
+    // --- GRID LINES ---
 
     g.setColour(Colours::dimgrey);
 
@@ -224,7 +224,7 @@ void ResponseCurveComponent::resized()
         g.drawHorizontalLine(y, left, right);
     }
 
-    // FREQ LABELS
+    // --- FREQ LABELS ---
 
     g.setColour(Colours::lightgrey);
     const int fontHeight = 10;
@@ -254,7 +254,7 @@ void ResponseCurveComponent::resized()
         g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
 
-    // GAIN LABELS
+    // --- GAIN LABELS ---
 
     for (auto gDb : gains) {
         // range of sliders = -24, +24
@@ -274,7 +274,7 @@ void ResponseCurveComponent::resized()
         g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::lightgrey);
         g.drawFittedText(str, r, juce::Justification::centred, 1);
 
-        // ANALYZER LABELS
+        // --- ANALYZER LABELS ---
 
         str.clear();
         str << (gDb - 24.f);

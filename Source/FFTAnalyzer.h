@@ -82,7 +82,7 @@ private:
     juce::AbstractFifo fifo{ Capacity };
 };
 
-// produces blocks of fixed amount audio samples
+// produces single-channel blocks of fixed amount audio samples
 template<typename BlockType>
 struct SingleChannelSampleFifo
 {
@@ -108,7 +108,8 @@ struct SingleChannelSampleFifo
         prepared.set(false);
         size.set(bufferSize);
 
-        bufferToFill.setSize(1,             //channel
+        bufferToFill.setSize(
+            1,             //channel
             bufferSize,    //num samples
             false,         //keepExistingContent
             true,          //clear extra space
