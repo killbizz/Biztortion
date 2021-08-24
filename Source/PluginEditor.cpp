@@ -53,13 +53,13 @@ void BiztortionAudioProcessorEditor::resized()
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
 
     responseCurveComponent.setBounds(responseCurveArea);
-    lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
-    highCutSlider.setBounds(highCutArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
+    lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f)));
+    highCutSlider.setBounds(highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f)));
     peakFreqSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.33));
     peakGainSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.5));
     peakQualitySlider.setBounds(filtersArea);
     lowCutSlopeSlider.setBounds(lowCutArea);
-    highCutSlider.setBounds(highCutArea);
+    highCutSlopeSlider.setBounds(highCutArea);
 
     // analyzer
     auto analyzerArea = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
