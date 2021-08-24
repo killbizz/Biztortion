@@ -11,9 +11,22 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "ResponseCurve.h"
+#include "FFTAnalyzerComponent.h"
 
 //==============================================================================
-/**
+/** SLIDERS
+*/
+
+struct CustomRotatorySlider : juce::Slider {
+    CustomRotatorySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+        juce::Slider::TextEntryBoxPosition::NoTextBox)
+    {
+
+    }
+};
+
+//==============================================================================
+/** EDITOR
 */
 class BiztortionAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
@@ -30,7 +43,18 @@ private:
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
 
+    // filter
+    CustomRotatorySlider peakFreqSlider,
+        peakGainSlider,
+        peakQualitySlider,
+        lowCutFreqSlider,
+        highCutSlider,
+        lowCutSlopeSlider,
+        highCutSlopeSlider;
     ResponseCurveComponent responseCurveComponent;
+
+    // fft analyzer
+    FFTAnalyzerComponent analyzerComponent;
 
     std::vector<juce::Component*> getComps();
 

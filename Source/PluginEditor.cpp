@@ -12,7 +12,7 @@
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), 
-    responseCurveComponent(p)
+    responseCurveComponent(p), analyzerComponent(p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -23,6 +23,8 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     }
 
     setSize (700, 600);
+    setResizable(true, true);
+    setResizeLimits(600, 500, 900, 800);
 }
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
@@ -44,18 +46,42 @@ void BiztortionAudioProcessorEditor::resized()
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
 
-    auto responseCurveArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 3.f));
+    // filters
+    auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
+    auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
+    auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
+    auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
 
     responseCurveComponent.setBounds(responseCurveArea);
+    lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
+    highCutSlider.setBounds(highCutArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
+    peakFreqSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.33));
+    peakGainSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.5));
+    peakQualitySlider.setBounds(filtersArea);
+    lowCutSlopeSlider.setBounds(lowCutArea);
+    highCutSlider.setBounds(highCutArea);
 
-    // auto oscilloscopeArea = bounds.removeFromTop(getHeight() / 2);
+    // analyzer
+    auto analyzerArea = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
+
+    analyzerComponent.setBounds(analyzerArea);
+
+    // oscilloscope
     audioProcessor.oscilloscope.setBounds(bounds);
 }
 
 std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
 {
     return {
+        &peakFreqSlider,
+        &peakGainSlider,
+        &peakQualitySlider,
+        &lowCutFreqSlider,
+        &highCutSlider,
+        &lowCutSlopeSlider,
+        &highCutSlopeSlider,
         &responseCurveComponent,
+        &analyzerComponent,
         &(audioProcessor.oscilloscope)
     };
 }
