@@ -18,15 +18,25 @@
 
 //==============================================================================
 
+struct DistortionSettings {
+    float mix{ 0 }, drive{ 0 }, overdriveAmp{ 0 }, overdriveSlope{ 0 }, fuzzyAmp{ 0 }, fuzzyFreq{ 0 };
+};
+
 class DistortionModule {
 public:
     DistortionModule(juce::AudioProcessorValueTreeState&);
     void prepareToPlay(double sampleRate, int samplesPerBlock);
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double);
 
-    static void addDistortionParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
+    static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
+    static DistortionSettings getSettings(juce::AudioProcessorValueTreeState& apvts);
 private:
     juce::AudioProcessorValueTreeState& apvts;
+
+    bool isActive = true;
+    juce::AudioBuffer<float> wetBuffer;
+
+    void updateDSP();
 };
 
 //==============================================================================

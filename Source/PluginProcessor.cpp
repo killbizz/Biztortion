@@ -220,6 +220,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     FilterModule::addFilterParameters(layout);
+    DistortionModule::addParameters(layout);
 
     return layout;
 }
