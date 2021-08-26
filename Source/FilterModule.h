@@ -14,7 +14,7 @@
 
 //==============================================================================
 
-/* FilterModule */
+/* FilterModule DSP */
 
 //==============================================================================
 
@@ -84,7 +84,7 @@ void updateCutFilter(ChainType& monoChain, const CoefficientType& cutCoefficient
 
 class FilterModule {
 public:
-    FilterModule(juce::AudioProcessorValueTreeState&, double);
+    FilterModule(juce::AudioProcessorValueTreeState&);
     // inline for avoiding linking problems with functions which have declaration + impementation
     // in the file.h (placed here for convenience)
     static inline auto makeLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
@@ -114,4 +114,18 @@ public:
 private:
     juce::AudioProcessorValueTreeState& apvts;
     MonoChain leftChain, rightChain;
+};
+
+//==============================================================================
+
+/* FilterModule GUI */
+
+//==============================================================================
+
+struct CustomRotatorySlider : juce::Slider {
+    CustomRotatorySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+        juce::Slider::TextEntryBoxPosition::NoTextBox)
+    {
+
+    }
 };

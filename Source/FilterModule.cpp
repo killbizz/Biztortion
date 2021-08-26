@@ -10,7 +10,7 @@
 
 #include "FilterModule.h"
 
-FilterModule::FilterModule(juce::AudioProcessorValueTreeState& _apvts, double _sampleRate)
+FilterModule::FilterModule(juce::AudioProcessorValueTreeState& _apvts)
     : apvts(_apvts) {}
 
 void updateCoefficients(Coefficients& old, const Coefficients& replacements) {

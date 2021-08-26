@@ -14,18 +14,6 @@
 #include "FFTAnalyzerComponent.h"
 
 //==============================================================================
-/** SLIDERS
-*/
-
-struct CustomRotatorySlider : juce::Slider {
-    CustomRotatorySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
-        juce::Slider::TextEntryBoxPosition::NoTextBox)
-    {
-
-    }
-};
-
-//==============================================================================
 /** EDITOR
 */
 class BiztortionAudioProcessorEditor  : public juce::AudioProcessorEditor
@@ -47,7 +35,7 @@ private:
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
 
-    // filter
+    // filterModule
     CustomRotatorySlider peakFreqSlider,
         peakGainSlider,
         peakQualitySlider,
@@ -63,6 +51,8 @@ private:
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
     ResponseCurveComponent responseCurveComponent;
+
+    // distortionModule
 
     // fft analyzer
     FFTAnalyzerComponent analyzerComponent;
