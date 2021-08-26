@@ -20,7 +20,7 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), filterModule(apvts, getSampleRate())
+                       ), filterModule(apvts), distortionModule(apvts)
 #endif
 {
     
@@ -102,6 +102,7 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     oscilloscope.setHorizontalZoom(0.1f);
 
     filterModule.prepareToPlay(sampleRate, samplesPerBlock);
+    distortionModule.prepareToPlay(sampleRate, samplesPerBlock);
 
     //test signal preparation
     /*juce::dsp::ProcessSpec spec;
@@ -112,6 +113,7 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     osc.prepare(spec);
     osc.setFrequency(1000);*/
 
+    // FIFO for fft analyzers
     leftChannelFifo.prepare(samplesPerBlock);
     rightChannelFifo.prepare(samplesPerBlock);
 
@@ -164,15 +166,16 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    oscilloscope.processBlock(buffer.getReadPointer(0) , buffer.getNumSamples());
-
     filterModule.processBlock(buffer, midiMessages, getSampleRate());
+    distortionModule.processBlock(buffer, midiMessages, getSampleRate());
 
     // test signal
     /*buffer.clear();
     juce::dsp::AudioBlock<float> block(buffer);
     juce::dsp::ProcessContextReplacing<float> stereoContext(block);
     osc.process(stereoContext);*/
+
+    oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
 
     leftChannelFifo.update(buffer);
     rightChannelFifo.update(buffer);

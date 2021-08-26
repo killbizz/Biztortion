@@ -9,6 +9,10 @@
   <MAINGROUP id="WGhc7c" name="Biztortion">
     <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources"/>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
+      <FILE id="SPpqig" name="DistortionModule.cpp" compile="1" resource="0"
+            file="Source/DistortionModule.cpp"/>
+      <FILE id="jeiB3h" name="DistortionModule.h" compile="0" resource="0"
+            file="Source/DistortionModule.h"/>
       <FILE id="RUUw5O" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
             file="Source/FFTAnalyzerComponent.cpp"/>
       <FILE id="aNIkD4" name="FFTAnalyzerComponent.h" compile="0" resource="0"
