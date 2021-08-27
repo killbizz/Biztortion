@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    ResponseCurve.h
+    ResponseCurveComponent.h
     Created: 17 Aug 2021 6:24:03pm
     Author:  gabri
 
@@ -10,7 +10,12 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "PluginProcessor.h"
+// #include "FFTAnalyzerComponent.h"
+
+class BiztortionAudioProcessor;
+using Filter = juce::dsp::IIR::Filter<float>;
+using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
 
 //==============================================================================
 
@@ -64,11 +69,9 @@ private:
     BiztortionAudioProcessor& audioProcessor;
     juce::Atomic<bool> parameterChanged{ false };
     MonoChain monoChain;
-    // for the grid
-    juce::Image background;
 
-    // for the FFT analyzer
-    PathProducer leftPathProducer, rightPathProducer;
+    //// FFT analyzer
+    //FFTAnalyzerComponent fftAnalyzer;
 
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysysArea();
