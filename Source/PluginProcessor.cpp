@@ -8,7 +8,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "ResponseCurve.h"
 
 //==============================================================================
 BiztortionAudioProcessor::BiztortionAudioProcessor()

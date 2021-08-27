@@ -11,7 +11,8 @@
 #include <JuceHeader.h>
 #include "FilterModule.h"
 #include "DistortionModule.h"
-#include "FFTAnalyzer.h"
+#include "ResponseCurveComponent.h"
+#include "FFTAnalyzerComponent.h"
 
 //==============================================================================
 /**

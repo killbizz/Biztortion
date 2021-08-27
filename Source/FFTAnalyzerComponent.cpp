@@ -9,6 +9,7 @@
 */
 
 #include "FFTAnalyzerComponent.h"
+#include "PluginProcessor.h"
 
 // component for the response curve in order to paint the curve only in his area
 FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p)
@@ -43,7 +44,7 @@ void FFTAnalyzerComponent::paint(juce::Graphics& g)
 {
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(Colours::black);
+    // g.fillAll(Colours::black);
 
     g.drawImage(background, getLocalBounds().toFloat());
 
@@ -72,7 +73,6 @@ void FFTAnalyzerComponent::resized()
     // --- BACKGROUND GRID ---
 
     background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
-
     Graphics g(background);
 
     auto renderArea = getAnalysysArea();

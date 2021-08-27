@@ -11,7 +11,10 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "PluginProcessor.h"
+#include "FFTAnalyzer.h"
+// #include "PluginProcessor.h"
+
+class BiztortionAudioProcessor;
 
 struct FFTAnalyzerComponent : juce::Component,
     juce::AudioProcessorParameter::Listener,

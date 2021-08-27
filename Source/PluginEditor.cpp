@@ -12,7 +12,7 @@
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), 
-    responseCurveComponent(p), analyzerComponent(p),
+    responseCurveComponent(p), filterFftAnalyzerComponent(p), analyzerComponent(p),
     peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
     peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
     peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
@@ -59,6 +59,7 @@ void BiztortionAudioProcessorEditor::resized()
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
 
+    filterFftAnalyzerComponent.setBounds(responseCurveArea);
     responseCurveComponent.setBounds(responseCurveArea);
     lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f)));
     highCutSlider.setBounds(highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f)));
@@ -87,6 +88,7 @@ std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
         &highCutSlider,
         &lowCutSlopeSlider,
         &highCutSlopeSlider,
+        & filterFftAnalyzerComponent,
         &responseCurveComponent,
         &analyzerComponent,
         &(audioProcessor.oscilloscope)

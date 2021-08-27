@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "ResponseCurve.h"
+#include "ResponseCurveComponent.h"
 #include "FFTAnalyzerComponent.h"
 
 //==============================================================================
@@ -51,6 +51,7 @@ private:
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
     ResponseCurveComponent responseCurveComponent;
+    FFTAnalyzerComponent filterFftAnalyzerComponent;
 
     // distortionModule
 
