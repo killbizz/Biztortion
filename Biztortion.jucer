@@ -9,19 +9,24 @@
   <MAINGROUP id="WGhc7c" name="Biztortion">
     <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources"/>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
-      <FILE id="SPpqig" name="DistortionModule.cpp" compile="1" resource="0"
-            file="Source/DistortionModule.cpp"/>
-      <FILE id="jeiB3h" name="DistortionModule.h" compile="0" resource="0"
-            file="Source/DistortionModule.h"/>
+      <FILE id="N8glMH" name="TransferFunctionGraphComponent.cpp" compile="1"
+            resource="0" file="Source/TransferFunctionGraphComponent.cpp"/>
+      <FILE id="UXBHP8" name="TransferFunctionGraphComponent.h" compile="0"
+            resource="0" file="Source/TransferFunctionGraphComponent.h"/>
+      <FILE id="vDeCq1" name="ResponseCurveComponent.cpp" compile="1" resource="0"
+            file="Source/ResponseCurveComponent.cpp"/>
+      <FILE id="VFRSxd" name="ResponseCurveComponent.h" compile="0" resource="0"
+            file="Source/ResponseCurveComponent.h"/>
+      <FILE id="SPpqig" name="WaveshaperModule.cpp" compile="1" resource="0"
+            file="Source/WaveshaperModule.cpp"/>
+      <FILE id="jeiB3h" name="WaveshaperModule.h" compile="0" resource="0"
+            file="Source/WaveshaperModule.h"/>
       <FILE id="RUUw5O" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
             file="Source/FFTAnalyzerComponent.cpp"/>
       <FILE id="aNIkD4" name="FFTAnalyzerComponent.h" compile="0" resource="0"
             file="Source/FFTAnalyzerComponent.h"/>
       <FILE id="Lcm8LE" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/FFTAnalyzer.cpp"/>
       <FILE id="tEMxkJ" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/FFTAnalyzer.h"/>
-      <FILE id="iE974d" name="ResponseCurve.cpp" compile="1" resource="0"
-            file="Source/ResponseCurve.cpp"/>
-      <FILE id="n61h7O" name="ResponseCurve.h" compile="0" resource="0" file="Source/ResponseCurve.h"/>
       <FILE id="fpAlCP" name="FilterModule.cpp" compile="1" resource="0"
             file="Source/FilterModule.cpp"/>
       <FILE id="TS8KcU" name="FilterModule.h" compile="0" resource="0" file="Source/FilterModule.h"/>

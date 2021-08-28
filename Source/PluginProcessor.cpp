@@ -112,7 +112,7 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     osc.prepare(spec);
     osc.setFrequency(1000);*/
 
-    // FIFO for fft analyzers
+    // fft analyzers
     leftChannelFifo.prepare(samplesPerBlock);
     rightChannelFifo.prepare(samplesPerBlock);
 
@@ -176,6 +176,7 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
     oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
 
+    // fft analyzers
     leftChannelFifo.update(buffer);
     rightChannelFifo.update(buffer);
 
@@ -188,8 +189,8 @@ bool BiztortionAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* BiztortionAudioProcessor::createEditor()
 {
-    return new BiztortionAudioProcessorEditor(*this);
-    // return new juce::GenericAudioProcessorEditor(*this);
+    // return new BiztortionAudioProcessorEditor(*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -219,7 +220,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     FilterModule::addFilterParameters(layout);
-    DistortionModule::addParameters(layout);
+    WaveshaperModule::addParameters(layout);
 
     return layout;
 }

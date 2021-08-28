@@ -53,7 +53,8 @@ private:
     ResponseCurveComponent responseCurveComponent;
     FFTAnalyzerComponent filterFftAnalyzerComponent;
 
-    // distortionModule
+    // waveshaperModule
+
 
     // fft analyzer
     FFTAnalyzerComponent analyzerComponent;

@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include "FilterModule.h"
-#include "DistortionModule.h"
+#include "WaveshaperModule.h"
 #include "ResponseCurveComponent.h"
 #include "FFTAnalyzerComponent.h"
 
@@ -71,7 +71,7 @@ public:
 private:
 
     FilterModule filterModule;
-    DistortionModule distortionModule;
+    WaveshaperModule distortionModule;
 
     // test signal
     // juce::dsp::Oscillator<float> osc;
