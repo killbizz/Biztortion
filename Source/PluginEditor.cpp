@@ -54,6 +54,20 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     tanhSlopeLabel.setText("Tanh Slope", juce::dontSendNotification);
     sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
     sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);*/
+    peakFreqSlider.labels.add({ 0.f, "20Hz" });
+    peakFreqSlider.labels.add({ 1.f, "20kHz" });
+    peakGainSlider.labels.add({ 0.f, "-24dB" });
+    peakGainSlider.labels.add({ 1.f, "+24dB" });
+    peakQualitySlider.labels.add({ 0.f, "0.1" });
+    peakQualitySlider.labels.add({ 1.f, "10.0" });
+    lowCutFreqSlider.labels.add({ 0.f, "20Hz" });
+    lowCutFreqSlider.labels.add({ 1.f, "20kHz" });
+    highCutFreqSlider.labels.add({ 0.f, "20Hz" });
+    highCutFreqSlider.labels.add({ 1.f, "20kHz" });
+    lowCutSlopeSlider.labels.add({ 0.0f, "12" });
+    lowCutSlopeSlider.labels.add({ 1.f, "48" });
+    highCutSlopeSlider.labels.add({ 0.0f, "12" });
+    highCutSlopeSlider.labels.add({ 1.f, "48" });
 
     for (auto* comp : getComps())
     {
@@ -75,6 +89,11 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
+    g.setColour(juce::Colours::grey);
+    g.setFont(14);
+    g.drawFittedText("LowCut", lowCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
+    g.drawFittedText("Peak", peakQualitySlider.getBounds(), juce::Justification::centredBottom, 1);
+    g.drawFittedText("HighCut", highCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
     
 }
 
