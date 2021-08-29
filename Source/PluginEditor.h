@@ -14,14 +14,6 @@
 #include "FFTAnalyzerComponent.h"
 #include "TransferFunctionGraphComponent.h"
 
-struct CustomRotatorySlider : juce::Slider {
-    CustomRotatorySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
-        juce::Slider::TextEntryBoxPosition::NoTextBox)
-    {
-
-    }
-};
-
 //==============================================================================
 /** EDITOR
 */
@@ -45,18 +37,18 @@ private:
     BiztortionAudioProcessor& audioProcessor;
 
     // filterModule
-    CustomRotatorySlider peakFreqSlider,
+    RotarySliderWithLabels peakFreqSlider,
         peakGainSlider,
         peakQualitySlider,
         lowCutFreqSlider,
-        highCutSlider,
+        highCutFreqSlider,
         lowCutSlopeSlider,
         highCutSlopeSlider;
     Attachment peakFreqSliderAttachment,
         peakGainSliderAttachment,
         peakQualitySliderAttachment,
         lowCutFreqSliderAttachment,
-        highCutSliderAttachment,
+        highCutFreqSliderAttachment,
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
     ResponseCurveComponent responseCurveComponent;
@@ -65,13 +57,13 @@ private:
     // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;
     // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
-    juce::Label waveshaperDriveLabel,
+    /*juce::Label waveshaperDriveLabel,
         waveshaperMixLabel,
         tanhAmpLabel,
         tanhSlopeLabel,
         sineAmpLabel,
-        sineFreqLabel;
-    CustomRotatorySlider waveshaperDriveSlider,
+        sineFreqLabel;*/
+    RotarySliderWithLabels waveshaperDriveSlider,
         waveshaperMixSlider,
         tanhAmpSlider,
         tanhSlopeSlider,
