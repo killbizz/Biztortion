@@ -96,24 +96,24 @@ void WaveshaperModule::addParameters(juce::AudioProcessorValueTreeState::Paramet
 {
     using namespace juce;
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("DRIVE", "Drive", NormalisableRange<float>(0.f, 40.f, 0.01f), 20.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("MIX", "Mix", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("TANHAMP", "Tanh Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("TANHSLOPE", "Tanh Slope", NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("SINAMP", "Sin Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("SINFREQ", "Sin Freq", NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper"));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Waveshaper Drive", "Waveshaper Drive", NormalisableRange<float>(0.f, 40.f, 0.01f), 20.f, "Waveshaper"));
+    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Mix", "Waveshaper Mix", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
+    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Amp", "Waveshaper Tanh Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
+    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope", "Waveshaper Tanh Slope", NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper"));
+    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp", "Waveshaper Sin Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper"));
+    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq", "Waveshaper Sin Freq", NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper"));
 }
 
-Settings WaveshaperModule::getSettings(juce::AudioProcessorValueTreeState& apvts)
+WaveshaperSettings WaveshaperModule::getSettings(juce::AudioProcessorValueTreeState& apvts)
 {
-    Settings settings;
+    WaveshaperSettings settings;
 
-    settings.mix = apvts.getRawParameterValue("MIX")->load();
-    settings.drive = apvts.getRawParameterValue("DRIVE")->load();
-    settings.tanhAmp = apvts.getRawParameterValue("TANHAMP")->load();
-    settings.tanhSlope = apvts.getRawParameterValue("TANHSLOPE")->load();
-    settings.sinAmp = apvts.getRawParameterValue("SINAMP")->load();
-    settings.sinFreq = apvts.getRawParameterValue("SINFREQ")->load();
+    settings.drive = apvts.getRawParameterValue("Waveshaper Drive")->load();
+    settings.mix = apvts.getRawParameterValue("Waveshaper Mix")->load();
+    settings.tanhAmp = apvts.getRawParameterValue("Waveshaper Tanh Amp")->load();
+    settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope")->load();
+    settings.sinAmp = apvts.getRawParameterValue("Waveshaper Sine Amp")->load();
+    settings.sinFreq = apvts.getRawParameterValue("Waveshaper Sine Freq")->load();
 
     return settings;
 }

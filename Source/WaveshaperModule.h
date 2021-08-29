@@ -18,7 +18,7 @@
 
 //==============================================================================
 
-struct Settings {
+struct WaveshaperSettings {
     float mix{ 0 }, drive{ 0 }, tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
 };
 
@@ -73,7 +73,7 @@ public:
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double);
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
-    static Settings getSettings(juce::AudioProcessorValueTreeState& apvts);
+    static WaveshaperSettings getSettings(juce::AudioProcessorValueTreeState& apvts);
 
 private:
     juce::AudioProcessorValueTreeState& apvts;
