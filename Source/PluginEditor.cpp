@@ -12,17 +12,33 @@
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), 
-    responseCurveComponent(p), filterFftAnalyzerComponent(p), analyzerComponent(p),
+    responseCurveComponent(p), filterFftAnalyzerComponent(p), analyzerComponent(p), transferFunctionGraph(p),
+    // filter attachments
     peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
     peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
     peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
     lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
     highCutSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutSlider),
     lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider),
+    // waveshaper attachments
+    waveshaperDriveSliderAttachment(audioProcessor.apvts, "Waveshaper Drive", waveshaperDriveSlider),
+    waveshaperMixSliderAttachment(audioProcessor.apvts, "Waveshaper Mix", waveshaperMixSlider),
+    tanhAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Amp", tanhAmpSlider),
+    tanhSlopeSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Slope", tanhSlopeSlider),
+    sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp", sineAmpSlider),
+    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq", sineFreqSlider)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+
+    // labels
+    waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
+    waveshaperMixLabel.setText("Mix", juce::dontSendNotification);
+    tanhAmpLabel.setText("Tanh Amp", juce::dontSendNotification);
+    tanhSlopeLabel.setText("Tanh Slope", juce::dontSendNotification);
+    sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
+    sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);
 
     for (auto* comp : getComps())
     {
@@ -54,7 +70,7 @@ void BiztortionAudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
 
     // filters
-    auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
+    auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 3.f));
     auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
@@ -69,6 +85,20 @@ void BiztortionAudioProcessorEditor::resized()
     lowCutSlopeSlider.setBounds(lowCutArea);
     highCutSlopeSlider.setBounds(highCutArea);
 
+    // waveshaper
+    auto waveshaperArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 2.f));
+    auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f));
+    auto waveshaperBasicControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
+    auto waveshaperTanhControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
+
+    transferFunctionGraph.setBounds(waveshaperGraphArea);
+    waveshaperDriveSlider.setBounds(waveshaperBasicControlsArea.removeFromLeft(waveshaperBasicControlsArea.getWidth() * (1.f / 2.f)));
+    waveshaperMixSlider.setBounds(waveshaperBasicControlsArea);
+    tanhAmpSlider.setBounds(waveshaperTanhControlsArea.removeFromLeft(waveshaperTanhControlsArea.getWidth() * (1.f / 2.f)));
+    tanhSlopeSlider.setBounds(waveshaperTanhControlsArea);
+    sineAmpSlider.setBounds(waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f)));
+    sineFreqSlider.setBounds(waveshaperArea);
+
     // analyzer
     auto analyzerArea = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
 
@@ -81,6 +111,7 @@ void BiztortionAudioProcessorEditor::resized()
 std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
 {
     return {
+        // filter
         &peakFreqSlider,
         &peakGainSlider,
         &peakQualitySlider,
@@ -88,9 +119,26 @@ std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
         &highCutSlider,
         &lowCutSlopeSlider,
         &highCutSlopeSlider,
-        & filterFftAnalyzerComponent,
+        // responseCurve
+        &filterFftAnalyzerComponent,
         &responseCurveComponent,
+        // fft analyzer
         &analyzerComponent,
-        &(audioProcessor.oscilloscope)
+        // oscilloscope
+        &(audioProcessor.oscilloscope),
+        // waveshaper
+        &transferFunctionGraph,
+        & waveshaperDriveSlider,
+        & waveshaperMixSlider,
+        &tanhAmpSlider,
+        &tanhSlopeSlider,
+        &sineAmpSlider,
+        &sineFreqSlider,
+        & waveshaperDriveLabel,
+        & waveshaperMixLabel,
+        &tanhAmpLabel,
+        &tanhSlopeLabel,
+        &sineAmpLabel,
+        &sineFreqLabel
     };
 }
