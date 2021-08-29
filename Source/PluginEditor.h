@@ -13,6 +13,7 @@
 #include "ResponseCurveComponent.h"
 #include "FFTAnalyzerComponent.h"
 #include "TransferFunctionGraphComponent.h"
+#include "GUIStuff.h"
 
 //==============================================================================
 /** EDITOR

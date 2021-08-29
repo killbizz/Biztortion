@@ -9,6 +9,8 @@
   <MAINGROUP id="WGhc7c" name="Biztortion">
     <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources"/>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
+      <FILE id="O4A2IL" name="GUIStuff.cpp" compile="1" resource="0" file="Source/GUIStuff.cpp"/>
+      <FILE id="i5so8Y" name="GUIStuff.h" compile="0" resource="0" file="Source/GUIStuff.h"/>
       <FILE id="N8glMH" name="TransferFunctionGraphComponent.cpp" compile="1"
             resource="0" file="Source/TransferFunctionGraphComponent.cpp"/>
       <FILE id="UXBHP8" name="TransferFunctionGraphComponent.h" compile="0"
