@@ -189,8 +189,8 @@ bool BiztortionAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* BiztortionAudioProcessor::createEditor()
 {
-    // return new BiztortionAudioProcessorEditor(*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new BiztortionAudioProcessorEditor(*this);
+    // return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
