@@ -19,7 +19,7 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), filterModule(apvts), distortionModule(apvts)
+                       ), filterModule(apvts), waveshaperModule(apvts)
 #endif
 {
     
@@ -101,7 +101,7 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     oscilloscope.setHorizontalZoom(0.1f);
 
     filterModule.prepareToPlay(sampleRate, samplesPerBlock);
-    distortionModule.prepareToPlay(sampleRate, samplesPerBlock);
+    waveshaperModule.prepareToPlay(sampleRate, samplesPerBlock);
 
     //test signal preparation
     /*juce::dsp::ProcessSpec spec;
@@ -166,7 +166,7 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         buffer.clear (i, 0, buffer.getNumSamples());
 
     filterModule.processBlock(buffer, midiMessages, getSampleRate());
-    distortionModule.processBlock(buffer, midiMessages, getSampleRate());
+    waveshaperModule.processBlock(buffer, midiMessages, getSampleRate());
 
     // test signal
     /*buffer.clear();

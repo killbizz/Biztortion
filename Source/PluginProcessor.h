@@ -59,11 +59,13 @@ public:
     //==============================================================================
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+
     juce::AudioProcessorValueTreeState apvts{
       *this, nullptr, "Parameters", createParameterLayout()
     };
+    // oscilloscope
     drow::AudioOscilloscope oscilloscope;
-
+    // fft analyzers
     using BlockType = juce::AudioBuffer<float>;
     SingleChannelSampleFifo<BlockType> leftChannelFifo{ Channel::Left };
     SingleChannelSampleFifo<BlockType> rightChannelFifo{ Channel::Right };
@@ -71,7 +73,7 @@ public:
 private:
 
     FilterModule filterModule;
-    WaveshaperModule distortionModule;
+    WaveshaperModule waveshaperModule;
 
     // test signal
     // juce::dsp::Oscillator<float> osc;
