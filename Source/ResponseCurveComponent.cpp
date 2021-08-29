@@ -29,7 +29,7 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p)
     for (auto param : params) {
         if (param->getLabel() == juce::String("Filter")) {
             param->addListener(this);
-            std::cout << param->getName(100);
+            // std::cout << param->getName(100);
         }
     }
     startTimerHz(60);
