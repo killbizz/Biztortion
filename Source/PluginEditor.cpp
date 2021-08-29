@@ -76,7 +76,8 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
     setSize (700, 600);
     setResizable(true, true);
-    setResizeLimits(600, 500, 1500, 750);
+    // max limit = 4K dimension
+    setResizeLimits(500, 400, 3840, 2160);
 }
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
@@ -86,8 +87,48 @@ BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
 //==============================================================================
 void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
 {
+    using namespace juce;
+
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+
+    Path curve;
+
+    auto bounds = getLocalBounds();
+    auto center = bounds.getCentre();
+
+    g.setFont(Font("Iosevka Term Slab", 30, 0)); //https://github.com/be5invis/Iosevka
+
+    String title{ "Biztortion" };
+    g.setFont(30);
+    auto titleWidth = g.getCurrentFont().getStringWidth(title);
+
+    curve.startNewSubPath(center.x, 32);
+    curve.lineTo(center.x - titleWidth * 0.45f, 32);
+
+    auto cornerSize = 20;
+    auto curvePos = curve.getCurrentPosition();
+    curve.quadraticTo(curvePos.getX() - cornerSize, curvePos.getY(),
+        curvePos.getX() - cornerSize, curvePos.getY() - 16);
+    curvePos = curve.getCurrentPosition();
+    curve.quadraticTo(curvePos.getX(), 2,
+        curvePos.getX() - cornerSize, 2);
+
+    curve.lineTo({ 0.f, 2.f });
+    curve.lineTo(0.f, 0.f);
+    curve.lineTo(center.x, 0.f);
+    curve.closeSubPath();
+
+    g.setColour(Colour(97u, 18u, 167u));
+    g.fillPath(curve);
+
+    curve.applyTransform(AffineTransform().scaled(-1, 1));
+    curve.applyTransform(AffineTransform().translated(getWidth(), 0));
+    g.fillPath(curve);
+
+
+    g.setColour(Colour(255u, 154u, 1u));
+    g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
 
     g.setColour(juce::Colours::grey);
     g.setFont(14);
@@ -101,10 +142,10 @@ void BiztortionAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    auto bounds = getLocalBounds();
+    auto bounds = getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32);
 
     // filters
-    auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
+    /*auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
     auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
@@ -117,30 +158,30 @@ void BiztortionAudioProcessorEditor::resized()
     peakGainSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.5));
     peakQualitySlider.setBounds(filtersArea);
     lowCutSlopeSlider.setBounds(lowCutArea);
-    highCutSlopeSlider.setBounds(highCutArea);
+    highCutSlopeSlider.setBounds(highCutArea);*/
 
     // waveshaper
     // TODO : add labels
-    auto waveshaperArea = bounds.removeFromTop(bounds.getHeight() /** (1.f / 2.f)*/);
-    auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f));
-    auto waveshaperBasicControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
-    auto waveshaperTanhControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
+    //auto waveshaperArea = bounds.removeFromTop(bounds.getHeight() /** (1.f / 2.f)*/);
+    //auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f));
+    //auto waveshaperBasicControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
+    //auto waveshaperTanhControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
 
-    transferFunctionGraph.setBounds(waveshaperGraphArea);
-    waveshaperDriveSlider.setBounds(waveshaperBasicControlsArea.removeFromLeft(waveshaperBasicControlsArea.getWidth() * (1.f / 2.f)));
-    waveshaperMixSlider.setBounds(waveshaperBasicControlsArea);
-    tanhAmpSlider.setBounds(waveshaperTanhControlsArea.removeFromLeft(waveshaperTanhControlsArea.getWidth() * (1.f / 2.f)));
-    tanhSlopeSlider.setBounds(waveshaperTanhControlsArea);
-    sineAmpSlider.setBounds(waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f)));
-    sineFreqSlider.setBounds(waveshaperArea);
+    //transferFunctionGraph.setBounds(waveshaperGraphArea);
+    //waveshaperDriveSlider.setBounds(waveshaperBasicControlsArea.removeFromLeft(waveshaperBasicControlsArea.getWidth() * (1.f / 2.f)));
+    //waveshaperMixSlider.setBounds(waveshaperBasicControlsArea);
+    //tanhAmpSlider.setBounds(waveshaperTanhControlsArea.removeFromLeft(waveshaperTanhControlsArea.getWidth() * (1.f / 2.f)));
+    //tanhSlopeSlider.setBounds(waveshaperTanhControlsArea);
+    //sineAmpSlider.setBounds(waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f)));
+    //sineFreqSlider.setBounds(waveshaperArea);
 
     // analyzer
-    //auto analyzerArea = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
+    /*auto analyzerArea = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
 
-    //analyzerComponent.setBounds(analyzerArea);
+    analyzerComponent.setBounds(analyzerArea);*/
 
     // oscilloscope
-    //audioProcessor.oscilloscope.setBounds(bounds);
+    audioProcessor.oscilloscope.setBounds(bounds);
 }
 
 std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
@@ -160,7 +201,7 @@ std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
         // fft analyzer
         //&analyzerComponent,
         // oscilloscope
-        //&(audioProcessor.oscilloscope),
+        &(audioProcessor.oscilloscope),
         // waveshaper
         &transferFunctionGraph,
         &waveshaperDriveSlider,
