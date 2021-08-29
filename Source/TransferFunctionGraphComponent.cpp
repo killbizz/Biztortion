@@ -14,6 +14,9 @@
 TransferFunctionGraphComponent::TransferFunctionGraphComponent(BiztortionAudioProcessor& p)
 	: audioProcessor(p)
 {
+
+	updateParams();
+
 	const auto& params = audioProcessor.getParameters();
 	for (auto param : params) {
 		if (param->getLabel() == juce::String("Waveshaper")) {
