@@ -12,6 +12,15 @@
 #include "PluginProcessor.h"
 #include "ResponseCurveComponent.h"
 #include "FFTAnalyzerComponent.h"
+#include "TransferFunctionGraphComponent.h"
+
+struct CustomRotatorySlider : juce::Slider {
+    CustomRotatorySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+        juce::Slider::TextEntryBoxPosition::NoTextBox)
+    {
+
+    }
+};
 
 //==============================================================================
 /** EDITOR
@@ -54,7 +63,26 @@ private:
     FFTAnalyzerComponent filterFftAnalyzerComponent;
 
     // waveshaperModule
-
+    TransferFunctionGraphComponent transferFunctionGraph;
+    // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
+    juce::Label waveshaperDriveLabel,
+        waveshaperMixLabel,
+        tanhAmpLabel,
+        tanhSlopeLabel,
+        sineAmpLabel,
+        sineFreqLabel;
+    CustomRotatorySlider waveshaperDriveSlider,
+        waveshaperMixSlider,
+        tanhAmpSlider,
+        tanhSlopeSlider,
+        sineAmpSlider,
+        sineFreqSlider;
+    Attachment waveshaperDriveSliderAttachment,
+        waveshaperMixSliderAttachment,
+        tanhAmpSliderAttachment,
+        tanhSlopeSliderAttachment,
+        sineAmpSliderAttachment,
+        sineFreqSliderAttachment;
 
     // fft analyzer
     FFTAnalyzerComponent analyzerComponent;

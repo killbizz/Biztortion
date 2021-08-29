@@ -121,11 +121,3 @@ private:
 /* FilterModule GUI */
 
 //==============================================================================
-
-struct CustomRotatorySlider : juce::Slider {
-    CustomRotatorySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
-        juce::Slider::TextEntryBoxPosition::NoTextBox)
-    {
-
-    }
-};
