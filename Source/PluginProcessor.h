@@ -9,10 +9,10 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "FilterModule.h"
-#include "WaveshaperModule.h"
-#include "ResponseCurveComponent.h"
-#include "FFTAnalyzerComponent.h"
+#include "Module/FilterModule.h"
+#include "Module/WaveshaperModule.h"
+#include "Component/ResponseCurveComponent.h"
+#include "Component/FFTAnalyzerComponent.h"
 
 //==============================================================================
 /**
@@ -72,7 +72,7 @@ public:
 
 private:
 
-    FilterModule filterModule;
+    FilterModuleDSP filterModule;
     WaveshaperModule waveshaperModule;
 
     // test signal

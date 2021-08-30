@@ -9,7 +9,7 @@
 */
 
 #include "FFTAnalyzerComponent.h"
-#include "PluginProcessor.h"
+#include "../PluginProcessor.h"
 
 // component for the response curve in order to paint the curve only in his area
 FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p)

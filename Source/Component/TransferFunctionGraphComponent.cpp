@@ -9,7 +9,7 @@
 */
 
 #include "TransferFunctionGraphComponent.h"
-#include "PluginProcessor.h"
+#include "../PluginProcessor.h"
 
 TransferFunctionGraphComponent::TransferFunctionGraphComponent(BiztortionAudioProcessor& p)
 	: audioProcessor(p)

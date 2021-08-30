@@ -1,8 +1,8 @@
 /*
   ==============================================================================
 
-    FFTAnalyzerComponent.h
-    Created: 24 Aug 2021 5:21:17pm
+    ResponseCurveComponent.h
+    Created: 17 Aug 2021 6:24:03pm
     Author:  gabri
 
   ==============================================================================
@@ -10,18 +10,25 @@
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
-#include "FFTAnalyzer.h"
-// #include "PluginProcessor.h"
-
+#include <JuceHeader.h>
 class BiztortionAudioProcessor;
 
-struct FFTAnalyzerComponent : juce::Component,
+using Filter = juce::dsp::IIR::Filter<float>;
+using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+
+//==============================================================================
+
+/* ResponseCurveComponent */
+
+//==============================================================================
+
+struct ResponseCurveComponent : juce::Component,
     juce::AudioProcessorParameter::Listener,
     juce::Timer {
 
-    FFTAnalyzerComponent(BiztortionAudioProcessor&);
-    ~FFTAnalyzerComponent();
+    ResponseCurveComponent(BiztortionAudioProcessor&);
+    ~ResponseCurveComponent();
     /** Receives a callback when a parameter has been changed.
 
             IMPORTANT NOTE: This will be called synchronously when a parameter changes, and
@@ -60,10 +67,11 @@ struct FFTAnalyzerComponent : juce::Component,
 private:
 
     BiztortionAudioProcessor& audioProcessor;
-    juce::Image background;
+    juce::Atomic<bool> parameterChanged{ false };
+    MonoChain monoChain;
 
-    // for the FFT analyzer
-    PathProducer leftPathProducer, rightPathProducer;
+    //// FFT analyzer
+    //FFTAnalyzerComponent fftAnalyzer;
 
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysysArea();

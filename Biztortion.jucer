@@ -9,29 +9,36 @@
   <MAINGROUP id="WGhc7c" name="Biztortion">
     <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources"/>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
-      <FILE id="O4A2IL" name="GUIStuff.cpp" compile="1" resource="0" file="Source/GUIStuff.cpp"/>
-      <FILE id="i5so8Y" name="GUIStuff.h" compile="0" resource="0" file="Source/GUIStuff.h"/>
-      <FILE id="N8glMH" name="TransferFunctionGraphComponent.cpp" compile="1"
-            resource="0" file="Source/TransferFunctionGraphComponent.cpp"/>
-      <FILE id="UXBHP8" name="TransferFunctionGraphComponent.h" compile="0"
-            resource="0" file="Source/TransferFunctionGraphComponent.h"/>
-      <FILE id="vDeCq1" name="ResponseCurveComponent.cpp" compile="1" resource="0"
-            file="Source/ResponseCurveComponent.cpp"/>
-      <FILE id="VFRSxd" name="ResponseCurveComponent.h" compile="0" resource="0"
-            file="Source/ResponseCurveComponent.h"/>
-      <FILE id="SPpqig" name="WaveshaperModule.cpp" compile="1" resource="0"
-            file="Source/WaveshaperModule.cpp"/>
-      <FILE id="jeiB3h" name="WaveshaperModule.h" compile="0" resource="0"
-            file="Source/WaveshaperModule.h"/>
-      <FILE id="RUUw5O" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
-            file="Source/FFTAnalyzerComponent.cpp"/>
-      <FILE id="aNIkD4" name="FFTAnalyzerComponent.h" compile="0" resource="0"
-            file="Source/FFTAnalyzerComponent.h"/>
+      <GROUP id="{D0A202A6-9C7E-68CA-1A7B-EA022F0173D3}" name="Component">
+        <FILE id="vB1U6r" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
+              file="Source/Component/FFTAnalyzerComponent.cpp"/>
+        <FILE id="MSXX8U" name="FFTAnalyzerComponent.h" compile="0" resource="0"
+              file="Source/Component/FFTAnalyzerComponent.h"/>
+        <FILE id="PaLARG" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Component/GUIStuff.cpp"/>
+        <FILE id="vpgs5z" name="GUIStuff.h" compile="0" resource="0" file="Source/Component/GUIStuff.h"/>
+        <FILE id="BQ82k4" name="ResponseCurveComponent.cpp" compile="1" resource="0"
+              file="Source/Component/ResponseCurveComponent.cpp"/>
+        <FILE id="SQvwHy" name="ResponseCurveComponent.h" compile="0" resource="0"
+              file="Source/Component/ResponseCurveComponent.h"/>
+        <FILE id="HmCuqy" name="TransferFunctionGraphComponent.cpp" compile="1"
+              resource="0" file="Source/Component/TransferFunctionGraphComponent.cpp"/>
+        <FILE id="G1QQAa" name="TransferFunctionGraphComponent.h" compile="0"
+              resource="0" file="Source/Component/TransferFunctionGraphComponent.h"/>
+      </GROUP>
+      <GROUP id="{35D8389F-08CD-6D8A-9595-9DAB35801015}" name="Module">
+        <FILE id="QGnBgS" name="FilterModule.cpp" compile="1" resource="0"
+              file="Source/Module/FilterModule.cpp"/>
+        <FILE id="xJjgRf" name="FilterModule.h" compile="0" resource="0" file="Source/Module/FilterModule.h"/>
+        <FILE id="vrL2IS" name="SingleModule.cpp" compile="1" resource="0"
+              file="Source/Module/SingleModule.cpp"/>
+        <FILE id="eNFYgv" name="SingleModule.h" compile="0" resource="0" file="Source/Module/SingleModule.h"/>
+        <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
+              file="Source/Module/WaveshaperModule.cpp"/>
+        <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"
+              file="Source/Module/WaveshaperModule.h"/>
+      </GROUP>
       <FILE id="Lcm8LE" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/FFTAnalyzer.cpp"/>
       <FILE id="tEMxkJ" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/FFTAnalyzer.h"/>
-      <FILE id="fpAlCP" name="FilterModule.cpp" compile="1" resource="0"
-            file="Source/FilterModule.cpp"/>
-      <FILE id="TS8KcU" name="FilterModule.h" compile="0" resource="0" file="Source/FilterModule.h"/>
       <FILE id="ZIXKn6" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="of0qUf" name="PluginProcessor.h" compile="0" resource="0"

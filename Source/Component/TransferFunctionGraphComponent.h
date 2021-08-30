@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 class BiztortionAudioProcessor;
 
 class TransferFunctionGraphComponent : public juce::Component,

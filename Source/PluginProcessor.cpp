@@ -219,7 +219,7 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
 juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::createParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-    FilterModule::addFilterParameters(layout);
+    FilterModuleDSP::addFilterParameters(layout);
     WaveshaperModule::addParameters(layout);
 
     return layout;

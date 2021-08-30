@@ -9,7 +9,7 @@
 */
 
 #include "ResponseCurveComponent.h"
-#include "PluginProcessor.h"
+#include "../PluginProcessor.h"
 
 //==============================================================================
 
@@ -62,12 +62,12 @@ void ResponseCurveComponent::timerCallback() {
 void ResponseCurveComponent::monoChainUpdate()
 {
     // update the monoChain
-    auto chainSettings = FilterModule::getFilterChainSettings(audioProcessor.apvts);
-    auto peakCoefficients = FilterModule::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+    auto chainSettings = FilterModuleDSP::getFilterChainSettings(audioProcessor.apvts);
+    auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
     updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
 
-    auto lowCutCoefficients = FilterModule::makeLowCutFilter(chainSettings, audioProcessor.getSampleRate());
-    auto highCutCoefficients = FilterModule::makeHighCutFilter(chainSettings, audioProcessor.getSampleRate());
+    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, audioProcessor.getSampleRate());
+    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, audioProcessor.getSampleRate());
 
     updateCutFilter(monoChain.get<ChainPositions::LowCut>(), lowCutCoefficients,
         static_cast<FilterSlope>(chainSettings.lowCutSlope));
@@ -159,7 +159,7 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 
 void ResponseCurveComponent::resized()
 {
-    using namespace juce;
+    /*using namespace juce;
 
     auto background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
 
@@ -173,7 +173,7 @@ void ResponseCurveComponent::resized()
     auto width = renderArea.getWidth();
 
     const int fontHeight = 10;
-    g.setFont(fontHeight);
+    g.setFont(fontHeight);*/
 
     // --- FFT ANALYZER ---
 
