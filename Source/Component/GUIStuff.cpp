@@ -44,7 +44,7 @@ void LookAndFeel::drawRotarySlider(juce::Graphics& g,
         r.setLeft(center.getX() - 2);
         r.setRight(center.getX() + 2);
         r.setTop(bounds.getY());
-        r.setBottom(center.getY() - rswl->getTextHeight() * 1.5);
+        r.setBottom(center.getY() - rswl->getTextHeight() * 0.8);
 
         p.addRoundedRectangle(r, 2.f);
 
