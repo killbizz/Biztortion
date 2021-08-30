@@ -229,7 +229,7 @@ void FilterModuleGUI::paint(juce::Graphics& g)
     drawContainer(g);
 
     g.setColour(juce::Colours::grey);
-    g.setFont(14);
+    g.setFont(10);
     g.drawFittedText("LowCut", lowCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
     g.drawFittedText("Peak", peakQualitySlider.getBounds(), juce::Justification::centredBottom, 1);
     g.drawFittedText("HighCut", highCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
@@ -240,7 +240,7 @@ void FilterModuleGUI::resized()
     auto bounds = getContentRenderArea();
 
     // filters
-    auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
+    auto filtersArea = bounds;
     auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
