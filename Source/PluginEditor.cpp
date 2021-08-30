@@ -11,25 +11,8 @@
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), analyzerComponent(p),
-    // filter
-    filterModuleGUI(p),
-    /*peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq"), "Hz"),
-    peakGainSlider(*audioProcessor.apvts.getParameter("Peak Gain"), "dB"),
-    peakQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality"), ""),
-    lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq"), "Hz"),
-    highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCut Freq"), "Hz"),
-    lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCut Slope"), "dB/Oct"),
-    highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCut Slope"), "dB/Oct"),
-    responseCurveComponent(p), 
-    filterFftAnalyzerComponent(p),
-    peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
-    peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
-    peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
-    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
-    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
-    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider),*/
+    : AudioProcessorEditor (&p), audioProcessor (p), analyzerComponent(p), newModule("+"),
+    //filterModuleGUI(p),
     // waveshaper
     waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
     waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
@@ -48,6 +31,55 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
+    newModuleSelector.addItem("Select one module here", 999);
+    newModuleSelector.addItem("Spectrum Analyzer", 1);
+    newModuleSelector.addItem("Oscilloscope", 2);
+    newModuleSelector.addItem("Filters", 3);
+    newModuleSelector.addItem("Waveshaper", 4);
+
+    newModuleSelector.setSelectedId(999);
+
+    // TODO : close newModuleSelector if newModule toggle loses focus
+    // TODO : customize toggle
+    newModule.onClick = [this] {
+        newModuleSelector.setVisible(newModule.getToggleState());
+        auto newModuleBounds = newModule.getBounds();
+        newModuleBounds.setX(newModuleBounds.getRight() + newModuleBounds.getWidth() / 2);
+        newModuleSelector.setBounds(newModuleBounds);
+    };
+
+    newModuleSelector.onChange = [this] {
+        switch (newModuleSelector.getSelectedId()) {
+            case 1: {
+                break;
+            }
+            case 2: {
+                break;
+                }
+               
+            case 3: {
+                juce::Component* filterModule = new FilterModuleGUI(audioProcessor);
+                modules.push_back(std::unique_ptr<Component>(filterModule));
+                // filterModule->setBounds(availableBounds.removeFromLeft(200));
+                newModuleSelector.setSelectedId(999);
+                newModuleSelector.setVisible(false);
+                newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+                updateGUI();
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    };
+
+    juce::Component* filterModule = new FilterModuleGUI(audioProcessor);
+    //juce::Component* filterModule2 = new FilterModuleGUI(audioProcessor);
+    addAndMakeVisible(filterModule);
+    //addAndMakeVisible(filterModule2);
+    modules.push_back(std::unique_ptr<Component>(filterModule));
+    //modules.push_back(std::unique_ptr<Component>(filterModule2));
+
     // labels
     /*waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
     waveshaperMixLabel.setText("Mix", juce::dontSendNotification);
@@ -55,30 +87,17 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     tanhSlopeLabel.setText("Tanh Slope", juce::dontSendNotification);
     sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
     sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);*/
-    /*peakFreqSlider.labels.add({ 0.f, "20Hz" });
-    peakFreqSlider.labels.add({ 1.f, "20kHz" });
-    peakGainSlider.labels.add({ 0.f, "-24dB" });
-    peakGainSlider.labels.add({ 1.f, "+24dB" });
-    peakQualitySlider.labels.add({ 0.f, "0.1" });
-    peakQualitySlider.labels.add({ 1.f, "10.0" });
-    lowCutFreqSlider.labels.add({ 0.f, "20Hz" });
-    lowCutFreqSlider.labels.add({ 1.f, "20kHz" });
-    highCutFreqSlider.labels.add({ 0.f, "20Hz" });
-    highCutFreqSlider.labels.add({ 1.f, "20kHz" });
-    lowCutSlopeSlider.labels.add({ 0.0f, "12" });
-    lowCutSlopeSlider.labels.add({ 1.f, "48" });
-    highCutSlopeSlider.labels.add({ 0.0f, "12" });
-    highCutSlopeSlider.labels.add({ 1.f, "48" });*/
 
     for (auto* comp : getComps())
     {
         addAndMakeVisible(comp);
     }
+    addChildComponent(newModuleSelector);
 
     setSize (700, 600);
     setResizable(true, true);
     // max limit = 4K dimension
-    setResizeLimits(500, 400, 3840, 2160);
+    setResizeLimits(400, 332, 3840, 2160);
 }
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
@@ -130,12 +149,6 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour(Colour(255u, 154u, 1u));
     g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
-
-    /*g.setColour(juce::Colours::grey);
-    g.setFont(14);
-    g.drawFittedText("LowCut", lowCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
-    g.drawFittedText("Peak", peakQualitySlider.getBounds(), juce::Justification::centredBottom, 1);
-    g.drawFittedText("HighCut", highCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);*/
     
 }
 
@@ -143,24 +156,32 @@ void BiztortionAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    auto bounds = getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32);
+
+    juce::FlexBox fb;
+    fb.flexWrap = juce::FlexBox::Wrap::wrap;
+    fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
+    fb.alignContent = juce::FlexBox::AlignContent::center;
+
+    for (auto it = modules.cbegin(); it < modules.cend(); ++it)
+    {
+        auto item = juce::FlexItem(**it);
+        item.flexGrow = 1;
+        item.flexShrink = 1;
+        fb.items.add(item.withMinWidth(400.0f).withMinHeight(300.0f).withMaxWidth(700.0f).withMaxHeight(600.0f));
+    }
+    fb.items.add(juce::FlexItem(newModule).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));
+    fb.items.add(juce::FlexItem(newModuleSelector).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));
+
+    // 32 = header height
+    fb.performLayout(getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32).toFloat());
+
+    //auto bounds = getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32);
+    /*auto bounds = getLocalBounds();
+    availableBounds = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
+    newModule.setBounds(bounds);*/
 
     // filters
-    filterModuleGUI.setBounds(bounds);
-    /*auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
-    auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
-    auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
-    auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
-
-    filterFftAnalyzerComponent.setBounds(responseCurveArea);
-    responseCurveComponent.setBounds(responseCurveArea);
-    lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f)));
-    highCutFreqSlider.setBounds(highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f)));
-    peakFreqSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.33));
-    peakGainSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.5));
-    peakQualitySlider.setBounds(filtersArea);
-    lowCutSlopeSlider.setBounds(lowCutArea);
-    highCutSlopeSlider.setBounds(highCutArea);*/
+    //filterModuleGUI.setBounds(bounds);
 
     // waveshaper
     // TODO : add labels
@@ -189,30 +210,22 @@ void BiztortionAudioProcessorEditor::resized()
 std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
 {
     return {
+        &newModule,
+        //&newModuleSelector,
         // filter
-        &filterModuleGUI,
-        //&peakFreqSlider,
-        //&peakGainSlider,
-        //&peakQualitySlider,
-        //&lowCutFreqSlider,
-        //&highCutFreqSlider,
-        //&lowCutSlopeSlider,
-        //&highCutSlopeSlider,
-        //// responseCurve
-        //&filterFftAnalyzerComponent,
-        //&responseCurveComponent,
+        //&filterModuleGUI,
         // fft analyzer
-        &analyzerComponent,
+        //&analyzerComponent,
         // oscilloscope
-        &(audioProcessor.oscilloscope),
+        //&(audioProcessor.oscilloscope),
         // waveshaper
-        &transferFunctionGraph,
-        &waveshaperDriveSlider,
-        &waveshaperMixSlider,
-        &tanhAmpSlider,
-        &tanhSlopeSlider,
-        &sineAmpSlider,
-        &sineFreqSlider,
+        //&transferFunctionGraph,
+        //&waveshaperDriveSlider,
+        //&waveshaperMixSlider,
+        //&tanhAmpSlider,
+        //&tanhSlopeSlider,
+        //&sineAmpSlider,
+        //&sineFreqSlider,
         /*&waveshaperDriveLabel,
         &waveshaperMixLabel,
         &tanhAmpLabel,
@@ -220,4 +233,13 @@ std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
         &sineAmpLabel,
         &sineFreqLabel*/
     };
+}
+
+void BiztortionAudioProcessorEditor::updateGUI()
+{
+    for (auto it = modules.cbegin(); it < modules.cend(); ++it)
+    {
+        addAndMakeVisible(**it);
+    }
+    resized();
 }

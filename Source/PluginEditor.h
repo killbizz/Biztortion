@@ -10,10 +10,11 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "Component/ResponseCurveComponent.h"
 #include "Component/FFTAnalyzerComponent.h"
 #include "Component/TransferFunctionGraphComponent.h"
 #include "Component/GUIStuff.h"
+#include "Module/FilterModule.h"
+#include "Module/WaveshaperModule.h"
 
 //==============================================================================
 /** EDITOR
@@ -37,25 +38,12 @@ private:
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
 
-    // filterModule
-    FilterModuleGUI filterModuleGUI;
-    /*RotarySliderWithLabels peakFreqSlider,
-        peakGainSlider,
-        peakQualitySlider,
-        lowCutFreqSlider,
-        highCutFreqSlider,
-        lowCutSlopeSlider,
-        highCutSlopeSlider;
-    Attachment peakFreqSliderAttachment,
-        peakGainSliderAttachment,
-        peakQualitySliderAttachment,
-        lowCutFreqSliderAttachment,
-        highCutFreqSliderAttachment,
-        lowCutSlopeSliderAttachment,
-        highCutSlopeSliderAttachment;
-    ResponseCurveComponent responseCurveComponent;
-    FFTAnalyzerComponent filterFftAnalyzerComponent;*/
+    std::vector<std::unique_ptr<Component>> modules;
 
+    juce::ToggleButton newModule;
+    juce::ComboBox newModuleSelector;
+
+    //FilterModuleGUI filterModuleGUI;
     // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;
     // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
@@ -82,6 +70,7 @@ private:
     FFTAnalyzerComponent analyzerComponent;
 
     std::vector<juce::Component*> getComps();
+    void updateGUI();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };
