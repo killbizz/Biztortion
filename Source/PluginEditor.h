@@ -10,10 +10,10 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "ResponseCurveComponent.h"
-#include "FFTAnalyzerComponent.h"
-#include "TransferFunctionGraphComponent.h"
-#include "GUIStuff.h"
+#include "Component/ResponseCurveComponent.h"
+#include "Component/FFTAnalyzerComponent.h"
+#include "Component/TransferFunctionGraphComponent.h"
+#include "Component/GUIStuff.h"
 
 //==============================================================================
 /** EDITOR
@@ -38,7 +38,8 @@ private:
     BiztortionAudioProcessor& audioProcessor;
 
     // filterModule
-    RotarySliderWithLabels peakFreqSlider,
+    FilterModuleGUI filterModuleGUI;
+    /*RotarySliderWithLabels peakFreqSlider,
         peakGainSlider,
         peakQualitySlider,
         lowCutFreqSlider,
@@ -53,7 +54,7 @@ private:
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
     ResponseCurveComponent responseCurveComponent;
-    FFTAnalyzerComponent filterFftAnalyzerComponent;
+    FFTAnalyzerComponent filterFftAnalyzerComponent;*/
 
     // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;

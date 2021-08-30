@@ -13,7 +13,8 @@
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), analyzerComponent(p),
     // filter
-    peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq"), "Hz"),
+    filterModuleGUI(p),
+    /*peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq"), "Hz"),
     peakGainSlider(*audioProcessor.apvts.getParameter("Peak Gain"), "dB"),
     peakQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality"), ""),
     lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq"), "Hz"),
@@ -28,7 +29,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
     highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
     lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider),
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider),*/
     // waveshaper
     waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
     waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
@@ -54,7 +55,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     tanhSlopeLabel.setText("Tanh Slope", juce::dontSendNotification);
     sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
     sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);*/
-    peakFreqSlider.labels.add({ 0.f, "20Hz" });
+    /*peakFreqSlider.labels.add({ 0.f, "20Hz" });
     peakFreqSlider.labels.add({ 1.f, "20kHz" });
     peakGainSlider.labels.add({ 0.f, "-24dB" });
     peakGainSlider.labels.add({ 1.f, "+24dB" });
@@ -67,7 +68,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     lowCutSlopeSlider.labels.add({ 0.0f, "12" });
     lowCutSlopeSlider.labels.add({ 1.f, "48" });
     highCutSlopeSlider.labels.add({ 0.0f, "12" });
-    highCutSlopeSlider.labels.add({ 1.f, "48" });
+    highCutSlopeSlider.labels.add({ 1.f, "48" });*/
 
     for (auto* comp : getComps())
     {
@@ -90,7 +91,7 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     using namespace juce;
 
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(Colour(21, 53, 79));
 
     Path curve;
 
@@ -130,11 +131,11 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(Colour(255u, 154u, 1u));
     g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
 
-    g.setColour(juce::Colours::grey);
+    /*g.setColour(juce::Colours::grey);
     g.setFont(14);
     g.drawFittedText("LowCut", lowCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
     g.drawFittedText("Peak", peakQualitySlider.getBounds(), juce::Justification::centredBottom, 1);
-    g.drawFittedText("HighCut", highCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
+    g.drawFittedText("HighCut", highCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);*/
     
 }
 
@@ -145,6 +146,7 @@ void BiztortionAudioProcessorEditor::resized()
     auto bounds = getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32);
 
     // filters
+    filterModuleGUI.setBounds(bounds);
     /*auto filtersArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
     auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
@@ -181,25 +183,26 @@ void BiztortionAudioProcessorEditor::resized()
     analyzerComponent.setBounds(analyzerArea);*/
 
     // oscilloscope
-    audioProcessor.oscilloscope.setBounds(bounds);
+    //audioProcessor.oscilloscope.setBounds(bounds);
 }
 
 std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
 {
     return {
         // filter
-        &peakFreqSlider,
-        &peakGainSlider,
-        &peakQualitySlider,
-        &lowCutFreqSlider,
-        &highCutFreqSlider,
-        &lowCutSlopeSlider,
-        &highCutSlopeSlider,
-        // responseCurve
-        &filterFftAnalyzerComponent,
-        &responseCurveComponent,
+        &filterModuleGUI,
+        //&peakFreqSlider,
+        //&peakGainSlider,
+        //&peakQualitySlider,
+        //&lowCutFreqSlider,
+        //&highCutFreqSlider,
+        //&lowCutSlopeSlider,
+        //&highCutSlopeSlider,
+        //// responseCurve
+        //&filterFftAnalyzerComponent,
+        //&responseCurveComponent,
         // fft analyzer
-        //&analyzerComponent,
+        &analyzerComponent,
         // oscilloscope
         &(audioProcessor.oscilloscope),
         // waveshaper
