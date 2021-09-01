@@ -88,7 +88,7 @@ void updateCutFilter(ChainType& monoChain, const CoefficientType& cutCoefficient
     }
 }
 
-class FilterModuleDSP : DSPModule {
+class FilterModuleDSP : public DSPModule {
 public:
     FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String type);
     // inline for avoiding linking problems with functions which have declaration + impementation

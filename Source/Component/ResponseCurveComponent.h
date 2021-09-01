@@ -27,7 +27,7 @@ struct ResponseCurveComponent : juce::Component,
     juce::AudioProcessorParameter::Listener,
     juce::Timer {
 
-    ResponseCurveComponent(BiztortionAudioProcessor&);
+    ResponseCurveComponent(BiztortionAudioProcessor& p, juce::String _type);
     ~ResponseCurveComponent();
     /** Receives a callback when a parameter has been changed.
 
@@ -67,6 +67,7 @@ struct ResponseCurveComponent : juce::Component,
 private:
 
     BiztortionAudioProcessor& audioProcessor;
+    juce::String type;
     juce::Atomic<bool> parameterChanged{ false };
     MonoChain monoChain;
 

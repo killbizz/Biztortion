@@ -18,8 +18,8 @@
 //==============================================================================
 
 // component for the response curve in order to paint the curve only in his area
-ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p) 
-    : audioProcessor(p)
+ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, juce::String _type)
+    : audioProcessor(p), type(_type)
       //fftAnalyzer(p) 
 {
     //addAndMakeVisible(fftAnalyzer);
@@ -27,7 +27,7 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p)
 
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
-        if (param->getLabel() == juce::String("Filter")) {
+        if (param->getLabel() == juce::String(type + " Filter")) {
             param->addListener(this);
             // std::cout << param->getName(100);
         }
@@ -38,7 +38,7 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p)
 ResponseCurveComponent::~ResponseCurveComponent() {
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
-        if (param->getLabel() == juce::String("Filter")) {
+        if (param->getLabel() == juce::String(type + " Filter")) {
             param->removeListener(this);
         }
     }
@@ -62,7 +62,7 @@ void ResponseCurveComponent::timerCallback() {
 void ResponseCurveComponent::monoChainUpdate()
 {
     // update the monoChain
-    auto chainSettings = FilterModuleDSP::getFilterChainSettings(audioProcessor.apvts);
+    auto chainSettings = FilterModuleDSP::getSettings(audioProcessor.apvts, type);
     auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
     updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
 

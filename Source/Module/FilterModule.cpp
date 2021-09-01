@@ -34,13 +34,15 @@ Coefficients FilterModuleDSP::makePeakFilter(const FilterChainSettings& chainSet
 FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type) {
     FilterChainSettings settings;
 
-    settings.lowCutFreq = apvts.getRawParameterValue(type+" LowCut Freq")->load();
+    settings.lowCutFreq = apvts.getRawParameterValue(type + " LowCut Freq")->load();
     settings.highCutFreq = apvts.getRawParameterValue(type + " HighCut Freq")->load();
     settings.peakFreq = apvts.getRawParameterValue(type + " Peak Freq")->load();
     settings.peakGainInDecibels = apvts.getRawParameterValue(type + " Peak Gain")->load();
     settings.peakQuality = apvts.getRawParameterValue(type + " Peak Quality")->load();
     settings.lowCutSlope = apvts.getRawParameterValue(type + " LowCut Slope")->load();
     settings.highCutSlope = apvts.getRawParameterValue(type + " HighCut Slope")->load();
+
+    return settings;
 }
 
 void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
@@ -114,6 +116,10 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
     auto peakGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Pre Peak", "Pre Peak",
         "|", std::move(peakFreq), std::move(peakQuality), std::move(peakGain));
 
+    layout.add(std::move(lowCutGroup));
+    layout.add(std::move(highCutGroup));
+    layout.add(std::move(peakGroup));
+
     // POST-FILTER
 
     lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
@@ -186,6 +192,9 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
     layout.add(std::move(lowCutGroup));
     layout.add(std::move(highCutGroup));
     layout.add(std::move(peakGroup));
+
+    // TODO : add mid filter params
+
 }
 
 void FilterModuleDSP::updateDSPState(double sampleRate) {
@@ -254,23 +263,23 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 //==============================================================================
 
 FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : audioProcessor(p), type(_type),
-    peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq"), "Hz"),
-    peakGainSlider(*audioProcessor.apvts.getParameter("Peak Gain"), "dB"),
-    peakQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality"), ""),
-    lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq"), "Hz"),
-    highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCut Freq"), "Hz"),
-    lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCut Slope"), "dB/Oct"),
-    highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCut Slope"), "dB/Oct"),
+    : GUIModule(_type == "Pre" ? 1 : 10), audioProcessor(p), type(_type),
+    peakFreqSlider(*audioProcessor.apvts.getParameter(type + " Peak Freq"), "Hz"),
+    peakGainSlider(*audioProcessor.apvts.getParameter(type + " Peak Gain"), "dB"),
+    peakQualitySlider(*audioProcessor.apvts.getParameter(type + " Peak Quality"), ""),
+    lowCutFreqSlider(*audioProcessor.apvts.getParameter(type + " LowCut Freq"), "Hz"),
+    highCutFreqSlider(*audioProcessor.apvts.getParameter(type + " HighCut Freq"), "Hz"),
+    lowCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " LowCut Slope"), "dB/Oct"),
+    highCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " HighCut Slope"), "dB/Oct"),
     responseCurveComponent(p, type),
     filterFftAnalyzerComponent(p),
-    peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
-    peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
-    peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
-    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
-    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
-    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
+    peakFreqSliderAttachment(audioProcessor.apvts, type + " Peak Freq", peakFreqSlider),
+    peakGainSliderAttachment(audioProcessor.apvts, type + " Peak Gain", peakGainSlider),
+    peakQualitySliderAttachment(audioProcessor.apvts, type + " Peak Quality", peakQualitySlider),
+    lowCutFreqSliderAttachment(audioProcessor.apvts, type + " LowCut Freq", lowCutFreqSlider),
+    highCutFreqSliderAttachment(audioProcessor.apvts, type + " HighCut Freq", highCutFreqSlider),
+    lowCutSlopeSliderAttachment(audioProcessor.apvts, type + " LowCut Slope", lowCutSlopeSlider),
+    highCutSlopeSliderAttachment(audioProcessor.apvts, type + " HighCut Slope", highCutSlopeSlider)
 {
     peakFreqSlider.labels.add({ 0.f, "20Hz" });
     peakFreqSlider.labels.add({ 1.f, "20kHz" });
