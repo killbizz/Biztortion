@@ -12,7 +12,8 @@
 
 #include <JuceHeader.h>
 
-#include "SingleModule.h"
+#include "GUIModule.h"
+#include "DSPModule.h"
 #include "../Component/ResponseCurveComponent.h"
 #include "../Component/FFTAnalyzerComponent.h"
 #include "../Component/GUIStuff.h"
@@ -87,9 +88,9 @@ void updateCutFilter(ChainType& monoChain, const CoefficientType& cutCoefficient
     }
 }
 
-class FilterModuleDSP {
+class FilterModuleDSP : DSPModule {
 public:
-    FilterModuleDSP(juce::AudioProcessorValueTreeState&);
+    FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String type);
     // inline for avoiding linking problems with functions which have declaration + impementation
     // in the file.h (placed here for convenience)
     static inline auto makeLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
@@ -104,20 +105,20 @@ public:
     }
     static Coefficients makePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
 
-    static FilterChainSettings getFilterChainSettings(juce::AudioProcessorValueTreeState& apvts);
+    static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type);
 
-    static void addFilterParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
+    static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
 
-    void updateFilters(double);
+    void updateDSPState(double sampleRate) override;
     void updatePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
     void updateLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
     void updateHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
 
-    void prepareToPlay(double sampleRate, int samplesPerBlock);
-    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double);
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double) override;
 
 private:
-    juce::AudioProcessorValueTreeState& apvts;
+    juce::String type;
     MonoChain leftChain, rightChain;
 };
 
@@ -127,9 +128,9 @@ private:
 
 //==============================================================================
 
-class FilterModuleGUI : public SingleModule {
+class FilterModuleGUI : public GUIModule {
 public:
-    FilterModuleGUI(BiztortionAudioProcessor&);
+    FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -144,6 +145,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
+    juce::String type;
 
     // filterModule
     RotarySliderWithLabels peakFreqSlider,
