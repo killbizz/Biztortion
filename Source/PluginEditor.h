@@ -38,7 +38,7 @@ private:
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
 
-    std::vector<std::unique_ptr<Component>> modules;
+    std::vector<std::unique_ptr<GUIModule>> modules;
 
     juce::ToggleButton newModule;
     juce::ComboBox newModuleSelector;

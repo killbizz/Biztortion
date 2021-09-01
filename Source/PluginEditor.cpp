@@ -12,7 +12,6 @@
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), analyzerComponent(p), newModule("+"),
-    //filterModuleGUI(p),
     // waveshaper
     waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
     waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
@@ -30,6 +29,15 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+
+    /*GUIModule* inputMeter = new MeterModuleGUI(audioProcessor, "Input");
+    modules.push_back(std::unique_ptr<GUIModule>(inputMeter));
+    GUIModule* preFilter = new FilterModuleGUI(audioProcessor, "Pre");
+    modules.push_back(std::unique_ptr<GUIModule>(preFilter));*/
+    GUIModule* postFilter = new FilterModuleGUI(audioProcessor, "Post");
+    modules.push_back(std::unique_ptr<GUIModule>(postFilter));
+    GUIModule* outputMeter = new MeterModuleGUI(audioProcessor, "Output");
+    modules.push_back(std::unique_ptr<GUIModule>(outputMeter));
 
     newModuleSelector.addItem("Select one module here", 999);
     newModuleSelector.addItem("Spectrum Analyzer", 1);
@@ -58,9 +66,10 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
                 }
                
             case 3: {
-                juce::Component* filterModule = new FilterModuleGUI(audioProcessor);
-                modules.push_back(std::unique_ptr<Component>(filterModule));
+                GUIModule* midFilter = new FilterModuleGUI(audioProcessor, "Mid");
+                modules.push_back(std::unique_ptr<GUIModule>(midFilter));
                 // filterModule->setBounds(availableBounds.removeFromLeft(200));
+                // TODO : replace of newModule component with the selected component
                 newModuleSelector.setSelectedId(999);
                 newModuleSelector.setVisible(false);
                 newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
@@ -73,13 +82,6 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
         }
     };
 
-    juce::Component* filterModule = new FilterModuleGUI(audioProcessor);
-    //juce::Component* filterModule2 = new FilterModuleGUI(audioProcessor);
-    addAndMakeVisible(filterModule);
-    //addAndMakeVisible(filterModule2);
-    modules.push_back(std::unique_ptr<Component>(filterModule));
-    //modules.push_back(std::unique_ptr<Component>(filterModule2));
-
     // labels
     /*waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
     waveshaperMixLabel.setText("Mix", juce::dontSendNotification);
@@ -88,16 +90,11 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
     sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);*/
 
-    for (auto* comp : getComps())
-    {
-        addAndMakeVisible(comp);
-    }
-    addChildComponent(newModuleSelector);
+    updateGUI();
 
-    setSize (700, 600);
-    setResizable(true, true);
-    // max limit = 4K dimension
-    setResizeLimits(400, 332, 3840, 2160);
+    setSize (1200, 700);
+    setResizable(false, false);
+    // setResizeLimits(400, 332, 3840, 2160);
 }
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
@@ -157,6 +154,8 @@ void BiztortionAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 
+    // TODO: implementare un modo per ridimensionare automaticamente la GUI, senza dare la possibilità di modificarne le dimensioni (evito collapsing/overflow brutti)
+
     juce::FlexBox fb;
     fb.flexWrap = juce::FlexBox::Wrap::wrap;
     fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
@@ -167,10 +166,10 @@ void BiztortionAudioProcessorEditor::resized()
         auto item = juce::FlexItem(**it);
         item.flexGrow = 1;
         item.flexShrink = 1;
-        fb.items.add(item.withMinWidth(400.0f).withMinHeight(300.0f).withMaxWidth(700.0f).withMaxHeight(600.0f));
+        fb.items.add(item.withMinWidth(500.0f).withMinHeight(400.0f).withMaxWidth(500.0f).withMaxHeight(400.0f));
     }
-    fb.items.add(juce::FlexItem(newModule).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));
-    fb.items.add(juce::FlexItem(newModuleSelector).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));
+    /*fb.items.add(juce::FlexItem(newModule).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));
+    fb.items.add(juce::FlexItem(newModuleSelector).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));*/
 
     // 32 = header height
     fb.performLayout(getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32).toFloat());
@@ -210,7 +209,7 @@ void BiztortionAudioProcessorEditor::resized()
 std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
 {
     return {
-        &newModule,
+        //&newModule,
         //&newModuleSelector,
         // filter
         //&filterModuleGUI,
