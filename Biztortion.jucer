@@ -26,12 +26,13 @@
               resource="0" file="Source/Component/TransferFunctionGraphComponent.h"/>
       </GROUP>
       <GROUP id="{35D8389F-08CD-6D8A-9595-9DAB35801015}" name="Module">
+        <FILE id="yc7UDc" name="DSPModule.cpp" compile="1" resource="0" file="Source/Module/DSPModule.cpp"/>
+        <FILE id="qxoPsW" name="DSPModule.h" compile="0" resource="0" file="Source/Module/DSPModule.h"/>
         <FILE id="QGnBgS" name="FilterModule.cpp" compile="1" resource="0"
               file="Source/Module/FilterModule.cpp"/>
         <FILE id="xJjgRf" name="FilterModule.h" compile="0" resource="0" file="Source/Module/FilterModule.h"/>
-        <FILE id="vrL2IS" name="SingleModule.cpp" compile="1" resource="0"
-              file="Source/Module/SingleModule.cpp"/>
-        <FILE id="eNFYgv" name="SingleModule.h" compile="0" resource="0" file="Source/Module/SingleModule.h"/>
+        <FILE id="bQC4aE" name="GUIModule.cpp" compile="1" resource="0" file="Source/Module/GUIModule.cpp"/>
+        <FILE id="PFdRlU" name="GUIModule.h" compile="0" resource="0" file="Source/Module/GUIModule.h"/>
         <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
               file="Source/Module/WaveshaperModule.cpp"/>
         <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"
