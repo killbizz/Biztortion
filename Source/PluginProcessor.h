@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Module/MeterModule.h"
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
 #include "Component/ResponseCurveComponent.h"
@@ -60,6 +61,7 @@ public:
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
+    // APVTS
     juce::AudioProcessorValueTreeState apvts{
       *this, nullptr, "Parameters", createParameterLayout()
     };
@@ -69,10 +71,14 @@ public:
     using BlockType = juce::AudioBuffer<float>;
     SingleChannelSampleFifo<BlockType> leftChannelFifo{ Channel::Left };
     SingleChannelSampleFifo<BlockType> rightChannelFifo{ Channel::Right };
+    // meter
+    MeterModuleDSP inputMeter;
+    MeterModuleDSP outputMeter;
 
 private:
 
-    FilterModuleDSP filterModule;
+    FilterModuleDSP preFilter;
+    FilterModuleDSP postFilter;
     WaveshaperModule waveshaperModule;
 
     // test signal

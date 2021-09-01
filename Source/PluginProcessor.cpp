@@ -19,7 +19,7 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), filterModule(apvts), waveshaperModule(apvts)
+                       ), preFilter(apvts, "Pre"), postFilter(apvts, "Post"), waveshaperModule(apvts), inputMeter(apvts, "Input"), outputMeter(apvts, "Output")
 #endif
 {
     
@@ -100,8 +100,17 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     oscilloscope.clear();
     oscilloscope.setHorizontalZoom(0.1f);
 
-    filterModule.prepareToPlay(sampleRate, samplesPerBlock);
+    inputMeter.prepareToPlay(sampleRate, samplesPerBlock);
+    outputMeter.prepareToPlay(sampleRate, samplesPerBlock);
+
+    preFilter.prepareToPlay(sampleRate, samplesPerBlock);
     waveshaperModule.prepareToPlay(sampleRate, samplesPerBlock);
+
+    // fft analyzers
+    leftChannelFifo.prepare(samplesPerBlock);
+    rightChannelFifo.prepare(samplesPerBlock);
+
+    // TODO : effettuare il prepareToPlay per il vettore di DSPModule
 
     //test signal preparation
     /*juce::dsp::ProcessSpec spec;
@@ -111,10 +120,6 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     osc.initialise([](float x) { return std::sin(x); });
     osc.prepare(spec);
     osc.setFrequency(1000);*/
-
-    // fft analyzers
-    leftChannelFifo.prepare(samplesPerBlock);
-    rightChannelFifo.prepare(samplesPerBlock);
 
 }
 
@@ -165,21 +170,22 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    filterModule.processBlock(buffer, midiMessages, getSampleRate());
+    inputMeter.processBlock(buffer, midiMessages, getSampleRate());
+    preFilter.processBlock(buffer, midiMessages, getSampleRate());
     waveshaperModule.processBlock(buffer, midiMessages, getSampleRate());
+    oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
+    // fft analyzers
+    leftChannelFifo.update(buffer);
+    rightChannelFifo.update(buffer);
+    outputMeter.processBlock(buffer, midiMessages, getSampleRate());
+
+    // TODO : effettuare il processBlock per il vettore di DSPModule
 
     // test signal
     /*buffer.clear();
     juce::dsp::AudioBlock<float> block(buffer);
     juce::dsp::ProcessContextReplacing<float> stereoContext(block);
     osc.process(stereoContext);*/
-
-    oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
-
-    // fft analyzers
-    leftChannelFifo.update(buffer);
-    rightChannelFifo.update(buffer);
-
 }
 
 bool BiztortionAudioProcessor::hasEditor() const
@@ -212,14 +218,18 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
     if (tree.isValid())
     {
         apvts.replaceState(tree);
-        filterModule.updateFilters(getSampleRate());
+        preFilter.updateDSPState(getSampleRate());
+        // TODO : effettuare l'update del vettore di DSPModule ?
     }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::createParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-    FilterModuleDSP::addFilterParameters(layout);
+    // dynamic parameter management is not supported
+
+    MeterModuleDSP::addParameters(layout);
+    FilterModuleDSP::addParameters(layout);
     WaveshaperModule::addParameters(layout);
 
     return layout;
