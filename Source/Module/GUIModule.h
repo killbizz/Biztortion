@@ -21,6 +21,7 @@ public:
     virtual std::vector<juce::Component*> getComps() = 0;
     juce::Rectangle<int> getContentRenderArea();
 private:
+    // grid positions range : 0 - 11 (see mockup file)
     unsigned int gridPosition;
 
     juce::Rectangle<int> getContainerArea();
