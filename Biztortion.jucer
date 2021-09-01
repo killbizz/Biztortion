@@ -33,6 +33,8 @@
         <FILE id="xJjgRf" name="FilterModule.h" compile="0" resource="0" file="Source/Module/FilterModule.h"/>
         <FILE id="bQC4aE" name="GUIModule.cpp" compile="1" resource="0" file="Source/Module/GUIModule.cpp"/>
         <FILE id="PFdRlU" name="GUIModule.h" compile="0" resource="0" file="Source/Module/GUIModule.h"/>
+        <FILE id="kjGTBJ" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule.cpp"/>
+        <FILE id="tZhcEl" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule.h"/>
         <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
               file="Source/Module/WaveshaperModule.cpp"/>
         <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"
@@ -72,11 +74,13 @@
         <MODULEPATH id="juce_gui_extra" path="C:/JUCE/modules"/>
         <MODULEPATH id="juce_cryptography" path="C:/JUCE/modules"/>
         <MODULEPATH id="dRowAudio" path="../../../LIBRERIA/Coding/drowaudio/module"/>
+        <MODULEPATH id="ff_meters" path="../../../LIBRERIA/Coding"/>
       </MODULEPATHS>
     </VS2019>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="dRowAudio" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="ff_meters" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
