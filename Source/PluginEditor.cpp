@@ -118,7 +118,11 @@ void BiztortionAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 
-    // TODO: implementare un modo per ridimensionare automaticamente la GUI, senza dare la possibilità di modificarne le dimensioni (evito collapsing/overflow brutti)
+    // TODO: implementare un layout stretching automatico
+    // oscilloscope = modulo come gli altri distorsori
+    // modalità small : pre/post-stage + pulsante per aggiungere 1 modulo
+    // modalità medium : aggiungere fino a un max di 3 moduli (tutti aggiunti in colonna)
+    // modalità large : aggiungere da 4 a max 6 moduli
 
     auto bounds = getLocalBounds();
     auto temp = bounds;
