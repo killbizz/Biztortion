@@ -78,7 +78,7 @@ void MeterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 //==============================================================================
 
 MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : GUIModule(_type == "Input" ? 0 : 3), audioProcessor(p), type(_type),
+    : GUIModule(_type == "Input" ? 0 : 8), audioProcessor(p), type(_type),
     levelSlider(*audioProcessor.apvts.getParameter(type + " Meter Level"), "dB"),
     levelSliderAttachment(audioProcessor.apvts, type + " Meter Level", levelSlider)
 {

@@ -193,8 +193,6 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
     layout.add(std::move(highCutGroup));
     layout.add(std::move(peakGroup));
 
-    // TODO : add mid filter params
-
 }
 
 void FilterModuleDSP::updateDSPState(double sampleRate) {
@@ -263,7 +261,7 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 //==============================================================================
 
 FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : GUIModule(_type == "Pre" ? 1 : 10), audioProcessor(p), type(_type),
+    : GUIModule(_type == "Pre" ? 1 : 9), audioProcessor(p), type(_type),
     peakFreqSlider(*audioProcessor.apvts.getParameter(type + " Peak Freq"), "Hz"),
     peakGainSlider(*audioProcessor.apvts.getParameter(type + " Peak Gain"), "dB"),
     peakQualitySlider(*audioProcessor.apvts.getParameter(type + " Peak Quality"), ""),
