@@ -20,9 +20,9 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     newModule.setToggleState(false, juce::dontSendNotification);
 
     setupCustomLookAndFeelColours(lookAndFeel);
-    //lookAndFeel = new CustomLookAndFeel();
     newModule.setLookAndFeel(&lookAndFeel);
 
+    addAndMakeVisible(newModuleSelector);
     newModuleSelector.addItem("Select one module here", 999);
     newModuleSelector.addItem("Spectrum Analyzer", 1);
     newModuleSelector.addItem("Oscilloscope", 2);
@@ -82,7 +82,7 @@ void NewModuleGUI::paint(juce::Graphics& g)
 void NewModuleGUI::resized()
 {
     auto bounds = getContentRenderArea();
-    bounds.reduce(100, 100);
+    bounds.reduce(140, 100);
     newModule.setBounds(bounds);
     newModule.setCentreRelative(0.5f, 0.5f);
 }
