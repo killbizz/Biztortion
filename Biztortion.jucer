@@ -35,6 +35,8 @@
         <FILE id="PFdRlU" name="GUIModule.h" compile="0" resource="0" file="Source/Module/GUIModule.h"/>
         <FILE id="kjGTBJ" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule.cpp"/>
         <FILE id="tZhcEl" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule.h"/>
+        <FILE id="JIulEh" name="NewModule.cpp" compile="1" resource="0" file="Source/Module/NewModule.cpp"/>
+        <FILE id="H02Dre" name="NewModule.h" compile="0" resource="0" file="Source/Module/NewModule.h"/>
         <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
               file="Source/Module/WaveshaperModule.cpp"/>
         <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"
