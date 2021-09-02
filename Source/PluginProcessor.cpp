@@ -104,6 +104,7 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     outputMeter.prepareToPlay(sampleRate, samplesPerBlock);
 
     preFilter.prepareToPlay(sampleRate, samplesPerBlock);
+    postFilter.prepareToPlay(sampleRate, samplesPerBlock);
     waveshaperModule.prepareToPlay(sampleRate, samplesPerBlock);
 
     // fft analyzers
@@ -173,6 +174,8 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     inputMeter.processBlock(buffer, midiMessages, getSampleRate());
     preFilter.processBlock(buffer, midiMessages, getSampleRate());
     waveshaperModule.processBlock(buffer, midiMessages, getSampleRate());
+    postFilter.processBlock(buffer, midiMessages, getSampleRate());
+
     oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
     // fft analyzers
     leftChannelFifo.update(buffer);
@@ -219,7 +222,8 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
     {
         apvts.replaceState(tree);
         preFilter.updateDSPState(getSampleRate());
-        // TODO : effettuare l'update del vettore di DSPModule ?
+        postFilter.updateDSPState(getSampleRate());
+        // TODO : effettuare l'update del vettore di DSPModule 
     }
 }
 
