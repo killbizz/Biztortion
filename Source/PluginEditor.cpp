@@ -30,10 +30,10 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    /*GUIModule* inputMeter = new MeterModuleGUI(audioProcessor, "Input");
+    GUIModule* inputMeter = new MeterModuleGUI(audioProcessor, "Input");
     modules.push_back(std::unique_ptr<GUIModule>(inputMeter));
     GUIModule* preFilter = new FilterModuleGUI(audioProcessor, "Pre");
-    modules.push_back(std::unique_ptr<GUIModule>(preFilter));*/
+    modules.push_back(std::unique_ptr<GUIModule>(preFilter));
     GUIModule* postFilter = new FilterModuleGUI(audioProcessor, "Post");
     modules.push_back(std::unique_ptr<GUIModule>(postFilter));
     GUIModule* outputMeter = new MeterModuleGUI(audioProcessor, "Output");
@@ -92,7 +92,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
     updateGUI();
 
-    setSize (1200, 700);
+    setSize (1400, 782);
     setResizable(false, false);
     // setResizeLimits(400, 332, 3840, 2160);
 }
@@ -146,6 +146,8 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour(Colour(255u, 154u, 1u));
     g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
+
+    // TODO : draw the grid vertical and horizontal lines
     
 }
 
@@ -156,23 +158,52 @@ void BiztortionAudioProcessorEditor::resized()
 
     // TODO: implementare un modo per ridimensionare automaticamente la GUI, senza dare la possibilità di modificarne le dimensioni (evito collapsing/overflow brutti)
 
+    auto bounds = getLocalBounds();
+    auto temp = bounds;
+    temp = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto preStageArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    preStageArea.removeFromTop(32);
+
+    auto inputMeterArea = preStageArea.removeFromTop(preStageArea.getHeight() * (1.f / 3.f));
+    auto preFilterArea = preStageArea;
+
+    temp = bounds;
+    temp = temp.removeFromRight(temp.getWidth() * (1.f / 2.f));
+    auto postStageArea = temp.removeFromRight(temp.getWidth() * (1.f / 2.f));
+    postStageArea.removeFromTop(32);
+    
+    auto postFilterArea = postStageArea.removeFromTop(postStageArea.getHeight() * (1.f / 3.f));
+    auto outputMeterArea = postStageArea;
+
+    bounds.setLeft(preStageArea.getTopRight().getX());
+    bounds.setRight(postStageArea.getTopLeft().getX());
+
+
     juce::FlexBox fb;
     fb.flexWrap = juce::FlexBox::Wrap::wrap;
-    fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
+    //fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
+    fb.justifyContent = juce::FlexBox::JustifyContent::center;
     fb.alignContent = juce::FlexBox::AlignContent::center;
 
     for (auto it = modules.cbegin(); it < modules.cend(); ++it)
     {
-        auto item = juce::FlexItem(**it);
-        item.flexGrow = 1;
-        item.flexShrink = 1;
-        fb.items.add(item.withMinWidth(500.0f).withMinHeight(400.0f).withMaxWidth(500.0f).withMaxHeight(400.0f));
+        auto gp = (**it).getGridPosition();
+        if (gp > 1 && gp < 8) {
+            auto item = juce::FlexItem(**it);
+            //item.flexGrow = 1;
+            //item.flexShrink = 1;
+            fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
+        }
+        else if (gp == 0)    (**it).setBounds(inputMeterArea);
+        else if (gp == 1)    (**it).setBounds(preFilterArea);
+        else if (gp == 8)   (**it).setBounds(postFilterArea);
+        else if (gp == 9)   (**it).setBounds(outputMeterArea);
     }
     /*fb.items.add(juce::FlexItem(newModule).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));
     fb.items.add(juce::FlexItem(newModuleSelector).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));*/
 
     // 32 = header height
-    fb.performLayout(getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32).toFloat());
+    fb.performLayout(bounds.removeFromBottom(getLocalBounds().getHeight() - 32).toFloat());
 
     //auto bounds = getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32);
     /*auto bounds = getLocalBounds();
@@ -240,5 +271,5 @@ void BiztortionAudioProcessorEditor::updateGUI()
     {
         addAndMakeVisible(**it);
     }
-    resized();
+    //resized();
 }
