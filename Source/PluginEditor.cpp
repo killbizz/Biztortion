@@ -11,7 +11,7 @@
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), analyzerComponent(p), newModule("+"),
+    : AudioProcessorEditor (&p), audioProcessor (p), analyzerComponent(p),
     // waveshaper
     waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
     waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
@@ -30,6 +30,11 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
+    for (int i = 0; i < 6; ++i) {
+        GUIModule* item = new NewModuleGUI(audioProcessor, *this, i + 2);
+        modules.push_back(std::unique_ptr<GUIModule>(item));
+    }
+
     GUIModule* inputMeter = new MeterModuleGUI(audioProcessor, "Input");
     modules.push_back(std::unique_ptr<GUIModule>(inputMeter));
     GUIModule* preFilter = new FilterModuleGUI(audioProcessor, "Pre");
@@ -38,49 +43,6 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     modules.push_back(std::unique_ptr<GUIModule>(postFilter));
     GUIModule* outputMeter = new MeterModuleGUI(audioProcessor, "Output");
     modules.push_back(std::unique_ptr<GUIModule>(outputMeter));
-
-    newModuleSelector.addItem("Select one module here", 999);
-    newModuleSelector.addItem("Spectrum Analyzer", 1);
-    newModuleSelector.addItem("Oscilloscope", 2);
-    newModuleSelector.addItem("Filters", 3);
-    newModuleSelector.addItem("Waveshaper", 4);
-
-    newModuleSelector.setSelectedId(999);
-
-    // TODO : close newModuleSelector if newModule toggle loses focus
-    // TODO : customize toggle
-    newModule.onClick = [this] {
-        newModuleSelector.setVisible(newModule.getToggleState());
-        auto newModuleBounds = newModule.getBounds();
-        newModuleBounds.setX(newModuleBounds.getRight() + newModuleBounds.getWidth() / 2);
-        newModuleSelector.setBounds(newModuleBounds);
-    };
-
-    newModuleSelector.onChange = [this] {
-        switch (newModuleSelector.getSelectedId()) {
-            case 1: {
-                break;
-            }
-            case 2: {
-                break;
-                }
-               
-            case 3: {
-                GUIModule* midFilter = new FilterModuleGUI(audioProcessor, "Mid");
-                modules.push_back(std::unique_ptr<GUIModule>(midFilter));
-                // filterModule->setBounds(availableBounds.removeFromLeft(200));
-                // TODO : replace of newModule component with the selected component
-                newModuleSelector.setSelectedId(999);
-                newModuleSelector.setVisible(false);
-                newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
-                updateGUI();
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    };
 
     // labels
     /*waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
@@ -147,7 +109,7 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(Colour(255u, 154u, 1u));
     g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
 
-    // TODO : draw the grid vertical and horizontal lines
+    // TODO : draw the grid vertical and horizontal lines to divide modules
     
 }
 

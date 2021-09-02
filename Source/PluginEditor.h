@@ -15,6 +15,7 @@
 #include "Component/GUIStuff.h"
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
+#include "Module/NewModule.h"
 
 //==============================================================================
 /** EDITOR
@@ -29,6 +30,10 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void updateGUI();
+
+    std::vector<std::unique_ptr<GUIModule>> modules;
+
 private:
 
     using APVTS = juce::AudioProcessorValueTreeState;
@@ -38,12 +43,6 @@ private:
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
 
-    std::vector<std::unique_ptr<GUIModule>> modules;
-
-    juce::ToggleButton newModule;
-    juce::ComboBox newModuleSelector;
-
-    //FilterModuleGUI filterModuleGUI;
     // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;
     // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
@@ -70,7 +69,6 @@ private:
     FFTAnalyzerComponent analyzerComponent;
 
     std::vector<juce::Component*> getComps();
-    void updateGUI();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };
