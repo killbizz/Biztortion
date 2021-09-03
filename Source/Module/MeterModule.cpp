@@ -20,6 +20,11 @@
 MeterModuleDSP::MeterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type)
     : DSPModule(_apvts), type(_type) {}
 
+juce::String MeterModuleDSP::getType()
+{
+    return type;
+}
+
 MeterSettings MeterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type)
 {
     MeterSettings settings;
@@ -35,7 +40,7 @@ void MeterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Parameter
     layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Output Meter Level", "Output Meter Level", juce::NormalisableRange<float>(-60.f, 10.f, 0.5f), 0.f, "Output Meter")));
 }
 
-foleys::LevelMeterSource& MeterModuleDSP::getMeterResource()
+foleys::LevelMeterSource& MeterModuleDSP::getMeterSource()
 {
     return meterSource;
 }
@@ -78,7 +83,7 @@ void MeterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 //==============================================================================
 
 MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : GUIModule(_type == "Input" ? 0 : 8), audioProcessor(p), type(_type),
+    : GUIModule(_type == "Input" ? 0 : 9), audioProcessor(p), type(_type),
     levelSlider(*audioProcessor.apvts.getParameter(type + " Meter Level"), "dB"),
     levelSliderAttachment(audioProcessor.apvts, type + " Meter Level", levelSlider)
 {
@@ -97,9 +102,21 @@ MeterModuleGUI::~MeterModuleGUI()
     meter.setLookAndFeel(nullptr);
 }
 
+juce::String MeterModuleGUI::getType()
+{
+    return type;
+}
+
 foleys::LevelMeterSource* MeterModuleGUI::getMeterSource()
 {
-    return &(type == "Input" ? audioProcessor.inputMeter.getMeterResource() : audioProcessor.outputMeter.getMeterResource());
+    foleys::LevelMeterSource* source = nullptr;
+    for (auto it = audioProcessor.modules.cbegin(); it < audioProcessor.modules.cend(); ++it) {
+        auto temp = dynamic_cast<MeterModuleDSP*>(&(**it));
+        if (temp && temp->getType() == type) {
+            source = &temp->getMeterSource();
+        }
+    }
+    return source;
 }
 
 std::vector<juce::Component*> MeterModuleGUI::getComps()

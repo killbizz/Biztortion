@@ -31,9 +31,10 @@ class MeterModuleDSP : public DSPModule {
 public:
     MeterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type);
 
+    juce::String getType();
     static MeterSettings getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
-    foleys::LevelMeterSource& getMeterResource();
+    foleys::LevelMeterSource& getMeterSource();
 
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -42,7 +43,6 @@ public:
 private:
     juce::String type;
     juce::dsp::Gain<float> level;
-    //juce::LinearSmoothedValue<float> level;
 
     foleys::LevelMeterSource meterSource;
 };
@@ -58,6 +58,7 @@ public:
     MeterModuleGUI(BiztortionAudioProcessor& p, juce::String type);
     ~MeterModuleGUI();
 
+    juce::String getType();
     foleys::LevelMeterSource* getMeterSource();
     std::vector<juce::Component*> getComps() override;
 
