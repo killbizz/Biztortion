@@ -12,6 +12,12 @@
 
 #include <JuceHeader.h>
 
+enum GUIDimension {
+    Small,
+    Medium,
+    Large
+};
+
 //==============================================================================
 /** Custom Look And Feel subclass.
 
