@@ -193,6 +193,89 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
     layout.add(std::move(highCutGroup));
     layout.add(std::move(peakGroup));
 
+    // MID-FILTER
+
+    lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
+        "Mid LowCut Freq",
+        "Mid LowCut Freq",
+        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+        20.f,
+        "Mid Filter"
+        );
+    highCutFreq = std::make_unique<juce::AudioParameterFloat>(
+        "Mid HighCut Freq",
+        "Mid HighCut Freq",
+        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+        20000.f,
+        "Mid Filter"
+        );
+    peakFreq = std::make_unique<juce::AudioParameterFloat>(
+        "Mid Peak Freq",
+        "Mid Peak Freq",
+        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+        800.f,
+        "Mid Filter"
+        );
+    peakGain = std::make_unique<juce::AudioParameterFloat>(
+        "Mid Peak Gain",
+        "Mid Peak Gain",
+        juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
+        0.0f,
+        "Mid Filter"
+        );
+    peakQuality = std::make_unique<juce::AudioParameterFloat>(
+        "Mid Peak Quality",
+        "Mid Peak Quality",
+        juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+        1.f,
+        "Mid Filter"
+        );
+
+    stringArray.clear();
+
+    for (int i = 0; i < 4; ++i) {
+        juce::String string;
+        string << (12 + i * 12);
+        string << " db/Octave";
+        stringArray.add(string);
+    }
+
+    lowCutSlope = std::make_unique<juce::AudioParameterChoice>(
+        "Mid LowCut Slope",
+        "Mid LowCut Slope",
+        stringArray,
+        0,
+        "Mid Filter"
+        );
+    highCutSlope = std::make_unique<juce::AudioParameterChoice>(
+        "Mid HighCut Slope",
+        "Mid HighCut Slope",
+        stringArray,
+        0,
+        "Mid Filter"
+        );
+
+    lowCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Mid LowCut", "Mid LowCut",
+        "|", std::move(lowCutFreq), std::move(lowCutSlope));
+    highCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Mid HighCut", "Mid HighCut",
+        "|", std::move(highCutFreq), std::move(highCutSlope));
+    peakGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Mid Peak", "Mid Peak",
+        "|", std::move(peakFreq), std::move(peakQuality), std::move(peakGain));
+
+    layout.add(std::move(lowCutGroup));
+    layout.add(std::move(highCutGroup));
+    layout.add(std::move(peakGroup));
+
+}
+
+juce::String FilterModuleDSP::getType()
+{
+    return type;
+}
+
+MonoChain* FilterModuleDSP::getOneChain()
+{
+    return &leftChain;
 }
 
 void FilterModuleDSP::updateDSPState(double sampleRate) {
@@ -256,12 +339,12 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 
 //==============================================================================
 
-/* FilterModule DSP */
+/* FilterModule GUI */
 
 //==============================================================================
 
-FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : GUIModule(_type == "Pre" ? 1 : 9), audioProcessor(p), type(_type),
+FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type, unsigned int gridPosition)
+    : GUIModule(gridPosition), audioProcessor(p), type(_type),
     peakFreqSlider(*audioProcessor.apvts.getParameter(type + " Peak Freq"), "Hz"),
     peakGainSlider(*audioProcessor.apvts.getParameter(type + " Peak Gain"), "dB"),
     peakQualitySlider(*audioProcessor.apvts.getParameter(type + " Peak Quality"), ""),
@@ -270,7 +353,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type
     lowCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " LowCut Slope"), "dB/Oct"),
     highCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " HighCut Slope"), "dB/Oct"),
     responseCurveComponent(p, type),
-    filterFftAnalyzerComponent(p),
+    //filterFftAnalyzerComponent(p, type),
     peakFreqSliderAttachment(audioProcessor.apvts, type + " Peak Freq", peakFreqSlider),
     peakGainSliderAttachment(audioProcessor.apvts, type + " Peak Gain", peakGainSlider),
     peakQualitySliderAttachment(audioProcessor.apvts, type + " Peak Quality", peakQualitySlider),
@@ -320,7 +403,7 @@ void FilterModuleGUI::resized()
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
 
-    filterFftAnalyzerComponent.setBounds(responseCurveArea);
+    //filterFftAnalyzerComponent.setBounds(responseCurveArea);
     responseCurveComponent.setBounds(responseCurveArea);
     lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f)));
     highCutFreqSlider.setBounds(highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f)));
@@ -343,7 +426,7 @@ std::vector<juce::Component*> FilterModuleGUI::getComps()
         &lowCutSlopeSlider,
         &highCutSlopeSlider,
         // responseCurve
-        &filterFftAnalyzerComponent,
+        //&filterFftAnalyzerComponent,
         &responseCurveComponent,
     };
 }

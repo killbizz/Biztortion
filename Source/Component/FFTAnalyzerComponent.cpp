@@ -12,12 +12,13 @@
 #include "../PluginProcessor.h"
 
 // component for the response curve in order to paint the curve only in his area
-FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p)
-    : audioProcessor(p),
-    leftPathProducer(audioProcessor.leftChannelFifo),
-    rightPathProducer(audioProcessor.rightChannelFifo) {
+FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p, juce::String _type)
+    : audioProcessor(p), 
+      leftPathProducer( _type == "Pre" ? audioProcessor.preLeftChannelFifo : ( _type == "Post" ? audioProcessor.postLeftChannelFifo : *audioProcessor.midLeftChannelFifo)),
+      rightPathProducer(_type == "Pre" ? audioProcessor.preRightChannelFifo : (_type == "Post" ? audioProcessor.postRightChannelFifo : *audioProcessor.midRightChannelFifo))
+{
 
-    startTimerHz(60);
+    startTimerHz(30);
 }
 
 FFTAnalyzerComponent::~FFTAnalyzerComponent()

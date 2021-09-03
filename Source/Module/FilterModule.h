@@ -108,6 +108,8 @@ public:
     static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type);
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
+    juce::String getType();
+    MonoChain* getOneChain();
 
     void updateDSPState(double sampleRate) override;
     void updatePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
@@ -130,7 +132,7 @@ private:
 
 class FilterModuleGUI : public GUIModule {
 public:
-    FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type);
+    FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type, unsigned int gridPosition);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -163,6 +165,6 @@ private:
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
     ResponseCurveComponent responseCurveComponent;
-    FFTAnalyzerComponent filterFftAnalyzerComponent;
+    //FFTAnalyzerComponent filterFftAnalyzerComponent;
 
 };

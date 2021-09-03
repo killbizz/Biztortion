@@ -12,7 +12,6 @@
 
 #include <JuceHeader.h>
 #include "../FFTAnalyzer.h"
-// #include "PluginProcessor.h"
 
 class BiztortionAudioProcessor;
 
@@ -20,7 +19,7 @@ struct FFTAnalyzerComponent : juce::Component,
     juce::AudioProcessorParameter::Listener,
     juce::Timer {
 
-    FFTAnalyzerComponent(BiztortionAudioProcessor&);
+    FFTAnalyzerComponent(BiztortionAudioProcessor& p, juce::String _type);
     ~FFTAnalyzerComponent();
     /** Receives a callback when a parameter has been changed.
 
@@ -53,7 +52,6 @@ struct FFTAnalyzerComponent : juce::Component,
         callback to change the subsequent intervals.
     */
     void timerCallback() override;
-    void monoChainUpdate();
     void paint(juce::Graphics& g) override;
     void resized() override;
 
