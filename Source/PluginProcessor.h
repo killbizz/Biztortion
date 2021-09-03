@@ -69,18 +69,19 @@ public:
     drow::AudioOscilloscope oscilloscope;
     // fft analyzers
     using BlockType = juce::AudioBuffer<float>;
-    SingleChannelSampleFifo<BlockType> leftChannelFifo{ Channel::Left };
-    SingleChannelSampleFifo<BlockType> rightChannelFifo{ Channel::Right };
-    // meter
-    MeterModuleDSP inputMeter;
-    MeterModuleDSP outputMeter;
+    SingleChannelSampleFifo<BlockType> preLeftChannelFifo{ Channel::Left };
+    SingleChannelSampleFifo<BlockType> preRightChannelFifo{ Channel::Right };
+    SingleChannelSampleFifo<BlockType> postLeftChannelFifo{ Channel::Left };
+    SingleChannelSampleFifo<BlockType> postRightChannelFifo{ Channel::Right };
+    // mid analyzer allocated only if the relative module is istantiated
+    SingleChannelSampleFifo<BlockType>* midLeftChannelFifo = nullptr;
+    SingleChannelSampleFifo<BlockType>* midRightChannelFifo = nullptr;
+    // modules
+    std::vector<std::unique_ptr<DSPModule>> modules;
 
 private:
 
-    FilterModuleDSP preFilter;
-    FilterModuleDSP postFilter;
     WaveshaperModule waveshaperModule;
-
     // test signal
     // juce::dsp::Oscillator<float> osc;
 
