@@ -13,7 +13,7 @@
 PathProducer::PathProducer(SingleChannelSampleFifo<juce::AudioBuffer<float>>& scsf) :
     leftChannelFifo(&scsf)
 {
-    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order8192);
+    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048);
     monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
 }
 
