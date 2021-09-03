@@ -11,7 +11,7 @@
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), analyzerComponent(p),
+    : AudioProcessorEditor (&p), audioProcessor (p),
     // waveshaper
     waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
     waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
@@ -37,9 +37,9 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
     GUIModule* inputMeter = new MeterModuleGUI(audioProcessor, "Input");
     modules.push_back(std::unique_ptr<GUIModule>(inputMeter));
-    GUIModule* preFilter = new FilterModuleGUI(audioProcessor, "Pre");
+    GUIModule* preFilter = new FilterModuleGUI(audioProcessor, "Pre", 1);
     modules.push_back(std::unique_ptr<GUIModule>(preFilter));
-    GUIModule* postFilter = new FilterModuleGUI(audioProcessor, "Post");
+    GUIModule* postFilter = new FilterModuleGUI(audioProcessor, "Post", 8);
     modules.push_back(std::unique_ptr<GUIModule>(postFilter));
     GUIModule* outputMeter = new MeterModuleGUI(audioProcessor, "Output");
     modules.push_back(std::unique_ptr<GUIModule>(outputMeter));
@@ -138,8 +138,8 @@ void BiztortionAudioProcessorEditor::resized()
     auto postStageArea = temp.removeFromRight(temp.getWidth() * (1.f / 2.f));
     postStageArea.removeFromTop(32);
     
-    auto postFilterArea = postStageArea.removeFromTop(postStageArea.getHeight() * (1.f / 3.f));
-    auto outputMeterArea = postStageArea;
+    auto outputMeterArea = postStageArea.removeFromTop(postStageArea.getHeight() * (1.f / 3.f));
+    auto postFilterArea = postStageArea;
 
     bounds.setLeft(preStageArea.getTopRight().getX());
     bounds.setRight(postStageArea.getTopLeft().getX());
@@ -237,5 +237,5 @@ void BiztortionAudioProcessorEditor::updateGUI()
     {
         addAndMakeVisible(**it);
     }
-    //resized();
+    // resized();
 }

@@ -43,6 +43,8 @@ private:
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
 
+    //GUIDimension dimension = GUIDimension::Small;
+
     // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;
     // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
@@ -66,7 +68,7 @@ private:
         sineFreqSliderAttachment;
 
     // fft analyzer
-    FFTAnalyzerComponent analyzerComponent;
+    //FFTAnalyzerComponent analyzerComponent;
 
     std::vector<juce::Component*> getComps();
 
