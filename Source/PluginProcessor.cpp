@@ -19,10 +19,17 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), preFilter(apvts, "Pre"), postFilter(apvts, "Post"), waveshaperModule(apvts), inputMeter(apvts, "Input"), outputMeter(apvts, "Output")
+                       ), /*preFilter(apvts, "Pre"), postFilter(apvts, "Post"),*/ waveshaperModule(apvts) /*, inputMeter(apvts, "Input"), outputMeter(apvts, "Output")*/
 #endif
 {
-    
+    DSPModule* inputMeter = new MeterModuleDSP(apvts, "Input");
+    modules.push_back(std::unique_ptr<DSPModule>(inputMeter));
+    DSPModule* preFilter = new FilterModuleDSP(apvts, "Pre");
+    modules.push_back(std::unique_ptr<DSPModule>(preFilter));
+    DSPModule* postFilter = new FilterModuleDSP(apvts, "Post");
+    modules.push_back(std::unique_ptr<DSPModule>(postFilter));
+    DSPModule* outputMeter = new MeterModuleDSP(apvts, "Output");
+    modules.push_back(std::unique_ptr<DSPModule>(outputMeter));
 }
 
 BiztortionAudioProcessor::~BiztortionAudioProcessor()
@@ -97,21 +104,21 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 
+    // prepareToPlay for all the modules int the chain
+    for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
+        (**it).prepareToPlay(sampleRate, samplesPerBlock);
+    }
+
     oscilloscope.clear();
     oscilloscope.setHorizontalZoom(0.1f);
 
-    inputMeter.prepareToPlay(sampleRate, samplesPerBlock);
-    outputMeter.prepareToPlay(sampleRate, samplesPerBlock);
-
-    preFilter.prepareToPlay(sampleRate, samplesPerBlock);
-    postFilter.prepareToPlay(sampleRate, samplesPerBlock);
-    waveshaperModule.prepareToPlay(sampleRate, samplesPerBlock);
+    // waveshaperModule.prepareToPlay(sampleRate, samplesPerBlock);
 
     // fft analyzers
-    leftChannelFifo.prepare(samplesPerBlock);
-    rightChannelFifo.prepare(samplesPerBlock);
-
-    // TODO : effettuare il prepareToPlay per il vettore di DSPModule
+    preLeftChannelFifo.prepare(samplesPerBlock);
+    preRightChannelFifo.prepare(samplesPerBlock);
+    postLeftChannelFifo.prepare(samplesPerBlock);
+    postRightChannelFifo.prepare(samplesPerBlock);
 
     //test signal preparation
     /*juce::dsp::ProcessSpec spec;
@@ -171,18 +178,19 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    inputMeter.processBlock(buffer, midiMessages, getSampleRate());
-    preFilter.processBlock(buffer, midiMessages, getSampleRate());
-    waveshaperModule.processBlock(buffer, midiMessages, getSampleRate());
-    postFilter.processBlock(buffer, midiMessages, getSampleRate());
+    // processBlock for all the modules int the chain
+    for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
+        (**it).processBlock(buffer, midiMessages, getSampleRate());
+        // if **it è un filtro
+        //    allora faccio l'update della corrispettiva fifo per la fft
+    }
 
-    oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
+    //oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
     // fft analyzers
-    leftChannelFifo.update(buffer);
-    rightChannelFifo.update(buffer);
-    outputMeter.processBlock(buffer, midiMessages, getSampleRate());
-
-    // TODO : effettuare il processBlock per il vettore di DSPModule
+    preLeftChannelFifo.update(buffer);
+    preRightChannelFifo.update(buffer);
+    postLeftChannelFifo.update(buffer);
+    postRightChannelFifo.update(buffer);
 
     // test signal
     /*buffer.clear();
@@ -221,9 +229,11 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
     if (tree.isValid())
     {
         apvts.replaceState(tree);
-        preFilter.updateDSPState(getSampleRate());
-        postFilter.updateDSPState(getSampleRate());
-        // TODO : effettuare l'update del vettore di DSPModule 
+
+        // updateDSPState for all the modules int the chain
+        for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
+            (**it).updateDSPState(getSampleRate());
+        }
     }
 }
 
