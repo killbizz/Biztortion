@@ -60,7 +60,7 @@ struct ResponseCurveComponent : juce::Component,
         callback to change the subsequent intervals.
     */
     void timerCallback() override;
-    void monoChainUpdate();
+    //void monoChainUpdate();
     void paint(juce::Graphics& g) override;
     void resized() override;
 
@@ -69,7 +69,7 @@ private:
     BiztortionAudioProcessor& audioProcessor;
     juce::String type;
     juce::Atomic<bool> parameterChanged{ false };
-    MonoChain monoChain;
+    MonoChain* filterMonoChain = nullptr;
 
     //// FFT analyzer
     //FFTAnalyzerComponent fftAnalyzer;

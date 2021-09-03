@@ -20,16 +20,18 @@
 // component for the response curve in order to paint the curve only in his area
 ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, juce::String _type)
     : audioProcessor(p), type(_type)
-      //fftAnalyzer(p) 
 {
-    //addAndMakeVisible(fftAnalyzer);
-    monoChainUpdate();
+    for (auto it = audioProcessor.modules.cbegin(); it < audioProcessor.modules.cend(); ++it) {
+        auto temp = dynamic_cast<FilterModuleDSP*>(&(**it));
+        if (temp && temp->getType() == type) {
+            filterMonoChain = temp->getOneChain();
+        }
+    }
 
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
         if (param->getLabel() == juce::String(type + " Filter")) {
             param->addListener(this);
-            // std::cout << param->getName(100);
         }
     }
     startTimerHz(60);
@@ -52,28 +54,26 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
 void ResponseCurveComponent::timerCallback() {
 
     if (parameterChanged.compareAndSetBool(false, true)) {
-        monoChainUpdate();
         // signal a repaint
+        repaint();
     }
-
-    repaint();
 }
 
-void ResponseCurveComponent::monoChainUpdate()
-{
-    // update the monoChain
-    auto chainSettings = FilterModuleDSP::getSettings(audioProcessor.apvts, type);
-    auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
-    updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
-
-    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, audioProcessor.getSampleRate());
-    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, audioProcessor.getSampleRate());
-
-    updateCutFilter(monoChain.get<ChainPositions::LowCut>(), lowCutCoefficients,
-        static_cast<FilterSlope>(chainSettings.lowCutSlope));
-    updateCutFilter(monoChain.get<ChainPositions::HighCut>(), highCutCoefficients,
-        static_cast<FilterSlope>(chainSettings.highCutSlope));
-}
+//void ResponseCurveComponent::monoChainUpdate()
+//{
+//    // update the monoChain
+//    auto chainSettings = FilterModuleDSP::getSettings(audioProcessor.apvts, type);
+//    auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+//    updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+//
+//    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, audioProcessor.getSampleRate());
+//    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, audioProcessor.getSampleRate());
+//
+//    updateCutFilter(monoChain.get<ChainPositions::LowCut>(), lowCutCoefficients,
+//        static_cast<FilterSlope>(chainSettings.lowCutSlope));
+//    updateCutFilter(monoChain.get<ChainPositions::HighCut>(), highCutCoefficients,
+//        static_cast<FilterSlope>(chainSettings.highCutSlope));
+//}
 
 void ResponseCurveComponent::paint(juce::Graphics& g)
 {
@@ -84,9 +84,9 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     auto responseArea = getAnalysysArea();
     auto responseWidth = responseArea.getWidth();
 
-    auto& lowcut = monoChain.get<ChainPositions::LowCut>();
-    auto& peak = monoChain.get<ChainPositions::Peak>();
-    auto& highcut = monoChain.get<ChainPositions::HighCut>();
+    auto& lowcut = filterMonoChain->get<ChainPositions::LowCut>();
+    auto& peak = filterMonoChain->get<ChainPositions::Peak>();
+    auto& highcut = filterMonoChain->get<ChainPositions::HighCut>();
 
     auto sampleRate = audioProcessor.getSampleRate();
 
@@ -103,7 +103,7 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
         // normalising pixel number = double(i) / double(responseWidth)
         auto freq = mapToLog10(double(i) / double(responseWidth), 20.0, 20000.0);
         // getting magnitude for each frequency
-        if (!monoChain.isBypassed<ChainPositions::Peak>()) {
+        if (!filterMonoChain->isBypassed<ChainPositions::Peak>()) {
             mag *= peak.coefficients->getMagnitudeForFrequency(freq, sampleRate);
         }
 
@@ -159,56 +159,7 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 
 void ResponseCurveComponent::resized()
 {
-    /*using namespace juce;
 
-    auto background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
-
-    Graphics g(background);
-
-    auto renderArea = getAnalysysArea();
-    auto left = renderArea.getX();
-    auto right = renderArea.getRight();
-    auto top = renderArea.getY();
-    auto bottom = renderArea.getBottom();
-    auto width = renderArea.getWidth();
-
-    const int fontHeight = 10;
-    g.setFont(fontHeight);*/
-
-    // --- FFT ANALYZER ---
-
-    //fftAnalyzer.setBounds(renderArea);
-
-    // --- GAIN LABELS ---
-
-    //Array<float> gains
-    //{
-    //    -24, -12, 0, 12, 24
-    //};
-    //for (auto gDb : gains) {
-    //    // range of sliders = -24, +24
-    //    auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
-    //    g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::darkgrey);
-    //    g.drawHorizontalLine(y, left, right);
-    //}
-    //for (auto gDb : gains) {
-    //    // range of sliders = -24, +24
-    //    auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
-    //    
-    //    String str;
-    //    if (gDb > 0) {
-    //        str << "+";
-    //    }
-    //    str << gDb;
-    //    auto textWidth = g.getCurrentFont().getStringWidth(str);
-    //    Rectangle<int> r;
-    //    r.setSize(textWidth, fontHeight);
-    //    r.setX(getWidth() - textWidth);
-    //    r.setCentre(r.getCentreX(), y);
-
-    //    g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::lightgrey);
-    //    g.drawFittedText(str, r, juce::Justification::centred, 1);
-    //}
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
