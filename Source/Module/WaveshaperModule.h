@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "DSPModule.h"
 
 //==============================================================================
 
@@ -22,6 +23,7 @@ struct WaveshaperSettings {
     float mix{ 0 }, drive{ 0 }, tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
 };
 
+// TODO : implementing oversampling
 //class Waveshaper : public juce::dsp::ProcessorBase
 //{
 //public:
@@ -66,17 +68,18 @@ struct WaveshaperSettings {
 //    juce::dsp::WaveShaper<float> waveshaper;
 //};
 
-class WaveshaperModule {
+class WaveshaperModule : public DSPModule {
 public:
     WaveshaperModule(juce::AudioProcessorValueTreeState&);
-    void prepareToPlay(double sampleRate, int samplesPerBlock);
-    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double);
+
+    void updateDSPState(double sampleRate) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
     static WaveshaperSettings getSettings(juce::AudioProcessorValueTreeState& apvts);
 
 private:
-    juce::AudioProcessorValueTreeState& apvts;
 
     bool isActive = false;
     juce::AudioBuffer<float> wetBuffer;

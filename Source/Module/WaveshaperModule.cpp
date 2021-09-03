@@ -11,7 +11,7 @@
 #include "WaveshaperModule.h"
 
 WaveshaperModule::WaveshaperModule(juce::AudioProcessorValueTreeState& apvts)
-    : apvts(apvts)
+    : DSPModule(apvts)
 {
 }
 
@@ -34,7 +34,7 @@ void WaveshaperModule::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
             wetBuffer.setSize(2, numSamples, false, true, true); // clears
         }
 
-        updateDSP();
+        updateDSPState(sampleRate);
         
         // Wet Buffer feeding
         for (auto channel = 0; channel < 2; channel++)
@@ -118,7 +118,7 @@ WaveshaperSettings WaveshaperModule::getSettings(juce::AudioProcessorValueTreeSt
     return settings;
 }
 
-void WaveshaperModule::updateDSP()
+void WaveshaperModule::updateDSPState(double)
 {
     auto settings = getSettings(apvts);
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
