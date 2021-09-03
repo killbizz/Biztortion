@@ -353,7 +353,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type
     lowCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " LowCut Slope"), "dB/Oct"),
     highCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " HighCut Slope"), "dB/Oct"),
     responseCurveComponent(p, type),
-    //filterFftAnalyzerComponent(p, type),
+    filterFftAnalyzerComponent(p, type),
     peakFreqSliderAttachment(audioProcessor.apvts, type + " Peak Freq", peakFreqSlider),
     peakGainSliderAttachment(audioProcessor.apvts, type + " Peak Gain", peakGainSlider),
     peakQualitySliderAttachment(audioProcessor.apvts, type + " Peak Quality", peakQualitySlider),
@@ -403,7 +403,7 @@ void FilterModuleGUI::resized()
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
 
-    //filterFftAnalyzerComponent.setBounds(responseCurveArea);
+    filterFftAnalyzerComponent.setBounds(responseCurveArea);
     responseCurveComponent.setBounds(responseCurveArea);
     lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f)));
     highCutFreqSlider.setBounds(highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f)));
@@ -426,7 +426,7 @@ std::vector<juce::Component*> FilterModuleGUI::getComps()
         &lowCutSlopeSlider,
         &highCutSlopeSlider,
         // responseCurve
-        //&filterFftAnalyzerComponent,
+        &filterFftAnalyzerComponent,
         &responseCurveComponent,
     };
 }

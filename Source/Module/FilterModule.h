@@ -165,6 +165,6 @@ private:
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
     ResponseCurveComponent responseCurveComponent;
-    //FFTAnalyzerComponent filterFftAnalyzerComponent;
+    FFTAnalyzerComponent filterFftAnalyzerComponent;
 
 };
