@@ -180,17 +180,27 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
     // processBlock for all the modules int the chain
     for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
-        (**it).processBlock(buffer, midiMessages, getSampleRate());
+        auto module = &**it;
+        module->processBlock(buffer, midiMessages, getSampleRate());
         // if **it è un filtro
         //    allora faccio l'update della corrispettiva fifo per la fft
+        auto filter = dynamic_cast<FilterModuleDSP*>(module);
+        // fft analyzers FIFOs update
+        if (filter && filter->getType() == "Pre") {
+            preLeftChannelFifo.update(buffer);
+            preRightChannelFifo.update(buffer);
+        }
+        if (filter && filter->getType() == "Post") {
+            postLeftChannelFifo.update(buffer);
+            postRightChannelFifo.update(buffer);
+        }
+        if (filter && filter->getType() == "Mid") {
+            midLeftChannelFifo->update(buffer);
+            midRightChannelFifo->update(buffer);
+        }
     }
 
     //oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
-    // fft analyzers
-    preLeftChannelFifo.update(buffer);
-    preRightChannelFifo.update(buffer);
-    postLeftChannelFifo.update(buffer);
-    postRightChannelFifo.update(buffer);
 
     // test signal
     /*buffer.clear();
