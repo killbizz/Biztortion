@@ -25,10 +25,10 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     addAndMakeVisible(newModuleSelector);
     newModuleSelector.addItem("Select one module here", 999);
     newModuleSelector.addItem("Oscilloscope", 1);
-    newModuleSelector.addItem("Waveshaper", 2);
-    newModuleSelector.addItem("Bitcrusher", 3);
-    newModuleSelector.addItem("Clipper", 4);
-    newModuleSelector.addItem("Filter", 5); // ?
+    newModuleSelector.addItem("Filter", 2); // ?
+    newModuleSelector.addItem("Waveshaper", 3);
+    newModuleSelector.addItem("Bitcrusher", 4);
+    newModuleSelector.addItem("Clipper", 5);
 
     newModuleSelector.setSelectedId(999);
 
@@ -50,14 +50,46 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             break;
         }
         case 2: {
+            // REMEMBER TO INSTANTIATE THE RELATIVE fifos in the PluginProcessor for fft analyzer
+
+            //GUIModule* midFilter = new FilterModuleGUI(audioProcessor, "Mid");
+            //editor.modules.push_back(std::unique_ptr<GUIModule>(midFilter));
+
+            // TODO : replace of newModule component with the selected component
+            newModuleSelector.setSelectedId(999);
+            newModuleSelector.setVisible(false);
+            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+            editor.updateGUI();
             break;
         }
 
         case 3: {
             // TODO : replace of newModule component with the selected component
-            newModuleSelector.setSelectedId(999);
-            newModuleSelector.setVisible(false);
-            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+            GUIModule* waveshaperModule = new WaveshaperModuleGUI(audioProcessor, getGridPosition());
+            // find *this in the editor modules vector
+            std::vector<std::unique_ptr<GUIModule>>::iterator newModule;
+            for (auto it = editor.modules.begin(); it < editor.modules.end(); ++it) {
+                auto temp = dynamic_cast<NewModuleGUI*>(&**it);
+                if (temp && temp->getGridPosition() == this->getGridPosition()) {
+                    newModule = it;
+                }
+            }
+            //auto it = std::find(editor.modules.begin(), editor.modules.end(), newModule);
+            // insert the newModule and erase the previous one
+            editor.modules.insert(newModule, std::unique_ptr<GUIModule>(waveshaperModule));
+            for (auto it = editor.modules.begin(); it < editor.modules.end(); ++it) {
+                auto temp = dynamic_cast<NewModuleGUI*>(&**it);
+                if (temp && temp->getGridPosition() == this->getGridPosition()) {
+                    newModule = it;
+                }
+            }
+            // TODO : modifico questa istruzione, elimina completamente *this e avviene un'eccezione
+            editor.modules.erase(newModule);
+            //std::replace(editor.modules.begin(), editor.modules.end(), *it, std::unique_ptr<GUIModule>(waveshaperModule));
+            //editor.modules.push_back(std::unique_ptr<GUIModule>(waveshaperModule));
+            //newModuleSelector.setSelectedId(999);
+            //newModuleSelector.setVisible(false);
+            //newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
             editor.updateGUI();
             break;
         }
@@ -70,16 +102,6 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             break;
         }
         case 5: {
-            // REMEMBER TO INSTANTIATE THE RELATIVE fifos in the PluginProcessor for fft analyzer
-
-            //GUIModule* midFilter = new FilterModuleGUI(audioProcessor, "Mid");
-            //editor.modules.push_back(std::unique_ptr<GUIModule>(midFilter));
-
-            // TODO : replace of newModule component with the selected component
-            newModuleSelector.setSelectedId(999);
-            newModuleSelector.setVisible(false);
-            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
-            editor.updateGUI();
             break;
         }
         default: {
