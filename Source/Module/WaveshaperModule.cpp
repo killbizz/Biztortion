@@ -9,21 +9,29 @@
 */
 
 #include "WaveshaperModule.h"
+#include "../PluginProcessor.h"
 
-WaveshaperModule::WaveshaperModule(juce::AudioProcessorValueTreeState& apvts)
-    : DSPModule(apvts)
+//==============================================================================
+
+/* WaveshaperModule DSP */
+
+//==============================================================================
+
+WaveshaperModuleDSP::WaveshaperModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
+    : DSPModule(_apvts)
 {
 }
 
-void WaveshaperModule::prepareToPlay(double sampleRate, int samplesPerBlock)
+void WaveshaperModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     isActive = true;
+    updateDSPState(sampleRate);
     /*oversampler.initProcessing(samplesPerBlock);
     oversampler.reset();*/
 }
 
-void WaveshaperModule::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
+void WaveshaperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
 {
     if (isActive) {
 
@@ -92,7 +100,7 @@ void WaveshaperModule::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     }
 }
 
-void WaveshaperModule::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
+void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
 {
     using namespace juce;
 
@@ -104,7 +112,7 @@ void WaveshaperModule::addParameters(juce::AudioProcessorValueTreeState::Paramet
     layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq", "Waveshaper Sin Freq", NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper"));
 }
 
-WaveshaperSettings WaveshaperModule::getSettings(juce::AudioProcessorValueTreeState& apvts)
+WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts)
 {
     WaveshaperSettings settings;
 
@@ -118,7 +126,7 @@ WaveshaperSettings WaveshaperModule::getSettings(juce::AudioProcessorValueTreeSt
     return settings;
 }
 
-void WaveshaperModule::updateDSPState(double)
+void WaveshaperModuleDSP::updateDSPState(double)
 {
     auto settings = getSettings(apvts);
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
@@ -131,4 +139,71 @@ void WaveshaperModule::updateDSPState(double)
     auto mix = settings.mix * 0.01f;
     dryGain.setTargetValue(1.f - mix);
     wetGain.setTargetValue(mix);
+}
+
+//==============================================================================
+
+/* WaveshaperModule GUI */
+
+//==============================================================================
+
+WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int gridPosition)
+    : GUIModule(gridPosition), audioProcessor(p),
+    waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
+    waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
+    tanhAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Amp"), ""),
+    tanhSlopeSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Slope"), ""),
+    sineAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Amp"), ""),
+    sineFreqSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Freq"), ""),
+    transferFunctionGraph(p),
+    waveshaperDriveSliderAttachment(audioProcessor.apvts, "Waveshaper Drive", waveshaperDriveSlider),
+    waveshaperMixSliderAttachment(audioProcessor.apvts, "Waveshaper Mix", waveshaperMixSlider),
+    tanhAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Amp", tanhAmpSlider),
+    tanhSlopeSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Slope", tanhSlopeSlider),
+    sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp", sineAmpSlider),
+    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq", sineFreqSlider)
+{
+    // sliders labels
+
+    for (auto* comp : getComps())
+    {
+        addAndMakeVisible(comp);
+    }
+}
+
+void WaveshaperModuleGUI::paint(juce::Graphics& g)
+{
+    drawContainer(g);
+}
+
+void WaveshaperModuleGUI::resized()
+{
+    // waveshaper
+    // TODO : add labels
+    auto waveshaperArea = getContentRenderArea();
+    //auto waveshaperArea = bounds.removeFromTop(bounds.getHeight() /** (1.f / 2.f)*/);
+    auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f));
+    auto waveshaperBasicControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
+    auto waveshaperTanhControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
+
+    transferFunctionGraph.setBounds(waveshaperGraphArea);
+    waveshaperDriveSlider.setBounds(waveshaperBasicControlsArea.removeFromLeft(waveshaperBasicControlsArea.getWidth() * (1.f / 2.f)));
+    waveshaperMixSlider.setBounds(waveshaperBasicControlsArea);
+    tanhAmpSlider.setBounds(waveshaperTanhControlsArea.removeFromLeft(waveshaperTanhControlsArea.getWidth() * (1.f / 2.f)));
+    tanhSlopeSlider.setBounds(waveshaperTanhControlsArea);
+    sineAmpSlider.setBounds(waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f)));
+    sineFreqSlider.setBounds(waveshaperArea);
+}
+
+std::vector<juce::Component*> WaveshaperModuleGUI::getComps()
+{
+    return {
+        &transferFunctionGraph,
+        &waveshaperDriveSlider,
+        &waveshaperMixSlider,
+        &tanhAmpSlider,
+        &tanhSlopeSlider,
+        &sineAmpSlider,
+        &sineFreqSlider
+    };
 }

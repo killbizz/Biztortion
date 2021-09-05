@@ -19,7 +19,7 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), /*preFilter(apvts, "Pre"), postFilter(apvts, "Post"),*/ waveshaperModule(apvts) /*, inputMeter(apvts, "Input"), outputMeter(apvts, "Output")*/
+                       )
 #endif
 {
     DSPModule* inputMeter = new MeterModuleDSP(apvts, "Input");
@@ -182,8 +182,6 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
         auto module = &**it;
         module->processBlock(buffer, midiMessages, getSampleRate());
-        // if **it è un filtro
-        //    allora faccio l'update della corrispettiva fifo per la fft
         auto filter = dynamic_cast<FilterModuleDSP*>(module);
         // fft analyzers FIFOs update
         if (filter && filter->getType() == "Pre") {
@@ -254,7 +252,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
 
     MeterModuleDSP::addParameters(layout);
     FilterModuleDSP::addParameters(layout);
-    WaveshaperModule::addParameters(layout);
+    WaveshaperModuleDSP::addParameters(layout);
 
     return layout;
 }

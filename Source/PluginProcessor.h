@@ -81,7 +81,6 @@ public:
 
 private:
 
-    WaveshaperModule waveshaperModule;
     // test signal
     // juce::dsp::Oscillator<float> osc;
 

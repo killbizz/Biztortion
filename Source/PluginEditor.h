@@ -45,32 +45,7 @@ private:
 
     //GUIDimension dimension = GUIDimension::Small;
 
-    // waveshaperModule
-    TransferFunctionGraphComponent transferFunctionGraph;
-    // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
-    /*juce::Label waveshaperDriveLabel,
-        waveshaperMixLabel,
-        tanhAmpLabel,
-        tanhSlopeLabel,
-        sineAmpLabel,
-        sineFreqLabel;*/
-    RotarySliderWithLabels waveshaperDriveSlider,
-        waveshaperMixSlider,
-        tanhAmpSlider,
-        tanhSlopeSlider,
-        sineAmpSlider,
-        sineFreqSlider;
-    Attachment waveshaperDriveSliderAttachment,
-        waveshaperMixSliderAttachment,
-        tanhAmpSliderAttachment,
-        tanhSlopeSliderAttachment,
-        sineAmpSliderAttachment,
-        sineFreqSliderAttachment;
-
-    // fft analyzer
-    //FFTAnalyzerComponent analyzerComponent;
-
-    std::vector<juce::Component*> getComps();
+    //std::vector<juce::Component*> getComps();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };

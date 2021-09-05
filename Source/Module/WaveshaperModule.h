@@ -12,6 +12,10 @@
 
 #include <JuceHeader.h>
 #include "DSPModule.h"
+#include "GUIModule.h"
+#include "../Component/GUIStuff.h"
+#include "../Component/TransferFunctionGraphComponent.h"
+class BiztortionAudioProcessor;
 
 //==============================================================================
 
@@ -68,9 +72,9 @@ struct WaveshaperSettings {
 //    juce::dsp::WaveShaper<float> waveshaper;
 //};
 
-class WaveshaperModule : public DSPModule {
+class WaveshaperModuleDSP : public DSPModule {
 public:
-    WaveshaperModule(juce::AudioProcessorValueTreeState&);
+    WaveshaperModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
 
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -92,8 +96,6 @@ private:
     static const auto filterType = juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR;
 
     juce::dsp::Oversampling<float> oversampler{ numChannels, oversamplingOrder, filterType };*/
-
-    void updateDSP();
 };
 
 //==============================================================================
@@ -101,3 +103,46 @@ private:
 /* WaveshaperModule GUI */
 
 //==============================================================================
+
+class WaveshaperModuleGUI : public GUIModule {
+public:
+    WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int gridPosition);
+
+    void paint(juce::Graphics& g) override;
+    void resized() override;
+
+    std::vector<juce::Component*> getComps() override;
+
+private:
+
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using Attachment = APVTS::SliderAttachment;
+
+    // This reference is provided as a quick way for your editor to
+    // access the processor object that created it.
+    BiztortionAudioProcessor& audioProcessor;
+    juce::String type;
+
+    // waveshaperModule
+    TransferFunctionGraphComponent transferFunctionGraph;
+    // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
+    /*juce::Label waveshaperDriveLabel,
+        waveshaperMixLabel,
+        tanhAmpLabel,
+        tanhSlopeLabel,
+        sineAmpLabel,
+        sineFreqLabel;*/
+    RotarySliderWithLabels waveshaperDriveSlider,
+        waveshaperMixSlider,
+        tanhAmpSlider,
+        tanhSlopeSlider,
+        sineAmpSlider,
+        sineFreqSlider;
+    Attachment waveshaperDriveSliderAttachment,
+        waveshaperMixSliderAttachment,
+        tanhAmpSliderAttachment,
+        tanhSlopeSliderAttachment,
+        sineAmpSliderAttachment,
+        sineFreqSliderAttachment;
+
+};

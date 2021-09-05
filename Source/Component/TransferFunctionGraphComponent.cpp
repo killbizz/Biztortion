@@ -107,7 +107,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 
 void TransferFunctionGraphComponent::updateParams()
 {
-	WaveshaperSettings settings = WaveshaperModule::getSettings(audioProcessor.apvts);
+	WaveshaperSettings settings = WaveshaperModuleDSP::getSettings(audioProcessor.apvts);
 	setTanhAmp(settings.tanhAmp);
 	setTanhSlope(settings.tanhSlope);
 	setSineAmp(settings.sinAmp);

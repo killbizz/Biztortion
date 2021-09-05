@@ -11,21 +11,7 @@
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p),
-    // waveshaper
-    waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
-    waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
-    tanhAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Amp"), ""),
-    tanhSlopeSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Slope"), ""),
-    sineAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Amp"), ""),
-    sineFreqSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Freq"), ""),
-    transferFunctionGraph(p),
-    waveshaperDriveSliderAttachment(audioProcessor.apvts, "Waveshaper Drive", waveshaperDriveSlider),
-    waveshaperMixSliderAttachment(audioProcessor.apvts, "Waveshaper Mix", waveshaperMixSlider),
-    tanhAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Amp", tanhAmpSlider),
-    tanhSlopeSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Slope", tanhSlopeSlider),
-    sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp", sineAmpSlider),
-    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq", sineFreqSlider)
+    : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -203,33 +189,33 @@ void BiztortionAudioProcessorEditor::resized()
     //audioProcessor.oscilloscope.setBounds(bounds);
 }
 
-std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
-{
-    return {
-        //&newModule,
-        //&newModuleSelector,
-        // filter
-        //&filterModuleGUI,
-        // fft analyzer
-        //&analyzerComponent,
-        // oscilloscope
-        //&(audioProcessor.oscilloscope),
-        // waveshaper
-        //&transferFunctionGraph,
-        //&waveshaperDriveSlider,
-        //&waveshaperMixSlider,
-        //&tanhAmpSlider,
-        //&tanhSlopeSlider,
-        //&sineAmpSlider,
-        //&sineFreqSlider,
-        /*&waveshaperDriveLabel,
-        &waveshaperMixLabel,
-        &tanhAmpLabel,
-        &tanhSlopeLabel,
-        &sineAmpLabel,
-        &sineFreqLabel*/
-    };
-}
+//std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
+//{
+//    return {
+//        //&newModule,
+//        //&newModuleSelector,
+//        // filter
+//        //&filterModuleGUI,
+//        // fft analyzer
+//        //&analyzerComponent,
+//        // oscilloscope
+//        //&(audioProcessor.oscilloscope),
+//        // waveshaper
+//        //&transferFunctionGraph,
+//        //&waveshaperDriveSlider,
+//        //&waveshaperMixSlider,
+//        //&tanhAmpSlider,
+//        //&tanhSlopeSlider,
+//        //&sineAmpSlider,
+//        //&sineFreqSlider,
+//        /*&waveshaperDriveLabel,
+//        &waveshaperMixLabel,
+//        &tanhAmpLabel,
+//        &tanhSlopeLabel,
+//        &sineAmpLabel,
+//        &sineFreqLabel*/
+//    };
+//}
 
 void BiztortionAudioProcessorEditor::updateGUI()
 {
