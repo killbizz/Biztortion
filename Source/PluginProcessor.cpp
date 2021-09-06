@@ -9,6 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+juce::Identifier BiztortionAudioProcessor::modulesChainID("modulesChainID");
+
 //==============================================================================
 BiztortionAudioProcessor::BiztortionAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -23,13 +25,13 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
 #endif
 {
     DSPModule* inputMeter = new MeterModuleDSP(apvts, "Input");
-    modules.push_back(std::unique_ptr<DSPModule>(inputMeter));
+    DSPmodules.push_back(std::unique_ptr<DSPModule>(inputMeter));
     DSPModule* preFilter = new FilterModuleDSP(apvts, "Pre");
-    modules.push_back(std::unique_ptr<DSPModule>(preFilter));
+    DSPmodules.push_back(std::unique_ptr<DSPModule>(preFilter));
     DSPModule* postFilter = new FilterModuleDSP(apvts, "Post");
-    modules.push_back(std::unique_ptr<DSPModule>(postFilter));
+    DSPmodules.push_back(std::unique_ptr<DSPModule>(postFilter));
     DSPModule* outputMeter = new MeterModuleDSP(apvts, "Output");
-    modules.push_back(std::unique_ptr<DSPModule>(outputMeter));
+    DSPmodules.push_back(std::unique_ptr<DSPModule>(outputMeter));
 
     // modules names and order to save in the apvts
     apvts.state.setProperty(modulesChainID, var(juce::Array<String>()), nullptr);
@@ -112,8 +114,8 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 
-    // prepareToPlay for all the modules int the chain
-    for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
+    // prepareToPlay for all the modules in the chain
+    for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
         (**it).prepareToPlay(sampleRate, samplesPerBlock);
     }
 
@@ -184,33 +186,37 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // processBlock for all the modules int the chain
-    for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
-        auto module = &**it;
-        module->processBlock(buffer, midiMessages, getSampleRate());
-        auto filter = dynamic_cast<FilterModuleDSP*>(module);
-        // fft analyzers FIFOs update
-        if (filter && filter->getType() == "Pre") {
-            preLeftChannelFifo.update(buffer);
-            preRightChannelFifo.update(buffer);
+    numSamples = numSamples == buffer.getNumSamples() ? numSamples : buffer.getNumSamples();
+
+    if (!isSuspended()) {
+        // processBlock for all the modules in the chain
+        for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
+            auto module = &**it;
+            module->processBlock(buffer, midiMessages, getSampleRate());
+            auto filter = dynamic_cast<FilterModuleDSP*>(module);
+            // fft analyzers FIFOs update
+            if (filter && filter->getType() == "Pre") {
+                preLeftChannelFifo.update(buffer);
+                preRightChannelFifo.update(buffer);
+            }
+            if (filter && filter->getType() == "Post") {
+                postLeftChannelFifo.update(buffer);
+                postRightChannelFifo.update(buffer);
+            }
+            if (filter && filter->getType() == "Mid") {
+                midLeftChannelFifo->update(buffer);
+                midRightChannelFifo->update(buffer);
+            }
         }
-        if (filter && filter->getType() == "Post") {
-            postLeftChannelFifo.update(buffer);
-            postRightChannelFifo.update(buffer);
-        }
-        if (filter && filter->getType() == "Mid") {
-            midLeftChannelFifo->update(buffer);
-            midRightChannelFifo->update(buffer);
-        }
+
+        //oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
+
+        // test signal
+        /*buffer.clear();
+        juce::dsp::AudioBlock<float> block(buffer);
+        juce::dsp::ProcessContextReplacing<float> stereoContext(block);
+        osc.process(stereoContext);*/
     }
-
-    //oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
-
-    // test signal
-    /*buffer.clear();
-    juce::dsp::AudioBlock<float> block(buffer);
-    juce::dsp::ProcessContextReplacing<float> stereoContext(block);
-    osc.process(stereoContext);*/
 }
 
 bool BiztortionAudioProcessor::hasEditor() const
@@ -245,7 +251,7 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         apvts.replaceState(tree);
 
         // updateDSPState for all the modules int the chain
-        for (auto it = modules.cbegin(); it < modules.cend(); ++it) {
+        for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
             (**it).updateDSPState(getSampleRate());
         }
     }
@@ -266,6 +272,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
 void BiztortionAudioProcessor::updateModulesChain(juce::String moduleName, unsigned int gridPosition)
 {
 
+}
+
+int BiztortionAudioProcessor::getNumSamples()
+{
+    return numSamples;
 }
 
 //==============================================================================

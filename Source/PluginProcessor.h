@@ -77,9 +77,10 @@ public:
     SingleChannelSampleFifo<BlockType>* midLeftChannelFifo = nullptr;
     SingleChannelSampleFifo<BlockType>* midRightChannelFifo = nullptr;
     // modules
-    std::vector<std::unique_ptr<DSPModule>> modules;
+    std::vector<std::unique_ptr<DSPModule>> DSPmodules;
 
     void updateModulesChain(juce::String moduleName, unsigned int gridPosition);
+    int getNumSamples();
 
 private:
 
@@ -87,9 +88,8 @@ private:
     // juce::dsp::Oscillator<float> osc;
     static juce::Identifier modulesChainID;
     juce::Value modulesChain;
+    int numSamples;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessor)
 };
-
-juce::Identifier BiztortionAudioProcessor::modulesChainID("modulesChainID");
