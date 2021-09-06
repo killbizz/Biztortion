@@ -32,7 +32,8 @@ public:
 
     void updateGUI();
 
-    std::vector<std::unique_ptr<GUIModule>> modules;
+    std::vector<std::unique_ptr<GUIModule>> GUImodules;
+    std::vector<std::unique_ptr<NewModuleGUI>> newModules;
 
 private:
 

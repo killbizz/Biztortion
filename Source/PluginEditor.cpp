@@ -17,18 +17,18 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // editor's size to whatever you need it to be.
 
     for (int i = 0; i < 6; ++i) {
-        GUIModule* item = new NewModuleGUI(audioProcessor, *this, i + 2);
-        modules.push_back(std::unique_ptr<GUIModule>(item));
+        NewModuleGUI* item = new NewModuleGUI(audioProcessor, *this, i + 2);
+        newModules.push_back(std::unique_ptr<NewModuleGUI>(item));
     }
 
     GUIModule* inputMeter = new MeterModuleGUI(audioProcessor, "Input");
-    modules.push_back(std::unique_ptr<GUIModule>(inputMeter));
+    GUImodules.push_back(std::unique_ptr<GUIModule>(inputMeter));
     GUIModule* preFilter = new FilterModuleGUI(audioProcessor, "Pre", 1);
-    modules.push_back(std::unique_ptr<GUIModule>(preFilter));
+    GUImodules.push_back(std::unique_ptr<GUIModule>(preFilter));
     GUIModule* postFilter = new FilterModuleGUI(audioProcessor, "Post", 8);
-    modules.push_back(std::unique_ptr<GUIModule>(postFilter));
+    GUImodules.push_back(std::unique_ptr<GUIModule>(postFilter));
     GUIModule* outputMeter = new MeterModuleGUI(audioProcessor, "Output");
-    modules.push_back(std::unique_ptr<GUIModule>(outputMeter));
+    GUImodules.push_back(std::unique_ptr<GUIModule>(outputMeter));
 
     // labels
     /*waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
@@ -39,6 +39,11 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);*/
 
     updateGUI();
+
+    for (auto it = newModules.cbegin(); it < newModules.cend(); ++it)
+    {
+        addAndMakeVisible(**it);
+    }
 
     setSize (1400, 782);
     setResizable(false, false);
@@ -110,6 +115,8 @@ void BiztortionAudioProcessorEditor::resized()
     // modalità medium : aggiungere fino a un max di 3 moduli (tutti aggiunti in colonna)
     // modalità large : aggiungere da 4 a max 6 moduli
 
+    updateGUI();
+
     auto bounds = getLocalBounds();
     auto temp = bounds;
     temp = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
@@ -130,40 +137,60 @@ void BiztortionAudioProcessorEditor::resized()
     bounds.setLeft(preStageArea.getTopRight().getX());
     bounds.setRight(postStageArea.getTopLeft().getX());
 
-
     juce::FlexBox fb;
     fb.flexWrap = juce::FlexBox::Wrap::wrap;
     //fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
     fb.justifyContent = juce::FlexBox::JustifyContent::center;
     fb.alignContent = juce::FlexBox::AlignContent::center;
-
-    for (auto it = modules.cbegin(); it < modules.cend(); ++it)
-    {
-        auto gp = (**it).getGridPosition();
-        if (gp > 1 && gp < 8) {
-            auto item = juce::FlexItem(**it);
-            //item.flexGrow = 1;
-            //item.flexShrink = 1;
-            fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
+    
+    std::vector<std::unique_ptr<GUIModule>>::const_iterator it = GUImodules.cbegin();
+    for (int i = 0; i < 10; ++i) {
+        if (i == 0) {
+            (**it).setBounds(inputMeterArea);
+            ++it;
         }
-        else if (gp == 0)    (**it).setBounds(inputMeterArea);
-        else if (gp == 1)    (**it).setBounds(preFilterArea);
-        else if (gp == 8)   (**it).setBounds(postFilterArea);
-        else if (gp == 9)   (**it).setBounds(outputMeterArea);
+        else if (i == 1) {
+            (**it).setBounds(preFilterArea);
+            ++it;
+        }
+        else {
+            // dopo devo riempire di NewModules ( con i == (**it2).getGridPosition() ) il layout finchè non arrivo ad avere i == (**it).getGridPosition(), 
+            // dove devo metterci il modulo **it
+            auto gp = (**it).getGridPosition();
+            juce::FlexItem item;
+            while (i != gp) {
+                bool found = false;
+                for (auto it2 = newModules.cbegin(); !found && it2 < newModules.cend(); ++it2) {
+                    if ((**it2).getGridPosition() == i) {
+                        found = true;
+                        item = juce::FlexItem(**it2);
+                        fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
+                    }
+                }
+                ++i;
+            }
+            // i == (**it).getGridPosition() => insert the GUImodule
+            if (i < 8) {
+                item = juce::FlexItem(**it);
+                fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
+                ++it;
+            }
+            else if (i == 8) {
+                (**it).setBounds(postFilterArea);
+                ++it;
+            }
+            else if (i == 9) {
+                (**it).setBounds(outputMeterArea);
+                ++it;
+            }
+            // item.flexGrow = 1;
+            // item.flexShrink = 1;
+            // fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
+        }
     }
-    /*fb.items.add(juce::FlexItem(newModule).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));
-    fb.items.add(juce::FlexItem(newModuleSelector).withMinWidth(100.0f).withMinHeight(100.0f).withMaxWidth(100.0f).withMaxHeight(100.0f));*/
 
     // 32 = header height
     fb.performLayout(bounds.removeFromBottom(getLocalBounds().getHeight() - 32).toFloat());
-
-    //auto bounds = getLocalBounds().removeFromBottom(getLocalBounds().getHeight() - 32);
-    /*auto bounds = getLocalBounds();
-    availableBounds = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
-    newModule.setBounds(bounds);*/
-
-    // filters
-    //filterModuleGUI.setBounds(bounds);
 
     // waveshaper
     // TODO : add labels
@@ -179,11 +206,6 @@ void BiztortionAudioProcessorEditor::resized()
     //tanhSlopeSlider.setBounds(waveshaperTanhControlsArea);
     //sineAmpSlider.setBounds(waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f)));
     //sineFreqSlider.setBounds(waveshaperArea);
-
-    // analyzer
-    /*auto analyzerArea = bounds.removeFromRight(bounds.getWidth() * (1.f / 2.f));
-
-    analyzerComponent.setBounds(analyzerArea);*/
 
     // oscilloscope
     //audioProcessor.oscilloscope.setBounds(bounds);
@@ -219,7 +241,7 @@ void BiztortionAudioProcessorEditor::resized()
 
 void BiztortionAudioProcessorEditor::updateGUI()
 {
-    for (auto it = modules.cbegin(); it < modules.cend(); ++it)
+    for (auto it = GUImodules.cbegin(); it < GUImodules.cend(); ++it)
     {
         addAndMakeVisible(**it);
     }
