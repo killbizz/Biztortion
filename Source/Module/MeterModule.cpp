@@ -110,7 +110,7 @@ juce::String MeterModuleGUI::getType()
 foleys::LevelMeterSource* MeterModuleGUI::getMeterSource()
 {
     foleys::LevelMeterSource* source = nullptr;
-    for (auto it = audioProcessor.modules.cbegin(); it < audioProcessor.modules.cend(); ++it) {
+    for (auto it = audioProcessor.DSPmodules.cbegin(); it < audioProcessor.DSPmodules.cend(); ++it) {
         auto temp = dynamic_cast<MeterModuleDSP*>(&(**it));
         if (temp && temp->getType() == type) {
             source = &temp->getMeterSource();

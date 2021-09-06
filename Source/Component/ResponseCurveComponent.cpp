@@ -21,7 +21,7 @@
 ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, juce::String _type)
     : audioProcessor(p), type(_type)
 {
-    for (auto it = audioProcessor.modules.cbegin(); it < audioProcessor.modules.cend(); ++it) {
+    for (auto it = audioProcessor.DSPmodules.cbegin(); it < audioProcessor.DSPmodules.cend(); ++it) {
         auto temp = dynamic_cast<FilterModuleDSP*>(&(**it));
         if (temp && temp->getType() == type) {
             filterMonoChain = temp->getOneChain();
