@@ -137,6 +137,11 @@ void BiztortionAudioProcessorEditor::resized()
     bounds.setLeft(preStageArea.getTopRight().getX());
     bounds.setRight(postStageArea.getTopLeft().getX());
 
+    // TODO : invertire inserimento degli item da orizzontale a verticale
+    // item.flexGrow = 1;
+    // item.flexShrink = 1;
+    // fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
+
     juce::FlexBox fb;
     fb.flexWrap = juce::FlexBox::Wrap::wrap;
     //fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
@@ -183,9 +188,6 @@ void BiztortionAudioProcessorEditor::resized()
                 (**it).setBounds(outputMeterArea);
                 ++it;
             }
-            // item.flexGrow = 1;
-            // item.flexShrink = 1;
-            // fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
         }
     }
 
