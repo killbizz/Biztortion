@@ -11,6 +11,7 @@
 #include "NewModule.h"
 #include "../PluginProcessor.h"
 #include "../PluginEditor.h"
+#include <algorithm>
 
 NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int gridPosition)
     : GUIModule(gridPosition), audioProcessor(p), editor(e)
@@ -64,33 +65,31 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         }
 
         case 3: {
-            // TODO : replace of newModule component with the selected component
             GUIModule* waveshaperModule = new WaveshaperModuleGUI(audioProcessor, getGridPosition());
-            // find *this in the editor modules vector
-            std::vector<std::unique_ptr<GUIModule>>::iterator newModule;
-            for (auto it = editor.modules.begin(); it < editor.modules.end(); ++it) {
-                auto temp = dynamic_cast<NewModuleGUI*>(&**it);
-                if (temp && temp->getGridPosition() == this->getGridPosition()) {
-                    newModule = it;
+
+            bool inserted = false;
+            for (auto it = editor.GUImodules.begin(); !inserted && it < editor.GUImodules.end(); ++it) {
+                // there are no GUImodules in the vector => first module to insert
+                // end = 8° grid cell
+                if ((**it).getGridPosition() == 8) {
+                    inserted = true;
+                    editor.GUImodules.insert(it, std::unique_ptr<GUIModule>(waveshaperModule));
+                    continue;
                 }
-            }
-            //auto it = std::find(editor.modules.begin(), editor.modules.end(), newModule);
-            // insert the newModule and erase the previous one
-            editor.modules.insert(newModule, std::unique_ptr<GUIModule>(waveshaperModule));
-            for (auto it = editor.modules.begin(); it < editor.modules.end(); ++it) {
-                auto temp = dynamic_cast<NewModuleGUI*>(&**it);
-                if (temp && temp->getGridPosition() == this->getGridPosition()) {
-                    newModule = it;
+                // there is at least one module in the vector
+                auto next = it;
+                ++next;
+                if ((**it).getGridPosition() < getGridPosition() && getGridPosition() <(**next).getGridPosition()) {
+                    inserted = true;
+                    it = editor.GUImodules.insert(next, std::unique_ptr<GUIModule>(waveshaperModule));
                 }
+                // else continue to iterate to find the right grid position
             }
-            // TODO : modifico questa istruzione, elimina completamente *this e avviene un'eccezione
-            editor.modules.erase(newModule);
-            //std::replace(editor.modules.begin(), editor.modules.end(), *it, std::unique_ptr<GUIModule>(waveshaperModule));
-            //editor.modules.push_back(std::unique_ptr<GUIModule>(waveshaperModule));
-            //newModuleSelector.setSelectedId(999);
-            //newModuleSelector.setVisible(false);
-            //newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
-            editor.updateGUI();
+            this->setVisible(false);
+            newModuleSelector.setSelectedId(999);
+            newModuleSelector.setVisible(false);
+            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+            editor.resized();
             break;
         }
         case 4: {
