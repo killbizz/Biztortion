@@ -79,11 +79,17 @@ public:
     // modules
     std::vector<std::unique_ptr<DSPModule>> modules;
 
+    void updateModulesChain(juce::String moduleName, unsigned int gridPosition);
+
 private:
 
     // test signal
     // juce::dsp::Oscillator<float> osc;
+    static juce::Identifier modulesChainID;
+    juce::Value modulesChain;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessor)
 };
+
+juce::Identifier BiztortionAudioProcessor::modulesChainID("modulesChainID");

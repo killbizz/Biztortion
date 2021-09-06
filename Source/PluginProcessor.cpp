@@ -30,6 +30,14 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
     modules.push_back(std::unique_ptr<DSPModule>(postFilter));
     DSPModule* outputMeter = new MeterModuleDSP(apvts, "Output");
     modules.push_back(std::unique_ptr<DSPModule>(outputMeter));
+
+    // modules names and order to save in the apvts
+    apvts.state.setProperty(modulesChainID, var(juce::Array<String>()), nullptr);
+    modulesChain.referTo(apvts.state.getPropertyAsValue(modulesChainID, nullptr));
+
+    auto mc = modulesChain.getValue().getArray();
+
+
 }
 
 BiztortionAudioProcessor::~BiztortionAudioProcessor()
@@ -109,10 +117,8 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
         (**it).prepareToPlay(sampleRate, samplesPerBlock);
     }
 
-    oscilloscope.clear();
-    oscilloscope.setHorizontalZoom(0.1f);
-
-    // waveshaperModule.prepareToPlay(sampleRate, samplesPerBlock);
+    //oscilloscope.clear();
+    //oscilloscope.setHorizontalZoom(0.1f);
 
     // fft analyzers
     preLeftChannelFifo.prepare(samplesPerBlock);
@@ -255,6 +261,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
     WaveshaperModuleDSP::addParameters(layout);
 
     return layout;
+}
+
+void BiztortionAudioProcessor::updateModulesChain(juce::String moduleName, unsigned int gridPosition)
+{
+
 }
 
 //==============================================================================
