@@ -127,6 +127,8 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     preRightChannelFifo.prepare(samplesPerBlock);
     postLeftChannelFifo.prepare(samplesPerBlock);
     postRightChannelFifo.prepare(samplesPerBlock);
+    if (midLeftChannelFifo)  midLeftChannelFifo->prepare(samplesPerBlock);
+    if (midRightChannelFifo) midRightChannelFifo->prepare(samplesPerBlock);
 
     //test signal preparation
     /*juce::dsp::ProcessSpec spec;
