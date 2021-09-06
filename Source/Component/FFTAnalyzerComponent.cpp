@@ -177,6 +177,16 @@ void FFTAnalyzerComponent::resized()
     }
 }
 
+PathProducer& FFTAnalyzerComponent::getLeftPathProducer()
+{
+    return leftPathProducer;
+}
+
+PathProducer& FFTAnalyzerComponent::getRightPathProducer()
+{
+    return rightPathProducer;
+}
+
 juce::Rectangle<int> FFTAnalyzerComponent::getRenderArea()
 {
     // returns a dimesion reduced rectangle as bounds in order to avoid margin collisions

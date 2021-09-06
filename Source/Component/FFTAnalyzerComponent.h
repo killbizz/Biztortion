@@ -54,6 +54,8 @@ struct FFTAnalyzerComponent : juce::Component,
     void timerCallback() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
+    PathProducer& getLeftPathProducer();
+    PathProducer& getRightPathProducer();
 
 private:
 

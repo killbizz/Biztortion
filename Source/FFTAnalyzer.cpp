@@ -61,3 +61,8 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
         pathProducer.getPath(leftChannelFFTPath);
     }
 }
+
+void PathProducer::setSingleChannelSampleFifo(SingleChannelSampleFifo<juce::AudioBuffer<float>>* scsf)
+{
+    leftChannelFifo = scsf;
+}

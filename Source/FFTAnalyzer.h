@@ -308,6 +308,7 @@ struct PathProducer
     PathProducer(SingleChannelSampleFifo<juce::AudioBuffer<float>>& scsf);
     void process(juce::Rectangle<float> fftBounds, double sampleRate);
     juce::Path getPath() { return leftChannelFFTPath; }
+    void setSingleChannelSampleFifo(SingleChannelSampleFifo<juce::AudioBuffer<float>>* scsf);
 private:
     SingleChannelSampleFifo<juce::AudioBuffer<float>>* leftChannelFifo;
 

@@ -63,6 +63,7 @@ struct ResponseCurveComponent : juce::Component,
     //void monoChainUpdate();
     void paint(juce::Graphics& g) override;
     void resized() override;
+    void setFilterMonoChain();
 
 private:
 
