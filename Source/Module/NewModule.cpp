@@ -51,16 +51,21 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             break;
         }
         case 2: {
-            // REMEMBER TO INSTANTIATE THE RELATIVE fifos in the PluginProcessor for fft analyzer
-
-            //GUIModule* midFilter = new FilterModuleGUI(audioProcessor, "Mid");
-            //editor.modules.push_back(std::unique_ptr<GUIModule>(midFilter));
-
-            // TODO : replace of newModule component with the selected component
-            newModuleSelector.setSelectedId(999);
-            newModuleSelector.setVisible(false);
-            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
-            editor.updateGUI();
+            GUIModule* filterGUIModule = new FilterModuleGUI(audioProcessor, "Mid", getGridPosition());
+            unsigned int index = addModuleToGUImodules(filterGUIModule);
+            audioProcessor.suspendProcessing(true);
+            audioProcessor.midLeftChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Left };
+            audioProcessor.midRightChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Right };
+            DSPModule* filterDSPModule = new FilterModuleDSP(audioProcessor.apvts, "Mid");
+            addModuleToDSPmodules(filterDSPModule, index);
+            auto components = dynamic_cast<FilterModuleGUI*>(filterGUIModule)->getComps();
+            auto lastElement = components.rbegin();
+            dynamic_cast<ResponseCurveComponent*>(*lastElement)->setFilterMonoChain();
+            auto beforeLastElement = ++lastElement;
+            dynamic_cast<FFTAnalyzerComponent*>(*beforeLastElement)->getLeftPathProducer().setSingleChannelSampleFifo(audioProcessor.midLeftChannelFifo);
+            dynamic_cast<FFTAnalyzerComponent*>(*beforeLastElement)->getRightPathProducer().setSingleChannelSampleFifo(audioProcessor.midRightChannelFifo);
+            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
+            audioProcessor.suspendProcessing(false);
             break;
         }
 
