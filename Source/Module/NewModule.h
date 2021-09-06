@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 
 #include "GUIModule.h"
+#include "DSPModule.h"
 #include "../Component/GUIStuff.h"
 class BiztortionAudioProcessor;
 class BiztortionAudioProcessorEditor;
@@ -34,6 +35,9 @@ public:
 
     std::vector<juce::Component*> getComps() override;
     void setupCustomLookAndFeelColours(juce::LookAndFeel& laf);
+
+    unsigned int addModuleToGUImodules(GUIModule* module);
+    void addModuleToDSPmodules(DSPModule* module, unsigned int index);
 
 private:
 

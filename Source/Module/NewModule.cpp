@@ -65,31 +65,13 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         }
 
         case 3: {
-            GUIModule* waveshaperModule = new WaveshaperModuleGUI(audioProcessor, getGridPosition());
-
-            bool inserted = false;
-            for (auto it = editor.GUImodules.begin(); !inserted && it < editor.GUImodules.end(); ++it) {
-                // there are no GUImodules in the vector => first module to insert
-                // end = 8° grid cell
-                if ((**it).getGridPosition() == 8) {
-                    inserted = true;
-                    editor.GUImodules.insert(it, std::unique_ptr<GUIModule>(waveshaperModule));
-                    continue;
-                }
-                // there is at least one module in the vector
-                auto next = it;
-                ++next;
-                if ((**it).getGridPosition() < getGridPosition() && getGridPosition() <(**next).getGridPosition()) {
-                    inserted = true;
-                    it = editor.GUImodules.insert(next, std::unique_ptr<GUIModule>(waveshaperModule));
-                }
-                // else continue to iterate to find the right grid position
-            }
-            this->setVisible(false);
-            newModuleSelector.setSelectedId(999);
-            newModuleSelector.setVisible(false);
-            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
-            editor.resized();
+            GUIModule* waveshaperGUIModule = new WaveshaperModuleGUI(audioProcessor, getGridPosition());
+            unsigned int index = addModuleToGUImodules(waveshaperGUIModule);
+            audioProcessor.suspendProcessing(true);
+            DSPModule* waveshaperDSPModule = new WaveshaperModuleDSP(audioProcessor.apvts);
+            addModuleToDSPmodules(waveshaperDSPModule, index);
+            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(),audioProcessor.getNumSamples());
+            audioProcessor.suspendProcessing(false);
             break;
         }
         case 4: {
@@ -144,4 +126,45 @@ void NewModuleGUI::setupCustomLookAndFeelColours(juce::LookAndFeel& laf)
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
+}
+
+unsigned int NewModuleGUI::addModuleToGUImodules(GUIModule* module)
+{
+    bool inserted = false;
+    unsigned int index;
+
+    for (auto it = editor.GUImodules.begin(); !inserted && it < editor.GUImodules.end(); ++it) {
+        // there are no GUImodules in the vector => first module to insert
+        // end = 8° grid cell
+        if ((**it).getGridPosition() == 8) {
+            inserted = true;
+            it = editor.GUImodules.insert(it, std::unique_ptr<GUIModule>(module));
+            index = it - editor.GUImodules.begin();
+            continue;
+        }
+        // there is at least one module in the vector
+        auto next = it;
+        ++next;
+        if ((**it).getGridPosition() < getGridPosition() && getGridPosition() < (**next).getGridPosition()) {
+            inserted = true;
+            it = editor.GUImodules.insert(next, std::unique_ptr<GUIModule>(module));
+            index = it - editor.GUImodules.begin();
+        }
+        // else continue to iterate to find the right grid position
+    }
+    this->setVisible(false);
+    newModuleSelector.setSelectedId(999);
+    newModuleSelector.setVisible(false);
+    newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+    editor.resized();
+    return index;
+}
+
+void NewModuleGUI::addModuleToDSPmodules(DSPModule* module, unsigned int index)
+{
+    auto it = audioProcessor.DSPmodules.begin();
+    for (int i = 0; i < index; ++i) {
+        ++it;
+    }
+    audioProcessor.DSPmodules.insert(it, std::unique_ptr<DSPModule>(module));
 }
