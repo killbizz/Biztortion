@@ -134,7 +134,7 @@ void MeterModuleGUI::resized()
     auto bounds = getContentRenderArea();
 
     auto meterArea = bounds.removeFromLeft(bounds.getWidth() * (1.f / 2.f));
-    meterArea.reduce(50, 50);
+    meterArea.reduce(30, 30);
     bounds.reduce(20, 20);
 
     meter.setBounds(meterArea);
