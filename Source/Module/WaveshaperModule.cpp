@@ -163,7 +163,32 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned i
     sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp", sineAmpSlider),
     sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq", sineFreqSlider)
 {
-    // sliders labels
+    // labels
+    waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
+    waveshaperDriveLabel.setFont(10);
+    waveshaperMixLabel.setText("Mix", juce::dontSendNotification);
+    waveshaperMixLabel.setFont(10);
+    tanhAmpLabel.setText("Tanh Amp", juce::dontSendNotification);
+    tanhAmpLabel.setFont(10);
+    tanhSlopeLabel.setText("Tanh Slope", juce::dontSendNotification);
+    tanhSlopeLabel.setFont(10);
+    sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
+    sineAmpLabel.setFont(10);
+    sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);
+    sineFreqLabel.setFont(10);
+
+    waveshaperDriveSlider.labels.add({ 0.f, "0dB" });
+    waveshaperDriveSlider.labels.add({ 1.f, "40dB" });
+    waveshaperMixSlider.labels.add({ 0.f, "0%" });
+    waveshaperMixSlider.labels.add({ 1.f, "100%" });
+    tanhAmpSlider.labels.add({ 0.f, "0" });
+    tanhAmpSlider.labels.add({ 1.f, "100" });
+    tanhSlopeSlider.labels.add({ 0.f, "1" });
+    tanhSlopeSlider.labels.add({ 1.f, "15" });
+    sineAmpSlider.labels.add({ 0.f, "0" });
+    sineAmpSlider.labels.add({ 1.f, "100" });
+    sineFreqSlider.labels.add({ 0.f, "0" });
+    sineFreqSlider.labels.add({ 1.f, "100" });
 
     for (auto* comp : getComps())
     {
@@ -178,21 +203,53 @@ void WaveshaperModuleGUI::paint(juce::Graphics& g)
 
 void WaveshaperModuleGUI::resized()
 {
-    // waveshaper
-    // TODO : add labels
     auto waveshaperArea = getContentRenderArea();
-    //auto waveshaperArea = bounds.removeFromTop(bounds.getHeight() /** (1.f / 2.f)*/);
+
     auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f));
+    waveshaperGraphArea.reduce(10, 10);
+
     auto waveshaperBasicControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
+    auto basicControlsLabelsArea = waveshaperBasicControlsArea.removeFromTop(12);
+    auto driveLabelArea = basicControlsLabelsArea.removeFromLeft(basicControlsLabelsArea.getWidth() * (1.f / 2.f));
+    auto mixLabelArea = basicControlsLabelsArea;
+
     auto waveshaperTanhControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
+    auto tanhControlsLabelsArea = waveshaperTanhControlsArea.removeFromTop(12);
+    auto tanhAmpLabelArea = tanhControlsLabelsArea.removeFromLeft(tanhControlsLabelsArea.getWidth() * (1.f / 2.f));
+    auto tanhSlopeLabelArea = tanhControlsLabelsArea;
+
+    auto waveshaperSineControlsArea = waveshaperArea;
+    auto sineControlsLabelsArea = waveshaperSineControlsArea.removeFromTop(12);
+    auto sineAmpLabelArea = sineControlsLabelsArea.removeFromLeft(sineControlsLabelsArea.getWidth() * (1.f / 2.f));
+    auto sineFreqLabelArea = sineControlsLabelsArea;
 
     transferFunctionGraph.setBounds(waveshaperGraphArea);
+
     waveshaperDriveSlider.setBounds(waveshaperBasicControlsArea.removeFromLeft(waveshaperBasicControlsArea.getWidth() * (1.f / 2.f)));
+    waveshaperDriveLabel.setBounds(driveLabelArea);
+    waveshaperDriveLabel.setJustificationType(juce::Justification::centred);
+
     waveshaperMixSlider.setBounds(waveshaperBasicControlsArea);
+    waveshaperMixLabel.setBounds(mixLabelArea);
+    waveshaperMixLabel.setJustificationType(juce::Justification::centred);
+
     tanhAmpSlider.setBounds(waveshaperTanhControlsArea.removeFromLeft(waveshaperTanhControlsArea.getWidth() * (1.f / 2.f)));
+    tanhAmpLabel.setBounds(tanhAmpLabelArea);
+    tanhAmpLabel.setJustificationType(juce::Justification::centred);
+
     tanhSlopeSlider.setBounds(waveshaperTanhControlsArea);
-    sineAmpSlider.setBounds(waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f)));
-    sineFreqSlider.setBounds(waveshaperArea);
+    tanhSlopeLabel.setBounds(tanhSlopeLabelArea);
+    tanhSlopeLabel.setJustificationType(juce::Justification::centred);
+
+    sineAmpSlider.setBounds(waveshaperSineControlsArea.removeFromLeft(waveshaperSineControlsArea.getWidth() * (1.f / 2.f)));
+    sineAmpLabel.setBounds(sineAmpLabelArea);
+    sineAmpLabel.setJustificationType(juce::Justification::centred);
+
+    sineFreqSlider.setBounds(waveshaperSineControlsArea);
+    sineFreqLabel.setBounds(sineFreqLabelArea);
+    sineFreqLabel.setJustificationType(juce::Justification::centred);
+
+    // labels
 }
 
 std::vector<juce::Component*> WaveshaperModuleGUI::getComps()
@@ -204,6 +261,13 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getComps()
         &tanhAmpSlider,
         &tanhSlopeSlider,
         &sineAmpSlider,
-        &sineFreqSlider
+        &sineFreqSlider,
+        // labels
+        &waveshaperDriveLabel,
+        &waveshaperMixLabel,
+        &tanhAmpLabel,
+        &tanhSlopeLabel,
+        &sineAmpLabel,
+        &sineFreqLabel
     };
 }

@@ -30,14 +30,6 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     GUIModule* outputMeter = new MeterModuleGUI(audioProcessor, "Output");
     GUImodules.push_back(std::unique_ptr<GUIModule>(outputMeter));
 
-    // labels
-    /*waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
-    waveshaperMixLabel.setText("Mix", juce::dontSendNotification);
-    tanhAmpLabel.setText("Tanh Amp", juce::dontSendNotification);
-    tanhSlopeLabel.setText("Tanh Slope", juce::dontSendNotification);
-    sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
-    sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);*/
-
     updateGUI();
 
     for (auto it = newModules.cbegin(); it < newModules.cend(); ++it)

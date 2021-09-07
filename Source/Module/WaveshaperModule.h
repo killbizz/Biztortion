@@ -126,12 +126,12 @@ private:
     // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;
     // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
-    /*juce::Label waveshaperDriveLabel,
+    juce::Label waveshaperDriveLabel,
         waveshaperMixLabel,
         tanhAmpLabel,
         tanhSlopeLabel,
         sineAmpLabel,
-        sineFreqLabel;*/
+        sineFreqLabel;
     RotarySliderWithLabels waveshaperDriveSlider,
         waveshaperMixSlider,
         tanhAmpSlider,
