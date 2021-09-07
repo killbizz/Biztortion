@@ -54,10 +54,12 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             GUIModule* filterGUIModule = new FilterModuleGUI(audioProcessor, "Mid", getGridPosition());
             unsigned int index = addModuleToGUImodules(filterGUIModule);
             audioProcessor.suspendProcessing(true);
+            // FIFOs allocation for midFilter fft analyzer
             audioProcessor.midLeftChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Left };
             audioProcessor.midRightChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Right };
             DSPModule* filterDSPModule = new FilterModuleDSP(audioProcessor.apvts, "Mid");
             addModuleToDSPmodules(filterDSPModule, index);
+            // responseCurveComponent and FFTAnalyzerComponent configuration for midFilter
             auto components = dynamic_cast<FilterModuleGUI*>(filterGUIModule)->getComps();
             auto lastElement = components.rbegin();
             dynamic_cast<ResponseCurveComponent*>(*lastElement)->setFilterMonoChain();
