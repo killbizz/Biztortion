@@ -46,8 +46,8 @@ void TransferFunctionGraphComponent::timerCallback()
 {
 	if (parameterChanged.compareAndSetBool(false, true)) {
 		updateParams();
+		repaint();
 	}
-	repaint();
 }
 
 void TransferFunctionGraphComponent::paint(juce::Graphics& g)
@@ -81,7 +81,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 		float vNorm;
 		float v1 = tanhAmplitude * std::tanh(x[i] * tanhSlope) + sineAmplitude * std::sin(x[i] * sineFrequency);
 
-		// clip to -1...1
+		// hardclip to -1...1
 		if (v1 <= -1)
 			vNorm = -1;
 		else if (v1 >= 1)
@@ -97,7 +97,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	for (int i = 1; i < resolution; i++)
 		t.lineTo(x[i], y[i]);
 
-	t.applyTransform(juce::AffineTransform::scale(80.0f, 80.0f));
+	t.applyTransform(juce::AffineTransform::scale(40.0f, 90.0f));
 	t.applyTransform(juce::AffineTransform::translation(width / 2.f, height / 2.f));
 	t.applyTransform(juce::AffineTransform::verticalFlip(height));
 

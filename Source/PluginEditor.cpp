@@ -186,21 +186,6 @@ void BiztortionAudioProcessorEditor::resized()
     // 32 = header height
     fb.performLayout(bounds.removeFromBottom(getLocalBounds().getHeight() - 32).toFloat());
 
-    // waveshaper
-    // TODO : add labels
-    //auto waveshaperArea = bounds.removeFromTop(bounds.getHeight() /** (1.f / 2.f)*/);
-    //auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f));
-    //auto waveshaperBasicControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
-    //auto waveshaperTanhControlsArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
-
-    //transferFunctionGraph.setBounds(waveshaperGraphArea);
-    //waveshaperDriveSlider.setBounds(waveshaperBasicControlsArea.removeFromLeft(waveshaperBasicControlsArea.getWidth() * (1.f / 2.f)));
-    //waveshaperMixSlider.setBounds(waveshaperBasicControlsArea);
-    //tanhAmpSlider.setBounds(waveshaperTanhControlsArea.removeFromLeft(waveshaperTanhControlsArea.getWidth() * (1.f / 2.f)));
-    //tanhSlopeSlider.setBounds(waveshaperTanhControlsArea);
-    //sineAmpSlider.setBounds(waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f)));
-    //sineFreqSlider.setBounds(waveshaperArea);
-
     // oscilloscope
     //audioProcessor.oscilloscope.setBounds(bounds);
 }
