@@ -119,9 +119,6 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
         (**it).prepareToPlay(sampleRate, samplesPerBlock);
     }
 
-    //oscilloscope.clear();
-    //oscilloscope.setHorizontalZoom(0.1f);
-
     // fft analyzers
     preLeftChannelFifo.prepare(samplesPerBlock);
     preRightChannelFifo.prepare(samplesPerBlock);
@@ -211,8 +208,6 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
             }
         }
 
-        //oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
-
         // test signal
         /*buffer.clear();
         juce::dsp::AudioBlock<float> block(buffer);
@@ -267,6 +262,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
     MeterModuleDSP::addParameters(layout);
     FilterModuleDSP::addParameters(layout);
     WaveshaperModuleDSP::addParameters(layout);
+    OscilloscopeModuleDSP::addParameters(layout);
 
     return layout;
 }

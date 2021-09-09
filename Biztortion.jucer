@@ -37,6 +37,10 @@
         <FILE id="tZhcEl" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule.h"/>
         <FILE id="JIulEh" name="NewModule.cpp" compile="1" resource="0" file="Source/Module/NewModule.cpp"/>
         <FILE id="H02Dre" name="NewModule.h" compile="0" resource="0" file="Source/Module/NewModule.h"/>
+        <FILE id="DuhuD4" name="OscilloscopeModule.cpp" compile="1" resource="0"
+              file="Source/Module/OscilloscopeModule.cpp"/>
+        <FILE id="w2Avkr" name="OscilloscopeModule.h" compile="0" resource="0"
+              file="Source/Module/OscilloscopeModule.h"/>
         <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
               file="Source/Module/WaveshaperModule.cpp"/>
         <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"

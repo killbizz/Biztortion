@@ -12,6 +12,7 @@
 #include "Module/MeterModule.h"
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
+#include "Module/OscilloscopeModule.h"
 #include "Component/ResponseCurveComponent.h"
 #include "Component/FFTAnalyzerComponent.h"
 
@@ -65,8 +66,6 @@ public:
     juce::AudioProcessorValueTreeState apvts{
       *this, nullptr, "Parameters", createParameterLayout()
     };
-    // oscilloscope
-    drow::AudioOscilloscope oscilloscope;
     // fft analyzers
     using BlockType = juce::AudioBuffer<float>;
     SingleChannelSampleFifo<BlockType> preLeftChannelFifo{ Channel::Left };

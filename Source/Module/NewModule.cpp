@@ -46,8 +46,13 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         
         switch (newModuleSelector.getSelectedId()) {
         case 1: {
-            //GUIModule* oscilloscopeGUI = new OscilloscopeModuleGUI(audioProcessor);
-            // replace of the newModule with the oscilloscopeGUI in the desired position of the grid
+            GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor, getGridPosition());
+            unsigned int index = addModuleToGUImodules(oscilloscopeGUIModule);
+            audioProcessor.suspendProcessing(true);
+            DSPModule* oscilloscopeDSPModule = new OscilloscopeModuleDSP(audioProcessor.apvts, dynamic_cast<OscilloscopeModuleGUI*>(oscilloscopeGUIModule)->getOscilloscope());
+            addModuleToDSPmodules(oscilloscopeDSPModule, index);
+            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
+            audioProcessor.suspendProcessing(false);
             break;
         }
         case 2: {
