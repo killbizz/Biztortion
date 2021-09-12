@@ -34,10 +34,11 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
     DSPmodules.push_back(std::unique_ptr<DSPModule>(outputMeter));
 
     // modules names and order to save in the apvts
-    apvts.state.setProperty(modulesChainID, var(juce::Array<String>()), nullptr);
-    modulesChain.referTo(apvts.state.getPropertyAsValue(modulesChainID, nullptr));
 
-    auto mc = modulesChain.getValue().getArray();
+    //apvts.state.setProperty(modulesChainID, var(juce::Array<String>()), nullptr);
+    //modulesChain.referTo(apvts.state.getPropertyAsValue(modulesChainID, nullptr));
+
+    //auto mc = modulesChain.getValue().getArray();
 
 
 }
