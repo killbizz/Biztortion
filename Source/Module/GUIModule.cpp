@@ -10,22 +10,6 @@
 
 #include "GUIModule.h"
 
-GUIModule::GUIModule(unsigned int gp)
-    : gridPosition(gp)
-{
-
-}
-
-unsigned int GUIModule::getGridPosition()
-{
-    return gridPosition;
-}
-
-void GUIModule::setGridPosition(unsigned int gp)
-{
-    gridPosition = gp;
-}
-
 void GUIModule::drawContainer(juce::Graphics& g)
 {
     // container margin

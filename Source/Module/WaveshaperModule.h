@@ -106,7 +106,7 @@ private:
 
 class WaveshaperModuleGUI : public GUIModule {
 public:
-    WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int gridPosition);
+    WaveshaperModuleGUI(BiztortionAudioProcessor& p);
 
     void paint(juce::Graphics& g) override;
     void resized() override;

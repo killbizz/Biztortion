@@ -51,7 +51,7 @@ private:
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(BiztortionAudioProcessor& p, unsigned int gridPosition);
+    OscilloscopeModuleGUI(BiztortionAudioProcessor& p);
 
     drow::AudioOscilloscope* getOscilloscope();
 

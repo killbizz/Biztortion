@@ -147,8 +147,8 @@ void WaveshaperModuleDSP::updateDSPState(double)
 
 //==============================================================================
 
-WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int gridPosition)
-    : GUIModule(gridPosition), audioProcessor(p),
+WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p)
+    : GUIModule(), audioProcessor(p),
     waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
     waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
     tanhAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Amp"), ""),

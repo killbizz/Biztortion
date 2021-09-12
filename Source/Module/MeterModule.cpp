@@ -18,7 +18,9 @@
 //==============================================================================
 
 MeterModuleDSP::MeterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type)
-    : DSPModule(_apvts), type(_type) {}
+    : DSPModule(_apvts), type(_type) {
+    setChainPosition(type == "Input" ? 0 : 9);
+}
 
 juce::String MeterModuleDSP::getType()
 {
@@ -83,7 +85,7 @@ void MeterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 //==============================================================================
 
 MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : GUIModule(_type == "Input" ? 0 : 9), audioProcessor(p), type(_type),
+    : GUIModule(), audioProcessor(p), type(_type),
     levelSlider(*audioProcessor.apvts.getParameter(type + " Meter Level"), "dB"),
     levelSliderAttachment(audioProcessor.apvts, type + " Meter Level", levelSlider)
 {
@@ -133,9 +135,9 @@ void MeterModuleGUI::resized()
 {
     auto bounds = getContentRenderArea();
 
-    auto meterArea = bounds.removeFromLeft(bounds.getWidth() * (1.f / 2.f));
-    meterArea.reduce(30, 30);
-    bounds.reduce(20, 20);
+    auto meterArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
+    //meterArea.reduce(4, 4);
+    //bounds.reduce(2, 2);
 
     meter.setBounds(meterArea);
     levelSlider.setBounds(bounds);

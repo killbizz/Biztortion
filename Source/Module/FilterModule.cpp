@@ -18,7 +18,9 @@
 //==============================================================================
 
 FilterModuleDSP::FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type)
-    : DSPModule(_apvts), type(_type) {}
+    : DSPModule(_apvts), type(_type) {
+    setChainPosition(type == "Pre" ? 1 : 8);
+}
 
 void updateCoefficients(Coefficients& old, const Coefficients& replacements) {
     // JUCE allocates coefficients on the HEAP
@@ -343,8 +345,8 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 
 //==============================================================================
 
-FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type, unsigned int gridPosition)
-    : GUIModule(gridPosition), audioProcessor(p), type(_type),
+FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
+    : GUIModule(), audioProcessor(p), type(_type),
     peakFreqSlider(*audioProcessor.apvts.getParameter(type + " Peak Freq"), "Hz"),
     peakGainSlider(*audioProcessor.apvts.getParameter(type + " Peak Gain"), "dB"),
     peakQualitySlider(*audioProcessor.apvts.getParameter(type + " Peak Quality"), ""),

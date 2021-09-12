@@ -14,15 +14,9 @@
 
 class GUIModule : public juce::Component {
 public:
-    GUIModule(unsigned int gp);
-    unsigned int getGridPosition();
-    void setGridPosition(unsigned int gp);
     void drawContainer(juce::Graphics& g);
     virtual std::vector<juce::Component*> getComps() = 0;
     juce::Rectangle<int> getContentRenderArea();
 private:
-    // grid positions range : 0 - 11 (see mockup file)
-    unsigned int gridPosition;
-
     juce::Rectangle<int> getContainerArea();
 };

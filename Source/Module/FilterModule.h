@@ -132,7 +132,7 @@ private:
 
 class FilterModuleGUI : public GUIModule {
 public:
-    FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type, unsigned int gridPosition);
+    FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type);
 
     void paint(juce::Graphics& g) override;
     void resized() override;

@@ -35,7 +35,7 @@ OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValu
 void OscilloscopeModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
 {
     layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope H Zoom", "Oscilloscope H Zoom", juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 0.f, "Oscilloscope")));
-    layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope V Zoom", "Oscilloscope V Zoom", juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 0.f, "Oscilloscope")));
+    layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope V Zoom", "Oscilloscope V Zoom", juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 1.f, "Oscilloscope")));
 }
 
 void OscilloscopeModuleDSP::updateDSPState(double sampleRate)
@@ -63,8 +63,8 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 //==============================================================================
 
-OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, unsigned int gridPosition)
-    : GUIModule(gridPosition), audioProcessor(p),
+OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p)
+    : GUIModule(), audioProcessor(p),
     hZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope H Zoom"), ""),
     vZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope V Zoom"), ""),
     hZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope H Zoom", hZoomSlider),

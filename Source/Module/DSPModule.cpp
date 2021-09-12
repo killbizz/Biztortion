@@ -15,3 +15,13 @@ DSPModule::DSPModule(juce::AudioProcessorValueTreeState& _apvts)
 {
 
 }
+
+unsigned int DSPModule::getChainPosition()
+{
+    return chainPosition;
+}
+
+void DSPModule::setChainPosition(unsigned int cp)
+{
+    chainPosition = cp;
+}
