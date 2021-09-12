@@ -32,7 +32,10 @@ public:
 
     void updateGUI();
 
-    std::vector<std::unique_ptr<GUIModule>> GUImodules;
+    // std::vector<std::unique_ptr<GUIModule>> GUImodules;
+    std::unique_ptr<GUIModule> inputMeter;
+    std::unique_ptr<GUIModule> outputMeter;
+    std::unique_ptr<GUIModule> currentGUIModule;
     std::vector<std::unique_ptr<NewModuleGUI>> newModules;
 
 private:
@@ -43,8 +46,6 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
-
-    //GUIDimension dimension = GUIDimension::Small;
 
     //std::vector<juce::Component*> getComps();
 
