@@ -27,8 +27,10 @@ class BiztortionAudioProcessorEditor;
 class NewModuleGUI : public GUIModule {
 public:
 
-    NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int gridPosition);
+    NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition);
     ~NewModuleGUI();
+    unsigned int getChainPosition();
+    void setChainPosition(unsigned int cp);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -36,8 +38,10 @@ public:
     std::vector<juce::Component*> getComps() override;
     void setupCustomLookAndFeelColours(juce::LookAndFeel& laf);
 
-    unsigned int addModuleToGUImodules(GUIModule* module);
-    void addModuleToDSPmodules(DSPModule* module, unsigned int index);
+    /*unsigned int addModuleToGUImodules(GUIModule* module);
+    void addModuleToDSPmodules(DSPModule* module, unsigned int index);*/
+    void addModuleToGUI(GUIModule* module);
+    void addModuleToDSPmodules(DSPModule* module);
 
 private:
 
@@ -45,6 +49,7 @@ private:
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
     BiztortionAudioProcessorEditor& editor;
+    unsigned int chainPosition;
 
     NewModuleLookAndFeel lookAndFeel;
     juce::TextButton newModule{ "+" };
