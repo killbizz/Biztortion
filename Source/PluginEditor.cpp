@@ -38,13 +38,16 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
     // updateGUI();
 
+    currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
+    addAndMakeVisible(*currentGUIModule);
+
     for (auto it = newModules.cbegin(); it < newModules.cend(); ++it)
     {
         addAndMakeVisible(**it);
     }
 
     //setSize (1400, 782);
-    setSize(900, 407);
+    setSize(900, 507);
     setResizable(false, false);
     // setResizeLimits(400, 332, 3840, 2160);
 }
@@ -107,9 +110,11 @@ void BiztortionAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
     auto bounds = getLocalBounds();
+
+    auto chainArea = bounds.removeFromBottom(bounds.getHeight() * (1.f / 3.f));
     auto temp = bounds;
     temp = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto preStageArea = temp.removeFromLeft(temp.getWidth() * (1.f / 3.f));
+    auto preStageArea = temp.removeFromLeft(temp.getWidth() * (1.f / 4.f));
     // 32 = header height
     preStageArea.removeFromTop(32);
 
@@ -117,7 +122,7 @@ void BiztortionAudioProcessorEditor::resized()
 
     temp = bounds;
     temp = temp.removeFromRight(temp.getWidth() * (1.f / 2.f));
-    auto postStageArea = temp.removeFromRight(temp.getWidth() * (1.f / 3.f));
+    auto postStageArea = temp.removeFromRight(temp.getWidth() * (1.f / 4.f));
     // 32 = header height
     postStageArea.removeFromTop(32);
     
@@ -125,9 +130,13 @@ void BiztortionAudioProcessorEditor::resized()
 
     bounds.setLeft(preStageArea.getTopRight().getX());
     bounds.setRight(postStageArea.getTopLeft().getX());
+    // 32 = header height
+    bounds.removeFromTop(32);
 
-    auto currentGUIModuleArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
-    auto chainArea = bounds;
+    auto currentGUImoduleArea = bounds;
+
+    //auto currentGUIModuleArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
+    //auto chainArea = bounds;
 
     // chopping the chainArea in 8 equal rectangles for 8 NewModules
     std::vector<juce::Rectangle<int>> chainAreas;
@@ -139,7 +148,7 @@ void BiztortionAudioProcessorEditor::resized()
 
     inputMeter->setBounds(inputMeterArea);
     outputMeter->setBounds(outputMeterArea);
-    if(currentGUIModule)    currentGUIModule->setBounds(currentGUIModuleArea);
+    if(currentGUIModule)    currentGUIModule->setBounds(currentGUImoduleArea);
     auto it = newModules.begin();
     for (int i = 0; i < 8; ++i) {
         (*it)->setBounds(chainAreas[i]);

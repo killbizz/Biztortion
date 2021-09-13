@@ -16,6 +16,7 @@
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
 #include "Module/NewModule.h"
+#include "Module/WelcomeModule.h"
 
 //==============================================================================
 /** EDITOR
