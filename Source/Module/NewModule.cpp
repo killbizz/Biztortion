@@ -46,7 +46,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     newModule.onClick = [this] {
         newModuleSelector.setVisible(newModule.getToggleState());
         auto newModuleBounds = newModule.getBounds();
-        newModuleBounds.setX(newModuleBounds.getRight() + newModuleBounds.getWidth() / 2);
+        newModuleBounds.setCentre(newModule.getBounds().getCentre());
         newModuleSelector.setBounds(newModuleBounds);
     };
 
@@ -177,6 +177,7 @@ void NewModuleGUI::setupCustomLookAndFeelColours(juce::LookAndFeel& laf)
 void NewModuleGUI::addModuleToGUI(GUIModule* module)
 {
     editor.currentGUIModule = std::unique_ptr<GUIModule>(module);
+    editor.addAndMakeVisible(*editor.currentGUIModule);
 }
 
 void NewModuleGUI::addModuleToDSPmodules(DSPModule* module)
