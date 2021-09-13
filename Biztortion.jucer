@@ -7,7 +7,12 @@
               cppLanguageStandard="latest" companyWebsite="https://github.com/killbizz"
               companyName="KillBizz" companyEmail="gabriel.bizzo@hotmail.it">
   <MAINGROUP id="WGhc7c" name="Biztortion">
-    <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources"/>
+    <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources">
+      <FILE id="RtnMV3" name="bigNose1.svg" compile="0" resource="1" file="Resources/bigNose1.svg"/>
+      <FILE id="VgvQ0L" name="bigNose2.svg" compile="0" resource="1" file="Resources/bigNose2.svg"/>
+      <FILE id="fpEDT4" name="male-head-hair-and-beard.svg" compile="0" resource="1"
+            file="Resources/male-head-hair-and-beard.svg"/>
+    </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
       <GROUP id="{D0A202A6-9C7E-68CA-1A7B-EA022F0173D3}" name="Component">
         <FILE id="vB1U6r" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
@@ -45,6 +50,9 @@
               file="Source/Module/WaveshaperModule.cpp"/>
         <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"
               file="Source/Module/WaveshaperModule.h"/>
+        <FILE id="kxGNVR" name="WelcomeModule.cpp" compile="1" resource="0"
+              file="Source/Module/WelcomeModule.cpp"/>
+        <FILE id="RPIQV1" name="WelcomeModule.h" compile="0" resource="0" file="Source/Module/WelcomeModule.h"/>
       </GROUP>
       <FILE id="Lcm8LE" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/FFTAnalyzer.cpp"/>
       <FILE id="tEMxkJ" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/FFTAnalyzer.h"/>
