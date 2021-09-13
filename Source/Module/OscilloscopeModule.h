@@ -30,7 +30,9 @@ struct OscilloscopeSettings {
 
 class OscilloscopeModuleDSP : public DSPModule {
 public:
-    OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts, drow::AudioOscilloscope* _oscilloscope);
+    OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
+
+    drow::AudioOscilloscope* getOscilloscope();
 
     static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
@@ -40,7 +42,7 @@ public:
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
 private:
-    drow::AudioOscilloscope* oscilloscope;
+    drow::AudioOscilloscope oscilloscope;
 };
 
 //==============================================================================
@@ -51,9 +53,7 @@ private:
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(BiztortionAudioProcessor& p);
-
-    drow::AudioOscilloscope* getOscilloscope();
+    OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope);
 
     std::vector<juce::Component*> getComps() override;
     void paint(juce::Graphics& g) override;
@@ -70,6 +70,6 @@ private:
 
     RotarySliderWithLabels hZoomSlider, vZoomSlider;
     Attachment hZoomSliderAttachment, vZoomSliderAttachment;
-    drow::AudioOscilloscope oscilloscope;
+    drow::AudioOscilloscope* oscilloscope;
 
 };

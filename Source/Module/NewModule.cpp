@@ -54,19 +54,12 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         
         switch (newModuleSelector.getSelectedId()) {
         case 1: {
-            /*GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor, getGridPosition());
-            unsigned int index = addModuleToGUImodules(oscilloscopeGUIModule);
             audioProcessor.suspendProcessing(true);
-            DSPModule* oscilloscopeDSPModule = new OscilloscopeModuleDSP(audioProcessor.apvts, dynamic_cast<OscilloscopeModuleGUI*>(oscilloscopeGUIModule)->getOscilloscope());
-            addModuleToDSPmodules(oscilloscopeDSPModule, index);
-            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
-            audioProcessor.suspendProcessing(false);*/
-            GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor);
-            addModuleToGUI(oscilloscopeGUIModule);
-            audioProcessor.suspendProcessing(true);
-            DSPModule* oscilloscopeDSPModule = new OscilloscopeModuleDSP(audioProcessor.apvts, dynamic_cast<OscilloscopeModuleGUI*>(oscilloscopeGUIModule)->getOscilloscope());
+            DSPModule* oscilloscopeDSPModule = new OscilloscopeModuleDSP(audioProcessor.apvts);
             addModuleToDSPmodules(oscilloscopeDSPModule);
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
+            GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor, dynamic_cast<OscilloscopeModuleDSP*>(oscilloscopeDSPModule)->getOscilloscope());
+            addModuleToGUI(oscilloscopeGUIModule);
             audioProcessor.suspendProcessing(false);
             break;
         }
@@ -94,13 +87,6 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         }
 
         case 3: {
-            /*GUIModule* waveshaperGUIModule = new WaveshaperModuleGUI(audioProcessor, getGridPosition());
-            unsigned int index = addModuleToGUImodules(waveshaperGUIModule);
-            audioProcessor.suspendProcessing(true);
-            DSPModule* waveshaperDSPModule = new WaveshaperModuleDSP(audioProcessor.apvts);
-            addModuleToDSPmodules(waveshaperDSPModule, index);
-            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(),audioProcessor.getNumSamples());
-            audioProcessor.suspendProcessing(false);*/
             GUIModule* waveshaperGUIModule = new WaveshaperModuleGUI(audioProcessor);
             addModuleToGUI(waveshaperGUIModule);
             audioProcessor.suspendProcessing(true);
@@ -177,7 +163,8 @@ void NewModuleGUI::setupCustomLookAndFeelColours(juce::LookAndFeel& laf)
 void NewModuleGUI::addModuleToGUI(GUIModule* module)
 {
     editor.currentGUIModule = std::unique_ptr<GUIModule>(module);
-    editor.addAndMakeVisible(*editor.currentGUIModule);
+    editor.addAndMakeVisible(module);
+    editor.resized();
 }
 
 void NewModuleGUI::addModuleToDSPmodules(DSPModule* module)

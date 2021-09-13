@@ -17,10 +17,15 @@
 #include "OscilloscopeModule.h"
 #include "../PluginProcessor.h"
 
-OscilloscopeModuleDSP::OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts, drow::AudioOscilloscope* _oscilloscope)
-    : DSPModule(_apvts), oscilloscope(_oscilloscope)
+OscilloscopeModuleDSP::OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
+    : DSPModule(_apvts)
 {
-    oscilloscope->clear();
+    oscilloscope.clear();
+}
+
+drow::AudioOscilloscope* OscilloscopeModuleDSP::getOscilloscope()
+{
+    return &oscilloscope;
 }
 
 OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts)
@@ -41,20 +46,20 @@ void OscilloscopeModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Pa
 void OscilloscopeModuleDSP::updateDSPState(double sampleRate)
 {
     auto settings = getSettings(apvts);
-    oscilloscope->setHorizontalZoom(settings.hZoom);
-    oscilloscope->setVerticalZoom(settings.vZoom);
+    oscilloscope.setHorizontalZoom(settings.hZoom);
+    oscilloscope.setVerticalZoom(settings.vZoom);
 }
 
 void OscilloscopeModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    oscilloscope->clear();
+    oscilloscope.clear();
     updateDSPState(sampleRate);
 }
 
 void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
 {
     updateDSPState(sampleRate);
-    oscilloscope->processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
+    oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
 }
 
 //==============================================================================
@@ -63,8 +68,8 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 //==============================================================================
 
-OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p)
-    : GUIModule(), audioProcessor(p),
+OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope)
+    : GUIModule(), audioProcessor(p), oscilloscope(_oscilloscope),
     hZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope H Zoom"), ""),
     vZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope V Zoom"), ""),
     hZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope H Zoom", hZoomSlider),
@@ -81,15 +86,10 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p)
     }
 }
 
-drow::AudioOscilloscope* OscilloscopeModuleGUI::getOscilloscope()
-{
-    return &oscilloscope;
-}
-
 std::vector<juce::Component*> OscilloscopeModuleGUI::getComps()
 {
     return {
-        &oscilloscope,
+        oscilloscope,
         &hZoomSlider,
         &vZoomSlider
     };
@@ -109,7 +109,7 @@ void OscilloscopeModuleGUI::resized()
     auto hZoomArea = oscilloscopeArea.removeFromLeft(oscilloscopeArea.getWidth() * (1.f / 2.f));
     auto vZoomArea = oscilloscopeArea;
 
-    oscilloscope.setBounds(graphArea);
+    oscilloscope->setBounds(graphArea);
     hZoomSlider.setBounds(hZoomArea);
     vZoomSlider.setBounds(vZoomArea);
 }
