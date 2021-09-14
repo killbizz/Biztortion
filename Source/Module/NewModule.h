@@ -36,7 +36,9 @@ public:
     void resized() override;
 
     std::vector<juce::Component*> getComps() override;
-    void setupCustomLookAndFeelColours(juce::LookAndFeel& laf);
+    void setupNewModuleColours(juce::LookAndFeel& laf);
+    void setupDeleteModuleColours(juce::LookAndFeel& laf);
+    void setupCurrentModuleActivatorColours(juce::LookAndFeel& laf);
 
     /*unsigned int addModuleToGUImodules(GUIModule* module);
     void addModuleToDSPmodules(DSPModule* module, unsigned int index);*/
@@ -51,8 +53,19 @@ private:
     BiztortionAudioProcessorEditor& editor;
     unsigned int chainPosition;
 
-    NewModuleLookAndFeel lookAndFeel;
-    juce::TextButton newModule{ "+" };
+    juce::Label chainPositionLabel;
+
     juce::ComboBox newModuleSelector;
+
+    ModuleLookAndFeel newModuleLookAndFeel;
+    juce::TextButton newModule{ "+" };
+
+    ModuleLookAndFeel deleteModuleLookAndFeel;
+    juce::TextButton deleteModule{ "x" };
+
+    ModuleLookAndFeel currentModuleActivatorLookAndFeel;
+    juce::TextButton currentModuleActivator;
+    
+    bool moduleInstantiated = false;
 
 };

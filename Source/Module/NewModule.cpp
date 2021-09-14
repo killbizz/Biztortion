@@ -24,14 +24,30 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     //                                              pulsante col nome per triggerare la visualizzazione a schermo della UI del modulo
     // 3. NewModule per Pre/Post-Filters => visualizzabile solo il nome del filtro, modulo non rimuovibile
 
+    chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
+    chainPositionLabel.setFont(10);
+    addAndMakeVisible(chainPositionLabel);
+
+    // newModule
     addAndMakeVisible(newModule);
     newModule.setClickingTogglesState(true);
     newModule.setToggleState(false, juce::dontSendNotification);
 
-    setupCustomLookAndFeelColours(lookAndFeel);
-    newModule.setLookAndFeel(&lookAndFeel);
+    setupNewModuleColours(newModuleLookAndFeel);
+    newModule.setLookAndFeel(&newModuleLookAndFeel);
 
-    addAndMakeVisible(newModuleSelector);
+    // deleteModule
+    addAndMakeVisible(deleteModule);
+
+    setupDeleteModuleColours(deleteModuleLookAndFeel);
+    deleteModule.setLookAndFeel(&deleteModuleLookAndFeel);
+
+    // currentModuleActivator
+    addAndMakeVisible(currentModuleActivator);
+
+    setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
+    currentModuleActivator.setLookAndFeel(&currentModuleActivatorLookAndFeel);
+
     newModuleSelector.addItem("Select one module here", 999);
     newModuleSelector.addItem("Oscilloscope", 1);
     newModuleSelector.addItem("Filter", 2); // ?
@@ -41,12 +57,12 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
     newModuleSelector.setSelectedId(999);
 
-    // TODO : close newModuleSelector if newModule toggle loses focus
-
     newModule.onClick = [this] {
+        editor.addAndMakeVisible(newModuleSelector);
         newModuleSelector.setVisible(newModule.getToggleState());
-        auto newModuleBounds = newModule.getBounds();
-        newModuleBounds.setCentre(newModule.getBounds().getCentre());
+        auto newModuleBounds = editor.currentGUIModule->getBounds();
+        newModuleBounds.reduce(230.f, 175.f);
+        newModuleBounds.setCentre(editor.currentGUIModule->getBounds().getCentre());
         newModuleSelector.setBounds(newModuleBounds);
     };
 
@@ -61,28 +77,27 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor, dynamic_cast<OscilloscopeModuleDSP*>(oscilloscopeDSPModule)->getOscilloscope());
             addModuleToGUI(oscilloscopeGUIModule);
             audioProcessor.suspendProcessing(false);
+            // NewModule reset and hide
+            newModuleSelector.setSelectedId(999);
+            newModuleSelector.setVisible(false);
+            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
             break;
         }
         case 2: {
-            /*GUIModule* filterGUIModule = new FilterModuleGUI(audioProcessor, "Mid", getGridPosition());
-            unsigned int index = addModuleToGUImodules(filterGUIModule);*/
             audioProcessor.suspendProcessing(true);
             // FIFOs allocation for midFilter fft analyzer
             audioProcessor.midLeftChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Left };
             audioProcessor.midRightChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Right };
             DSPModule* filterDSPModule = new FilterModuleDSP(audioProcessor.apvts, "Mid");
             addModuleToDSPmodules(filterDSPModule);
-            // responseCurveComponent and FFTAnalyzerComponent configuration for midFilter
-            /*auto components = dynamic_cast<FilterModuleGUI*>(filterGUIModule)->getComps();
-            auto lastElement = components.rbegin();
-            dynamic_cast<ResponseCurveComponent*>(*lastElement)->setFilterMonoChain();
-            auto beforeLastElement = ++lastElement;
-            dynamic_cast<FFTAnalyzerComponent*>(*beforeLastElement)->getLeftPathProducer().setSingleChannelSampleFifo(audioProcessor.midLeftChannelFifo);
-            dynamic_cast<FFTAnalyzerComponent*>(*beforeLastElement)->getRightPathProducer().setSingleChannelSampleFifo(audioProcessor.midRightChannelFifo);*/
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
             audioProcessor.suspendProcessing(false);
             GUIModule* filterGUIModule = new FilterModuleGUI(audioProcessor, "Mid");
             addModuleToGUI(filterGUIModule);
+            // NewModule reset and hide
+            newModuleSelector.setSelectedId(999);
+            newModuleSelector.setVisible(false);
+            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
             break;
         }
 
@@ -94,6 +109,10 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             addModuleToDSPmodules(waveshaperDSPModule);
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
             audioProcessor.suspendProcessing(false);
+            // NewModule reset and hide
+            newModuleSelector.setSelectedId(999);
+            newModuleSelector.setVisible(false);
+            newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
             break;
         }
         case 4: {
@@ -117,7 +136,9 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
 NewModuleGUI::~NewModuleGUI()
 {
-
+    newModule.setLookAndFeel(nullptr);
+    deleteModule.setLookAndFeel(nullptr);
+    currentModuleActivator.setLookAndFeel(nullptr);
 }
 
 unsigned int NewModuleGUI::getChainPosition()
@@ -138,9 +159,22 @@ void NewModuleGUI::paint(juce::Graphics& g)
 void NewModuleGUI::resized()
 {
     auto bounds = getContentRenderArea();
-    //bounds.reduce(140, 100);
-    newModule.setBounds(bounds);
+
+    juce::Rectangle<int> newModuleBounds, deleteModuleBounds;
+    newModuleBounds = deleteModuleBounds = bounds;
+    newModuleBounds.reduce(20, 44);
+    deleteModuleBounds.reduce(30, 44);
+
+    auto chainPositionLabelArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 4.f));
+
+    chainPositionLabel.setBounds(chainPositionLabelArea);
+    chainPositionLabel.setJustificationType(juce::Justification::centred);
+
+    newModule.setBounds(newModuleBounds);
     newModule.setCentreRelative(0.5f, 0.5f);
+
+    deleteModule.setBounds(deleteModuleBounds);
+    deleteModule.setCentreRelative(0.75f, 0.2f);
 }
 
 std::vector<juce::Component*> NewModuleGUI::getComps()
@@ -151,13 +185,31 @@ std::vector<juce::Component*> NewModuleGUI::getComps()
     };
 }
 
-void NewModuleGUI::setupCustomLookAndFeelColours(juce::LookAndFeel& laf)
+void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
     laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
+}
+
+void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
+{
+    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+    //laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
+
+    //laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
+    //laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
+}
+
+void NewModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
+{
+    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+    //laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
+
+    //laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
+    //laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
 }
 
 void NewModuleGUI::addModuleToGUI(GUIModule* module)
