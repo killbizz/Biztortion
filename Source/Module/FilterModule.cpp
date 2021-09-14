@@ -364,7 +364,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type
     lowCutSlopeSliderAttachment(audioProcessor.apvts, type + " LowCut Slope", lowCutSlopeSlider),
     highCutSlopeSliderAttachment(audioProcessor.apvts, type + " HighCut Slope", highCutSlopeSlider)
 {
-    if (type != "Mid") {
+    //if (type != "Mid") {
         peakFreqSlider.labels.add({ 0.f, "20Hz" });
         peakFreqSlider.labels.add({ 1.f, "20kHz" });
         peakGainSlider.labels.add({ 0.f, "-24dB" });
@@ -379,7 +379,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type
         lowCutSlopeSlider.labels.add({ 1.f, "48" });
         highCutSlopeSlider.labels.add({ 0.0f, "12" });
         highCutSlopeSlider.labels.add({ 1.f, "48" });
-    }
+    //}
 
     for (auto* comp : getComps())
     {
