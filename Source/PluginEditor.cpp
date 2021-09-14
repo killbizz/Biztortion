@@ -16,6 +16,9 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
+    currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
+    addAndMakeVisible(*currentGUIModule);
+
     // 1 - 8 = chain positions with visible components in the chain part of the UI
     for (int i = 0; i < 8; ++i) {
         NewModuleGUI* item = new NewModuleGUI(audioProcessor, *this, i + 1);
@@ -36,18 +39,13 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     outputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor, "Output"));
     addAndMakeVisible(*outputMeter);
 
-    // updateGUI();
-
-    currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
-    addAndMakeVisible(*currentGUIModule);
-
     for (auto it = newModules.cbegin(); it < newModules.cend(); ++it)
     {
         addAndMakeVisible(**it);
     }
 
     //setSize (1400, 782);
-    setSize(900, 507);
+    setSize(900, 557);
     setResizable(false, false);
     // setResizeLimits(400, 332, 3840, 2160);
 }
@@ -111,7 +109,7 @@ void BiztortionAudioProcessorEditor::resized()
 
     auto bounds = getLocalBounds();
 
-    auto chainArea = bounds.removeFromBottom(bounds.getHeight() * (1.f / 3.f));
+    auto chainArea = bounds.removeFromBottom(bounds.getHeight() * (1.f / 4.f));
     auto temp = bounds;
     temp = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
     auto preStageArea = temp.removeFromLeft(temp.getWidth() * (1.f / 4.f));
