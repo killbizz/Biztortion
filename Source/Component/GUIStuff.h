@@ -28,7 +28,7 @@ enum GUIDimension {
 
 using namespace juce;
 
-struct NewModuleLookAndFeel : public LookAndFeel_V4
+struct ModuleLookAndFeel : public LookAndFeel_V4
 {
     void drawRoundThumb(Graphics& g, float x, float y, float diameter, Colour colour, float outlineThickness)
     {
