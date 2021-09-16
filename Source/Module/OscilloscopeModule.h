@@ -19,7 +19,7 @@ class BiztortionAudioProcessor;
 
 //==============================================================================
 
-/* MeterModule DSP */
+/* OscilloscopeModule DSP */
 
 //==============================================================================
 
@@ -47,13 +47,14 @@ private:
 
 //==============================================================================
 
-/* MeterModule GUI */
+/* OscilloscopeModule GUI */
 
 //==============================================================================
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
     OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope);
+    ~OscilloscopeModuleGUI();
 
     std::vector<juce::Component*> getComps() override;
     void paint(juce::Graphics& g) override;

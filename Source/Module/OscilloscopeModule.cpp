@@ -10,7 +10,7 @@
 
 //==============================================================================
 
-/* MeterModule DSP */
+/* OscilloscopeModule DSP */
 
 //==============================================================================
 
@@ -64,7 +64,7 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 //==============================================================================
 
-/* MeterModule GUI */
+/* OscilloscopeModule GUI */
 
 //==============================================================================
 
@@ -84,6 +84,12 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
     {
         addAndMakeVisible(comp);
     }
+}
+
+OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
+{
+    oscilloscope->stopTimer();
+    oscilloscope = nullptr;
 }
 
 std::vector<juce::Component*> OscilloscopeModuleGUI::getComps()
