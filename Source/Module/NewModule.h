@@ -18,6 +18,17 @@
 class BiztortionAudioProcessor;
 class BiztortionAudioProcessorEditor;
 
+enum ModuleType {
+    Uninstantiated,
+    Prefilter,
+    Postfilter,
+    Oscilloscope,
+    Midfilter,
+    Waveshaper,
+    Bitcrusher,
+    Clipper
+};
+
 //==============================================================================
 
 /* NewModule GUI */
@@ -52,20 +63,23 @@ private:
     BiztortionAudioProcessor& audioProcessor;
     BiztortionAudioProcessorEditor& editor;
     unsigned int chainPosition;
-
     juce::Label chainPositionLabel;
 
+    // newModule
     juce::ComboBox newModuleSelector;
-
     ModuleLookAndFeel newModuleLookAndFeel;
     juce::TextButton newModule{ "+" };
 
+    // deleteModule
     ModuleLookAndFeel deleteModuleLookAndFeel;
     juce::TextButton deleteModule{ "x" };
 
+    // currentModuleActivator
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
     juce::TextButton currentModuleActivator;
-    
-    bool moduleInstantiated = false;
 
+    ModuleType moduleType = ModuleType::Uninstantiated;
+
+    void newModuleSetup(ModuleType type);
+    GUIModule* createGUIModule(ModuleType type);
 };
