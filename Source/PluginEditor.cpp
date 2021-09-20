@@ -11,7 +11,7 @@
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p), githubLink("GitHub", {"https://github.com/killbizz"})
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -19,20 +19,15 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
     addAndMakeVisible(*currentGUIModule);
 
+    githubLink.setFont(20, true);
+    githubLink.setColour(juce::HyperlinkButton::textColourId, juce::Colours::white);
+    addAndMakeVisible(githubLink);
+
     // 1 - 8 = chain positions with visible components in the chain part of the UI
     for (int i = 0; i < 8; ++i) {
         NewModuleGUI* item = new NewModuleGUI(audioProcessor, *this, i + 1);
         newModules.push_back(std::unique_ptr<NewModuleGUI>(item));
     }
-
-    //GUIModule* inputMeter = new MeterModuleGUI(audioProcessor, "Input");
-    ////GUImodules.push_back(std::unique_ptr<GUIModule>(inputMeter));
-    //GUIModule* preFilter = new FilterModuleGUI(audioProcessor, "Pre", 1);
-    //GUImodules.push_back(std::unique_ptr<GUIModule>(preFilter));
-    //GUIModule* postFilter = new FilterModuleGUI(audioProcessor, "Post", 8);
-    //GUImodules.push_back(std::unique_ptr<GUIModule>(postFilter));
-    //GUIModule* outputMeter = new MeterModuleGUI(audioProcessor, "Output");
-    //GUImodules.push_back(std::unique_ptr<GUIModule>(outputMeter));
 
     inputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor, "Input"));
     addAndMakeVisible(*inputMeter);
@@ -108,6 +103,8 @@ void BiztortionAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
     auto bounds = getLocalBounds();
+
+    githubLink.setBoundsRelative(0.75f, 0.01f, 0.1f, 0.05);
 
     auto chainArea = bounds.removeFromBottom(bounds.getHeight() * (1.f / 4.f));
     auto temp = bounds;
