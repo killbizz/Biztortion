@@ -84,6 +84,9 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
     {
         addAndMakeVisible(comp);
     }
+
+    // TODO : add a sample-and-hold algorithm to drow::oscilloscope for a better visual
+    oscilloscope->startTimerHz(60);
 }
 
 OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
