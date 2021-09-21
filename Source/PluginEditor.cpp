@@ -111,7 +111,7 @@ void BiztortionAudioProcessorEditor::resized()
     auto chainArea = bounds.removeFromBottom(bounds.getHeight() * (1.f / 4.f));
     auto temp = bounds;
     temp = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto preStageArea = temp.removeFromLeft(temp.getWidth() * (1.f / 4.f));
+    auto preStageArea = temp.removeFromLeft(temp.getWidth() * 0.3f);
     // 32 = header height
     preStageArea.removeFromTop(32);
 
@@ -119,7 +119,7 @@ void BiztortionAudioProcessorEditor::resized()
 
     temp = bounds;
     temp = temp.removeFromRight(temp.getWidth() * (1.f / 2.f));
-    auto postStageArea = temp.removeFromRight(temp.getWidth() * (1.f / 4.f));
+    auto postStageArea = temp.removeFromRight(temp.getWidth() * 0.3f);
     // 32 = header height
     postStageArea.removeFromTop(32);
     
