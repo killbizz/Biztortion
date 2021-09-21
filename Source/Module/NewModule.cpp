@@ -220,7 +220,7 @@ void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
 void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-    laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
+    //laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
@@ -229,7 +229,7 @@ void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 void NewModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-    laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
+    //laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));

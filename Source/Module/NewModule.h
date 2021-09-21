@@ -40,10 +40,9 @@ public:
     void setupDeleteModuleColours(juce::LookAndFeel& laf);
     void setupCurrentModuleActivatorColours(juce::LookAndFeel& laf);
 
-    /*unsigned int addModuleToGUImodules(GUIModule* module);
-    void addModuleToDSPmodules(DSPModule* module, unsigned int index);*/
     void addModuleToGUI(GUIModule* module);
     void addModuleToDSPmodules(DSPModule* module);
+    void newModuleSetup(ModuleType type);
 
 private:
 
@@ -69,6 +68,5 @@ private:
 
     ModuleType moduleType = ModuleType::Uninstantiated;
 
-    void newModuleSetup(ModuleType type);
     GUIModule* createGUIModule(ModuleType type);
 };
