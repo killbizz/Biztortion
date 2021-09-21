@@ -22,18 +22,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     //                                                elenco triggerabile per aggiungere un nuovo modulo
     // 2. NewModule con un modulo già istanziato => pulsante "x" per eliminare modulo dalla catena, 
     //                                              pulsante col nome per triggerare la visualizzazione a schermo della UI del modulo
-    // 3. NewModule per Pre/Post-Filters => visualizzabile solo il nome del filtro, modulo non rimuovibile
 
-    if (chainPosition == 1) {
-        moduleType = ModuleType::Prefilter;
-        currentModuleActivator.setButtonText("Pre Filter");
-        currentModuleActivator.changeWidthToFitText(10);
-    }
-    if (chainPosition == 8) {
-        moduleType = ModuleType::Postfilter;
-        currentModuleActivator.setButtonText("Post Filter");
-        currentModuleActivator.changeWidthToFitText(10);
-    }
 
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
     chainPositionLabel.setFont(10);
@@ -62,7 +51,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     // 999 id for the default text entry
     newModuleSelector.addItem("Select one module here", 999);
     newModuleSelector.addItem("Oscilloscope", ModuleType::Oscilloscope);
-    newModuleSelector.addItem("Filter", ModuleType::Midfilter);
+    newModuleSelector.addItem("Filter", ModuleType::IIRFilter);
     newModuleSelector.addItem("Waveshaper", ModuleType::Waveshaper);
     newModuleSelector.addItem("Bitcrusher", ModuleType::Bitcrusher);
     newModuleSelector.addItem("Clipper", ModuleType::Clipper);
@@ -89,24 +78,23 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             DSPModule* oscilloscopeDSPModule = new OscilloscopeModuleDSP(audioProcessor.apvts);
             addModuleToDSPmodules(oscilloscopeDSPModule);
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
-            GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor, dynamic_cast<OscilloscopeModuleDSP*>(oscilloscopeDSPModule)->getOscilloscope());
-            addModuleToGUI(oscilloscopeGUIModule);
             audioProcessor.suspendProcessing(false);
+            GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor, dynamic_cast<OscilloscopeModuleDSP*>(oscilloscopeDSPModule)->getOscilloscope(), getChainPosition());
+            addModuleToGUI(oscilloscopeGUIModule);
             newModuleSetup(ModuleType::Oscilloscope);
             break;
         }
-        case ModuleType::Midfilter: {
+        case ModuleType::IIRFilter: {
             audioProcessor.suspendProcessing(true);
-            // FIFOs allocation for midFilter fft analyzer
-            audioProcessor.midLeftChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Left };
-            audioProcessor.midRightChannelFifo = new SingleChannelSampleFifo<juce::AudioBuffer<float>>{ Channel::Right };
-            DSPModule* filterDSPModule = new FilterModuleDSP(audioProcessor.apvts, "Mid");
+            DSPModule* filterDSPModule = new FilterModuleDSP(audioProcessor.apvts);
             addModuleToDSPmodules(filterDSPModule);
+            // FIFOs allocation for fft analyzer
+            audioProcessor.insertNewAnalyzerFIFO(getChainPosition());
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
             audioProcessor.suspendProcessing(false);
-            GUIModule* filterGUIModule = new FilterModuleGUI(audioProcessor, "Mid");
+            GUIModule* filterGUIModule = new FilterModuleGUI(audioProcessor, getChainPosition());
             addModuleToGUI(filterGUIModule);
-            newModuleSetup(ModuleType::Midfilter);
+            newModuleSetup(ModuleType::IIRFilter);
             break;
         }
 
@@ -116,7 +104,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             addModuleToDSPmodules(waveshaperDSPModule);
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
             audioProcessor.suspendProcessing(false);
-            GUIModule* waveshaperGUIModule = new WaveshaperModuleGUI(audioProcessor);
+            GUIModule* waveshaperGUIModule = new WaveshaperModuleGUI(audioProcessor, getChainPosition());
             addModuleToGUI(waveshaperGUIModule);
             newModuleSetup(ModuleType::Waveshaper);
             break;
@@ -145,6 +133,11 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             if ((**it).getChainPosition() == getChainPosition()) {
                 found = true;
                 audioProcessor.suspendProcessing(true);
+                // remove fft analyzer FIFO associated with **it filter
+                auto filter = dynamic_cast<FilterModuleDSP*>(&**it);
+                if (filter) {
+                    audioProcessor.deleteOldAnalyzerFIFO(getChainPosition());
+                }
                 it = audioProcessor.DSPmodules.erase(it);
                 audioProcessor.suspendProcessing(false);
             }
@@ -199,10 +192,6 @@ void NewModuleGUI::resized()
         newModule.setBounds(newModuleBounds);
         newModule.setCentreRelative(0.5f, 0.5f);
     }
-    else if (moduleType == ModuleType::Prefilter || moduleType == ModuleType::Postfilter) {
-        currentModuleActivator.setBounds(currentModuleActivatorBounds);
-        currentModuleActivator.setCentreRelative(0.5f, 0.5f);
-    }
     else {
         deleteModule.setBounds(deleteModuleBounds);
         deleteModule.setCentreRelative(0.75f, 0.2f);
@@ -249,7 +238,7 @@ void NewModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 void NewModuleGUI::newModuleSetup(const ModuleType type)
 {
     moduleType = type;
-    // newModule and deleteModule
+    // newModule and deleteModule setup
     if (type == ModuleType::Uninstantiated) {
         newModule.setVisible(true);
         deleteModule.setVisible(false);
@@ -262,7 +251,7 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
     newModuleSelector.setVisible(false);
     newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
 
-    // currentModuleActivator
+    // currentModuleActivator setup
     if (type != ModuleType::Uninstantiated) {
         juce::String typeString;
         switch (type) {
@@ -270,7 +259,7 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
                 typeString = "Oscilloscope";
                 break;
             }
-            case ModuleType::Midfilter: {
+            case ModuleType::IIRFilter: {
                 typeString = "Filter";
                 break;
             }
@@ -304,33 +293,24 @@ GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
 {
     GUIModule* newModule = nullptr;
     switch (type) {
-        case ModuleType::Prefilter: {
-            newModule = new FilterModuleGUI(audioProcessor, "Pre");
-            break;
-        }
-        case ModuleType::Postfilter: {
-            newModule = new FilterModuleGUI(audioProcessor, "Post");
+        case ModuleType::IIRFilter: {
+            newModule = new FilterModuleGUI(audioProcessor, getChainPosition());
             break;
         }
         case ModuleType::Oscilloscope: {
             OscilloscopeModuleDSP* oscilloscopeDSPModule = nullptr;
             bool found = false;
             for (auto it = audioProcessor.DSPmodules.cbegin(); !found && it < audioProcessor.DSPmodules.cend(); ++it) {
-                auto temp = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
-                if (temp) {
-                    oscilloscopeDSPModule = temp;
+                if ((**it).getChainPosition() == getChainPosition()) {
+                    oscilloscopeDSPModule = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
                     found = true;
                 }
             }
-            newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getOscilloscope());
-            break;
-        }
-        case ModuleType::Midfilter: {
-            newModule = new FilterModuleGUI(audioProcessor, "Mid");
+            newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getOscilloscope(), getChainPosition());
             break;
         }
         case ModuleType::Waveshaper: {
-            newModule = new WaveshaperModuleGUI(audioProcessor);
+            newModule = new WaveshaperModuleGUI(audioProcessor, getChainPosition());
             break;
         }
         case ModuleType::Bitcrusher: {
@@ -353,7 +333,10 @@ void NewModuleGUI::addModuleToGUI(GUIModule* module)
 
 void NewModuleGUI::addModuleToDSPmodules(DSPModule* module)
 {
+    // DSP module setup
     module->setChainPosition(getChainPosition());
+    module->setModuleType();
+    // insert module to DSPmodules vector
     bool inserted = false;
     for (auto it = audioProcessor.DSPmodules.begin(); !inserted; ++it) {
         // end = 8° grid cell

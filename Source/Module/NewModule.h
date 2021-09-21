@@ -18,17 +18,6 @@
 class BiztortionAudioProcessor;
 class BiztortionAudioProcessorEditor;
 
-enum ModuleType {
-    Uninstantiated,
-    Prefilter,
-    Postfilter,
-    Oscilloscope,
-    Midfilter,
-    Waveshaper,
-    Bitcrusher,
-    Clipper
-};
-
 //==============================================================================
 
 /* NewModule GUI */
