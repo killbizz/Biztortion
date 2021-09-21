@@ -81,7 +81,9 @@ private:
     RotarySliderWithLabels levelSlider;
     Attachment levelSliderAttachment;
 
+    juce::Label meterTitle;
+
     foleys::LevelMeterLookAndFeel lnf;
-    foleys::LevelMeter meter{ foleys::LevelMeter::Minimal };
+    foleys::LevelMeter meter{ foleys::LevelMeter::MeterFlags::Default };
 
 };

@@ -94,6 +94,10 @@ MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
     levelSlider(*audioProcessor.apvts.getParameter(type + " Meter Level"), "dB"),
     levelSliderAttachment(audioProcessor.apvts, type + " Meter Level", levelSlider)
 {
+    meterTitle.setText(type, juce::dontSendNotification);
+    meterTitle.setFont(14);
+    addAndMakeVisible(meterTitle);
+
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colours::green);
     meter.setLookAndFeel(&lnf);
     meter.setMeterSource(getMeterSource());
@@ -140,10 +144,13 @@ void MeterModuleGUI::resized()
 {
     auto bounds = getContentRenderArea();
 
-    auto meterArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
-    //meterArea.reduce(4, 4);
-    //bounds.reduce(2, 2);
+    auto titleArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 8.f));
+    auto meterArea = bounds.removeFromTop(bounds.getHeight() * (3.f / 4.f));
+    meterArea.reduce(4, 4);
+    bounds.reduce(4, 4);
 
+    meterTitle.setBounds(titleArea);
+    meterTitle.setJustificationType(juce::Justification::centred);
     meter.setBounds(meterArea);
     levelSlider.setBounds(bounds);
 }
