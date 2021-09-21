@@ -39,6 +39,8 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
         addAndMakeVisible(**it);
     }
 
+    editorSetup();
+
     //setSize (1400, 782);
     setSize(900, 557);
     setResizable(false, false);
@@ -130,9 +132,6 @@ void BiztortionAudioProcessorEditor::resized()
 
     auto currentGUImoduleArea = bounds;
 
-    //auto currentGUIModuleArea = bounds.removeFromTop(bounds.getHeight() * (2.f / 3.f));
-    //auto chainArea = bounds;
-
     // chopping the chainArea in 8 equal rectangles for 8 NewModules
     std::vector<juce::Rectangle<int>> chainAreas;
     auto width = (float) chainArea.getWidth();
@@ -149,95 +148,15 @@ void BiztortionAudioProcessorEditor::resized()
         (*it)->setBounds(chainAreas[i]);
         ++it;
     }
-
-
-
-    
-    // OLD RESIZED ALGORITHM FOR GRID LAYOUT
-
-    //juce::FlexBox fb;
-    //fb.flexWrap = juce::FlexBox::Wrap::wrap;
-    ////fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
-    //fb.justifyContent = juce::FlexBox::JustifyContent::center;
-    //fb.alignContent = juce::FlexBox::AlignContent::center;
-    //std::vector<std::unique_ptr<GUIModule>>::const_iterator it = GUImodules.cbegin();
-    //for (int i = 0; i < 10; ++i) {
-    //    if (i == 0) {
-    //        (**it).setBounds(inputMeterArea);
-    //        ++it;
-    //    }
-    //    else if (i == 1) {
-    //        (**it).setBounds(preFilterArea);
-    //        ++it;
-    //    }
-    //    else {
-    //        // dopo devo riempire di NewModules ( con i == (**it2).getGridPosition() ) il layout finchè non arrivo ad avere i == (**it).getGridPosition(), 
-    //        // dove devo metterci il modulo **it
-    //        auto gp = (**it).getGridPosition();
-    //        juce::FlexItem item;
-    //        while (i != gp) {
-    //            bool found = false;
-    //            for (auto it2 = newModules.cbegin(); !found && it2 < newModules.cend(); ++it2) {
-    //                if ((**it2).getGridPosition() == i) {
-    //                    found = true;
-    //                    item = juce::FlexItem(**it2);
-    //                    fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
-    //                }
-    //            }
-    //            ++i;
-    //        }
-    //        // i == (**it).getGridPosition() => insert the GUImodule
-    //        if (i < 8) {
-    //            item = juce::FlexItem(**it);
-    //            fb.items.add(item.withMinWidth(350.0f).withMinHeight(250.0f).withMaxWidth(350.0f).withMaxHeight(250.0f));
-    //            ++it;
-    //        }
-    //        else if (i == 8) {
-    //            (**it).setBounds(postFilterArea);
-    //            ++it;
-    //        }
-    //        else if (i == 9) {
-    //            (**it).setBounds(outputMeterArea);
-    //            ++it;
-    //        }
-    //    }
-    //}
-    // 32 = header height
-    //fb.performLayout(bounds.removeFromBottom(getLocalBounds().getHeight() - 32).toFloat());
 }
 
-//std::vector<juce::Component*> BiztortionAudioProcessorEditor::getComps()
-//{
-//    return {
-//        //&newModule,
-//        //&newModuleSelector,
-//        // filter
-//        //&filterModuleGUI,
-//        // fft analyzer
-//        //&analyzerComponent,
-//        // oscilloscope
-//        //&(audioProcessor.oscilloscope),
-//        // waveshaper
-//        //&transferFunctionGraph,
-//        //&waveshaperDriveSlider,
-//        //&waveshaperMixSlider,
-//        //&tanhAmpSlider,
-//        //&tanhSlopeSlider,
-//        //&sineAmpSlider,
-//        //&sineFreqSlider,
-//        /*&waveshaperDriveLabel,
-//        &waveshaperMixLabel,
-//        &tanhAmpLabel,
-//        &tanhSlopeLabel,
-//        &sineAmpLabel,
-//        &sineFreqLabel*/
-//    };
-//}
-
-void BiztortionAudioProcessorEditor::updateGUI()
+void BiztortionAudioProcessorEditor::editorSetup()
 {
-    /*for (auto it = GUImodules.cbegin(); it < GUImodules.cend(); ++it)
-    {
-        addAndMakeVisible(**it);
-    }*/
+    auto it = ++audioProcessor.DSPmodules.begin();
+    auto end = --audioProcessor.DSPmodules.end();
+    while ( it < end ) {
+        auto newModuleIt = newModules.begin() + (**it).getChainPosition() -1;
+        (**newModuleIt).newModuleSetup((**it).getModuleType());
+        ++it;
+    }
 }

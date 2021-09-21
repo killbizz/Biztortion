@@ -31,9 +31,6 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    void updateGUI();
-
-    // std::vector<std::unique_ptr<GUIModule>> GUImodules;
     std::unique_ptr<GUIModule> inputMeter;
     std::unique_ptr<GUIModule> outputMeter;
     std::unique_ptr<GUIModule> currentGUIModule;
@@ -50,7 +47,7 @@ private:
 
     juce::HyperlinkButton githubLink;
 
-    //std::vector<juce::Component*> getComps();
+    void editorSetup();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };
