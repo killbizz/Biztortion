@@ -68,18 +68,24 @@ public:
     };
     // fft analyzers
     using BlockType = juce::AudioBuffer<float>;
-    SingleChannelSampleFifo<BlockType> preLeftChannelFifo{ Channel::Left };
+    /*SingleChannelSampleFifo<BlockType> preLeftChannelFifo{ Channel::Left };
     SingleChannelSampleFifo<BlockType> preRightChannelFifo{ Channel::Right };
     SingleChannelSampleFifo<BlockType> postLeftChannelFifo{ Channel::Left };
-    SingleChannelSampleFifo<BlockType> postRightChannelFifo{ Channel::Right };
+    SingleChannelSampleFifo<BlockType> postRightChannelFifo{ Channel::Right };*/
     // mid analyzer allocated only if the relative module is istantiated
-    SingleChannelSampleFifo<BlockType>* midLeftChannelFifo = nullptr;
-    SingleChannelSampleFifo<BlockType>* midRightChannelFifo = nullptr;
+    /*SingleChannelSampleFifo<BlockType>* midLeftChannelFifo = nullptr;
+    SingleChannelSampleFifo<BlockType>* midRightChannelFifo = nullptr;*/
+    // analyzer FIFO allocated only if the relative module is istantiated
+    std::vector<SingleChannelSampleFifo<BlockType>*> leftAnalyzerFIFOs;
+    std::vector<SingleChannelSampleFifo<BlockType>*> rightAnalyzerFIFOs;
     // modules
     std::vector<std::unique_ptr<DSPModule>> DSPmodules;
 
     void updateModulesChain(juce::String moduleName, unsigned int gridPosition);
     int getNumSamples();
+    unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
+    void insertNewAnalyzerFIFO(unsigned int chainPosition);
+    void deleteOldAnalyzerFIFO(unsigned int chainPosition);
 
 private:
 

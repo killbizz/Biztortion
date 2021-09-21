@@ -26,10 +26,10 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
 {
     DSPModule* inputMeter = new MeterModuleDSP(apvts, "Input");
     DSPmodules.push_back(std::unique_ptr<DSPModule>(inputMeter));
-    DSPModule* preFilter = new FilterModuleDSP(apvts, "Pre");
+    /*DSPModule* preFilter = new FilterModuleDSP(apvts, "Pre");
     DSPmodules.push_back(std::unique_ptr<DSPModule>(preFilter));
     DSPModule* postFilter = new FilterModuleDSP(apvts, "Post");
-    DSPmodules.push_back(std::unique_ptr<DSPModule>(postFilter));
+    DSPmodules.push_back(std::unique_ptr<DSPModule>(postFilter));*/
     DSPModule* outputMeter = new MeterModuleDSP(apvts, "Output");
     DSPmodules.push_back(std::unique_ptr<DSPModule>(outputMeter));
 
@@ -121,12 +121,12 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     }
 
     // fft analyzers
-    preLeftChannelFifo.prepare(samplesPerBlock);
-    preRightChannelFifo.prepare(samplesPerBlock);
-    postLeftChannelFifo.prepare(samplesPerBlock);
-    postRightChannelFifo.prepare(samplesPerBlock);
-    if (midLeftChannelFifo)  midLeftChannelFifo->prepare(samplesPerBlock);
-    if (midRightChannelFifo) midRightChannelFifo->prepare(samplesPerBlock);
+    for (auto it = leftAnalyzerFIFOs.cbegin(); it < leftAnalyzerFIFOs.cend(); ++it) {
+        (*it)->prepare(samplesPerBlock);
+    }
+    for (auto it = rightAnalyzerFIFOs.cbegin(); it < rightAnalyzerFIFOs.cend(); ++it) {
+        (*it)->prepare(samplesPerBlock);
+    }
 
     //test signal preparation
     /*juce::dsp::ProcessSpec spec;
@@ -189,23 +189,18 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     numSamples = numSamples == buffer.getNumSamples() ? numSamples : buffer.getNumSamples();
 
     if (!isSuspended()) {
+        // using a filter modules counter to find the right fft analyzer FIFO associated with the current filter
+        unsigned int filterModuleCounter = 0;
         // processBlock for all the modules in the chain
         for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
             auto module = &**it;
             module->processBlock(buffer, midiMessages, getSampleRate());
             auto filter = dynamic_cast<FilterModuleDSP*>(module);
             // fft analyzers FIFOs update
-            if (filter && filter->getType() == "Pre") {
-                preLeftChannelFifo.update(buffer);
-                preRightChannelFifo.update(buffer);
-            }
-            if (filter && filter->getType() == "Post") {
-                postLeftChannelFifo.update(buffer);
-                postRightChannelFifo.update(buffer);
-            }
-            if (filter && filter->getType() == "Mid") {
-                midLeftChannelFifo->update(buffer);
-                midRightChannelFifo->update(buffer);
+            if (filter) {
+                auto index = filterModuleCounter++;
+                leftAnalyzerFIFOs[index]->update(buffer);
+                rightAnalyzerFIFOs[index]->update(buffer);
             }
         }
 
@@ -276,6 +271,54 @@ void BiztortionAudioProcessor::updateModulesChain(juce::String moduleName, unsig
 int BiztortionAudioProcessor::getNumSamples()
 {
     return numSamples;
+}
+
+unsigned int BiztortionAudioProcessor::getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition)
+{
+    // using a filter modules counter to find the right fft analyzer FIFO associated with the current filter
+    unsigned int filterModuleCounter = 0;
+    bool found = false;
+    for (auto it = DSPmodules.cbegin(); !found && it < DSPmodules.cend(); ++it) {
+        if ((*it)->getChainPosition() == chainPosition) {
+            found = true;
+            continue;
+        }
+        if (dynamic_cast<FilterModuleDSP*>(&**it)) {
+            filterModuleCounter++;
+        }
+    }
+    return filterModuleCounter;
+}
+
+void BiztortionAudioProcessor::insertNewAnalyzerFIFO(unsigned int chainPosition)
+{
+    auto leftChannelFifo = new SingleChannelSampleFifo<BlockType>{ Channel::Left };
+    auto rightChannelFifo = new SingleChannelSampleFifo<BlockType>{ Channel::Right };
+    auto index = getFftAnalyzerFifoIndexOfCorrespondingFilter(chainPosition);
+    if (leftAnalyzerFIFOs.empty()) {
+        leftAnalyzerFIFOs.push_back(leftChannelFifo);
+    }
+    else {
+        auto position = leftAnalyzerFIFOs.begin() + index;
+        leftAnalyzerFIFOs.insert(position, leftChannelFifo);
+    }
+    
+    if (rightAnalyzerFIFOs.empty()) {
+        rightAnalyzerFIFOs.push_back(rightChannelFifo);
+    }
+    else {
+        auto position2 = rightAnalyzerFIFOs.begin() + index;
+        rightAnalyzerFIFOs.insert(position2, rightChannelFifo);
+    }
+}
+
+void BiztortionAudioProcessor::deleteOldAnalyzerFIFO(unsigned int chainPosition)
+{
+    auto index = getFftAnalyzerFifoIndexOfCorrespondingFilter(chainPosition);
+    auto iteratorToDelete = leftAnalyzerFIFOs.begin() + index;
+    leftAnalyzerFIFOs.erase(iteratorToDelete);
+    auto iteratorToDelete2 = rightAnalyzerFIFOs.begin() + index;
+    rightAnalyzerFIFOs.erase(iteratorToDelete2);
 }
 
 //==============================================================================
