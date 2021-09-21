@@ -17,9 +17,8 @@
 
 //==============================================================================
 
-FilterModuleDSP::FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type)
-    : DSPModule(_apvts), type(_type) {
-    setChainPosition(type == "Pre" ? 1 : 8);
+FilterModuleDSP::FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
+    : DSPModule(_apvts) {
 }
 
 void updateCoefficients(Coefficients& old, const Coefficients& replacements) {
@@ -33,246 +32,98 @@ Coefficients FilterModuleDSP::makePeakFilter(const FilterChainSettings& chainSet
         juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
 }
 
-FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type) {
+FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition) {
     FilterChainSettings settings;
 
-    settings.lowCutFreq = apvts.getRawParameterValue(type + " LowCut Freq")->load();
-    settings.highCutFreq = apvts.getRawParameterValue(type + " HighCut Freq")->load();
-    settings.peakFreq = apvts.getRawParameterValue(type + " Peak Freq")->load();
-    settings.peakGainInDecibels = apvts.getRawParameterValue(type + " Peak Gain")->load();
-    settings.peakQuality = apvts.getRawParameterValue(type + " Peak Quality")->load();
-    settings.lowCutSlope = apvts.getRawParameterValue(type + " LowCut Slope")->load();
-    settings.highCutSlope = apvts.getRawParameterValue(type + " HighCut Slope")->load();
+    settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq " + std::to_string(chainPosition))->load();
+    settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq " + std::to_string(chainPosition))->load();
+    settings.peakFreq = apvts.getRawParameterValue("Peak Freq " + std::to_string(chainPosition))->load();
+    settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain " + std::to_string(chainPosition))->load();
+    settings.peakQuality = apvts.getRawParameterValue("Peak Quality " + std::to_string(chainPosition))->load();
+    settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope " + std::to_string(chainPosition))->load();
+    settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope " + std::to_string(chainPosition))->load();
 
     return settings;
 }
 
 void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
 {
+
     // PRE-FILTER
 
-    auto lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Pre LowCut Freq",
-        "Pre LowCut Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20.f,
-        "Pre Filter"
-        );
-    auto highCutFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Pre HighCut Freq",
-        "Pre HighCut Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20000.f,
-        "Pre Filter"
-        );
-    auto peakFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Pre Peak Freq",
-        "Pre Peak Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        800.f,
-        "Pre Filter"
-        );
-    auto peakGain = std::make_unique<juce::AudioParameterFloat>(
-        "Pre Peak Gain",
-        "Pre Peak Gain",
-        juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
-        0.0f,
-        "Pre Filter"
-        );
-    auto peakQuality = std::make_unique<juce::AudioParameterFloat>(
-        "Pre Peak Quality",
-        "Pre Peak Quality",
-        juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-        1.f,
-        "Pre Filter"
-        );
+    for (int i = 1; i < 9; ++i) {
+        auto lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
+            "LowCut Freq " + std::to_string(i),
+            "LowCut Freq " + std::to_string(i),
+            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+            20.f,
+            "Filter " + std::to_string(i)
+            );
+        auto highCutFreq = std::make_unique<juce::AudioParameterFloat>(
+            "HighCut Freq " + std::to_string(i),
+            "HighCut Freq " + std::to_string(i),
+            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+            20000.f,
+            "Filter " + std::to_string(i)
+            );
+        auto peakFreq = std::make_unique<juce::AudioParameterFloat>(
+            "Peak Freq " + std::to_string(i),
+            "Peak Freq " + std::to_string(i),
+            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+            800.f,
+            "Filter " + std::to_string(i)
+            );
+        auto peakGain = std::make_unique<juce::AudioParameterFloat>(
+            "Peak Gain " + std::to_string(i),
+            "Peak Gain " + std::to_string(i),
+            juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
+            0.0f,
+            "Filter " + std::to_string(i)
+            );
+        auto peakQuality = std::make_unique<juce::AudioParameterFloat>(
+            "Peak Quality " + std::to_string(i),
+            "Peak Quality " + std::to_string(i),
+            juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+            1.f,
+            "Filter " + std::to_string(i)
+            );
 
-    juce::StringArray stringArray;
+        juce::StringArray stringArray;
 
-    for (int i = 0; i < 4; ++i) {
-        juce::String string;
-        string << (12 + i * 12);
-        string << " db/Octave";
-        stringArray.add(string);
+        for (int i = 0; i < 4; ++i) {
+            juce::String string;
+            string << (12 + i * 12);
+            string << " db/Octave";
+            stringArray.add(string);
+        }
+
+        auto lowCutSlope = std::make_unique<juce::AudioParameterChoice>(
+            "LowCut Slope " + std::to_string(i),
+            "LowCut Slope " + std::to_string(i),
+            stringArray,
+            0,
+            "Filter " + std::to_string(i)
+            );
+        auto highCutSlope = std::make_unique<juce::AudioParameterChoice>(
+            "HighCut Slope " + std::to_string(i),
+            "HighCut Slope " + std::to_string(i),
+            stringArray,
+            0,
+            "Filter " + std::to_string(i)
+            );
+
+        auto lowCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("LowCut " + std::to_string(i), "LowCut " + std::to_string(i),
+            "|", std::move(lowCutFreq), std::move(lowCutSlope));
+        auto highCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("HighCut " + std::to_string(i), "HighCut " + std::to_string(i),
+            "|", std::move(highCutFreq), std::move(highCutSlope));
+        auto peakGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Peak " + std::to_string(i), "Peak " + std::to_string(i),
+            "|", std::move(peakFreq), std::move(peakQuality), std::move(peakGain));
+
+        layout.add(std::move(lowCutGroup));
+        layout.add(std::move(highCutGroup));
+        layout.add(std::move(peakGroup));
     }
 
-    auto lowCutSlope = std::make_unique<juce::AudioParameterChoice>(
-        "Pre LowCut Slope",
-        "Pre LowCut Slope",
-        stringArray,
-        0,
-        "Pre Filter"
-        );
-    auto highCutSlope = std::make_unique<juce::AudioParameterChoice>(
-        "Pre HighCut Slope",
-        "Pre HighCut Slope",
-        stringArray,
-        0,
-        "Pre Filter"
-        );
-
-    auto lowCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Pre LowCut", "Pre LowCut", 
-        "|", std::move(lowCutFreq), std::move(lowCutSlope));
-    auto highCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Pre HighCut", "Pre HighCut", 
-        "|", std::move(highCutFreq), std::move(highCutSlope));
-    auto peakGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Pre Peak", "Pre Peak",
-        "|", std::move(peakFreq), std::move(peakQuality), std::move(peakGain));
-
-    layout.add(std::move(lowCutGroup));
-    layout.add(std::move(highCutGroup));
-    layout.add(std::move(peakGroup));
-
-    // POST-FILTER
-
-    lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Post LowCut Freq",
-        "Post LowCut Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20.f,
-        "Post Filter"
-        );
-    highCutFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Post HighCut Freq",
-        "Post HighCut Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20000.f,
-        "Post Filter"
-        );
-    peakFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Post Peak Freq",
-        "Post Peak Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        800.f,
-        "Post Filter"
-        );
-    peakGain = std::make_unique<juce::AudioParameterFloat>(
-        "Post Peak Gain",
-        "Post Peak Gain",
-        juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
-        0.0f,
-        "Post Filter"
-        );
-    peakQuality = std::make_unique<juce::AudioParameterFloat>(
-        "Post Peak Quality",
-        "Post Peak Quality",
-        juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-        1.f,
-        "Post Filter"
-        );
-
-    stringArray.clear();
-
-    for (int i = 0; i < 4; ++i) {
-        juce::String string;
-        string << (12 + i * 12);
-        string << " db/Octave";
-        stringArray.add(string);
-    }
-
-    lowCutSlope = std::make_unique<juce::AudioParameterChoice>(
-        "Post LowCut Slope",
-        "Post LowCut Slope",
-        stringArray,
-        0,
-        "Post Filter"
-        );
-    highCutSlope = std::make_unique<juce::AudioParameterChoice>(
-        "Post HighCut Slope",
-        "Post HighCut Slope",
-        stringArray,
-        0,
-        "Post Filter"
-        );
-
-    lowCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Post LowCut", "Post LowCut",
-        "|", std::move(lowCutFreq), std::move(lowCutSlope));
-    highCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Post HighCut", "Post HighCut",
-        "|", std::move(highCutFreq), std::move(highCutSlope));
-    peakGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Post Peak", "Post Peak",
-        "|", std::move(peakFreq), std::move(peakQuality), std::move(peakGain));
-
-    layout.add(std::move(lowCutGroup));
-    layout.add(std::move(highCutGroup));
-    layout.add(std::move(peakGroup));
-
-    // MID-FILTER
-
-    lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Mid LowCut Freq",
-        "Mid LowCut Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20.f,
-        "Mid Filter"
-        );
-    highCutFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Mid HighCut Freq",
-        "Mid HighCut Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        20000.f,
-        "Mid Filter"
-        );
-    peakFreq = std::make_unique<juce::AudioParameterFloat>(
-        "Mid Peak Freq",
-        "Mid Peak Freq",
-        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-        800.f,
-        "Mid Filter"
-        );
-    peakGain = std::make_unique<juce::AudioParameterFloat>(
-        "Mid Peak Gain",
-        "Mid Peak Gain",
-        juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
-        0.0f,
-        "Mid Filter"
-        );
-    peakQuality = std::make_unique<juce::AudioParameterFloat>(
-        "Mid Peak Quality",
-        "Mid Peak Quality",
-        juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-        1.f,
-        "Mid Filter"
-        );
-
-    stringArray.clear();
-
-    for (int i = 0; i < 4; ++i) {
-        juce::String string;
-        string << (12 + i * 12);
-        string << " db/Octave";
-        stringArray.add(string);
-    }
-
-    lowCutSlope = std::make_unique<juce::AudioParameterChoice>(
-        "Mid LowCut Slope",
-        "Mid LowCut Slope",
-        stringArray,
-        0,
-        "Mid Filter"
-        );
-    highCutSlope = std::make_unique<juce::AudioParameterChoice>(
-        "Mid HighCut Slope",
-        "Mid HighCut Slope",
-        stringArray,
-        0,
-        "Mid Filter"
-        );
-
-    lowCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Mid LowCut", "Mid LowCut",
-        "|", std::move(lowCutFreq), std::move(lowCutSlope));
-    highCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Mid HighCut", "Mid HighCut",
-        "|", std::move(highCutFreq), std::move(highCutSlope));
-    peakGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Mid Peak", "Mid Peak",
-        "|", std::move(peakFreq), std::move(peakQuality), std::move(peakGain));
-
-    layout.add(std::move(lowCutGroup));
-    layout.add(std::move(highCutGroup));
-    layout.add(std::move(peakGroup));
-
-}
-
-juce::String FilterModuleDSP::getType()
-{
-    return type;
 }
 
 MonoChain* FilterModuleDSP::getOneChain()
@@ -280,8 +131,13 @@ MonoChain* FilterModuleDSP::getOneChain()
     return &leftChain;
 }
 
+void FilterModuleDSP::setModuleType()
+{
+    moduleType = ModuleType::IIRFilter;
+}
+
 void FilterModuleDSP::updateDSPState(double sampleRate) {
-    auto settings = getSettings(apvts, type);
+    auto settings = getSettings(apvts, getChainPosition());
     updateLowCutFilter(settings, sampleRate);
     updatePeakFilter(settings, sampleRate);
     updateHighCutFilter(settings, sampleRate);
@@ -345,41 +201,40 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 
 //==============================================================================
 
-FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : GUIModule(), audioProcessor(p), type(_type),
-    peakFreqSlider(*audioProcessor.apvts.getParameter(type + " Peak Freq"), "Hz"),
-    peakGainSlider(*audioProcessor.apvts.getParameter(type + " Peak Gain"), "dB"),
-    peakQualitySlider(*audioProcessor.apvts.getParameter(type + " Peak Quality"), ""),
-    lowCutFreqSlider(*audioProcessor.apvts.getParameter(type + " LowCut Freq"), "Hz"),
-    highCutFreqSlider(*audioProcessor.apvts.getParameter(type + " HighCut Freq"), "Hz"),
-    lowCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " LowCut Slope"), "dB/Oct"),
-    highCutSlopeSlider(*audioProcessor.apvts.getParameter(type + " HighCut Slope"), "dB/Oct"),
-    responseCurveComponent(p, type),
-    filterFftAnalyzerComponent(p, type),
-    peakFreqSliderAttachment(audioProcessor.apvts, type + " Peak Freq", peakFreqSlider),
-    peakGainSliderAttachment(audioProcessor.apvts, type + " Peak Gain", peakGainSlider),
-    peakQualitySliderAttachment(audioProcessor.apvts, type + " Peak Quality", peakQualitySlider),
-    lowCutFreqSliderAttachment(audioProcessor.apvts, type + " LowCut Freq", lowCutFreqSlider),
-    highCutFreqSliderAttachment(audioProcessor.apvts, type + " HighCut Freq", highCutFreqSlider),
-    lowCutSlopeSliderAttachment(audioProcessor.apvts, type + " LowCut Slope", lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, type + " HighCut Slope", highCutSlopeSlider)
+FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition)
+    : GUIModule(), audioProcessor(p),
+    peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq " + std::to_string(chainPosition)), "Hz"),
+    peakGainSlider(*audioProcessor.apvts.getParameter("Peak Gain " + std::to_string(chainPosition)), "dB"),
+    peakQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality " + std::to_string(chainPosition)), ""),
+    lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq " + std::to_string(chainPosition)), "Hz"),
+    highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCut Freq " + std::to_string(chainPosition)), "Hz"),
+    lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCut Slope " + std::to_string(chainPosition)), "dB/Oct"),
+    highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCut Slope " + std::to_string(chainPosition)), "dB/Oct"),
+    responseCurveComponent(p, chainPosition),
+    filterFftAnalyzerComponent(p, chainPosition),
+    peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq " + std::to_string(chainPosition), peakFreqSlider),
+    peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain " + std::to_string(chainPosition), peakGainSlider),
+    peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality " + std::to_string(chainPosition), peakQualitySlider),
+    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq " + std::to_string(chainPosition), lowCutFreqSlider),
+    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq " + std::to_string(chainPosition), highCutFreqSlider),
+    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope " + std::to_string(chainPosition), lowCutSlopeSlider),
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope " + std::to_string(chainPosition), highCutSlopeSlider)
 {
-    //if (type != "Mid") {
-        peakFreqSlider.labels.add({ 0.f, "20Hz" });
-        peakFreqSlider.labels.add({ 1.f, "20kHz" });
-        peakGainSlider.labels.add({ 0.f, "-24dB" });
-        peakGainSlider.labels.add({ 1.f, "+24dB" });
-        peakQualitySlider.labels.add({ 0.f, "0.1" });
-        peakQualitySlider.labels.add({ 1.f, "10.0" });
-        lowCutFreqSlider.labels.add({ 0.f, "20Hz" });
-        lowCutFreqSlider.labels.add({ 1.f, "20kHz" });
-        highCutFreqSlider.labels.add({ 0.f, "20Hz" });
-        highCutFreqSlider.labels.add({ 1.f, "20kHz" });
-        lowCutSlopeSlider.labels.add({ 0.0f, "12" });
-        lowCutSlopeSlider.labels.add({ 1.f, "48" });
-        highCutSlopeSlider.labels.add({ 0.0f, "12" });
-        highCutSlopeSlider.labels.add({ 1.f, "48" });
-    //}
+
+    peakFreqSlider.labels.add({ 0.f, "20Hz" });
+    peakFreqSlider.labels.add({ 1.f, "20kHz" });
+    peakGainSlider.labels.add({ 0.f, "-24dB" });
+    peakGainSlider.labels.add({ 1.f, "+24dB" });
+    peakQualitySlider.labels.add({ 0.f, "0.1" });
+    peakQualitySlider.labels.add({ 1.f, "10.0" });
+    lowCutFreqSlider.labels.add({ 0.f, "20Hz" });
+    lowCutFreqSlider.labels.add({ 1.f, "20kHz" });
+    highCutFreqSlider.labels.add({ 0.f, "20Hz" });
+    highCutFreqSlider.labels.add({ 1.f, "20kHz" });
+    lowCutSlopeSlider.labels.add({ 0.0f, "12" });
+    lowCutSlopeSlider.labels.add({ 1.f, "48" });
+    highCutSlopeSlider.labels.add({ 0.0f, "12" });
+    highCutSlopeSlider.labels.add({ 1.f, "48" });
 
     for (auto* comp : getComps())
     {
