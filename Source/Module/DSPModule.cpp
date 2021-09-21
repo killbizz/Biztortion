@@ -13,7 +13,6 @@
 DSPModule::DSPModule(juce::AudioProcessorValueTreeState& _apvts)
     : apvts(_apvts)
 {
-
 }
 
 unsigned int DSPModule::getChainPosition()
@@ -24,4 +23,9 @@ unsigned int DSPModule::getChainPosition()
 void DSPModule::setChainPosition(unsigned int cp)
 {
     chainPosition = cp;
+}
+
+ModuleType DSPModule::getModuleType()
+{
+    return moduleType;
 }

@@ -19,7 +19,7 @@ struct FFTAnalyzerComponent : juce::Component,
     juce::AudioProcessorParameter::Listener,
     juce::Timer {
 
-    FFTAnalyzerComponent(BiztortionAudioProcessor& p, juce::String _type);
+    FFTAnalyzerComponent(BiztortionAudioProcessor& p, unsigned int chainPosition);
     ~FFTAnalyzerComponent();
     /** Receives a callback when a parameter has been changed.
 

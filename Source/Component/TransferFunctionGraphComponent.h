@@ -19,7 +19,7 @@ class TransferFunctionGraphComponent : public juce::Component,
 {
 public:
 	//==============================================================================
-	TransferFunctionGraphComponent(BiztortionAudioProcessor&);
+	TransferFunctionGraphComponent(BiztortionAudioProcessor& p, unsigned int chainPosition);
 	~TransferFunctionGraphComponent();
 
 	/** Receives a callback when a parameter has been changed.
@@ -68,6 +68,7 @@ private:
 	float tanhAmplitude, tanhSlope, sineAmplitude, sineFrequency;
 	BiztortionAudioProcessor& audioProcessor;
 	juce::Atomic<bool> parameterChanged{ false };
+	unsigned int chainPosition;
 
 	void updateParams();
 	void setTanhAmp(float v);

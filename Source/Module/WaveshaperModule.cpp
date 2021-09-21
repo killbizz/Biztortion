@@ -22,6 +22,11 @@ WaveshaperModuleDSP::WaveshaperModuleDSP(juce::AudioProcessorValueTreeState& _ap
 {
 }
 
+void WaveshaperModuleDSP::setModuleType()
+{
+    moduleType = ModuleType::Waveshaper;
+}
+
 void WaveshaperModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
@@ -104,31 +109,39 @@ void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
 {
     using namespace juce;
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("Waveshaper Drive", "Waveshaper Drive", NormalisableRange<float>(0.f, 40.f, 0.01f), 10.f, "Waveshaper"));
+    for (int i = 1; i < 9; ++i) {
+        layout.add(std::make_unique<juce::AudioParameterFloat>("Waveshaper Drive " + std::to_string(i), "Waveshaper Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 10.f, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Mix " + std::to_string(i), "Waveshaper Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Amp " + std::to_string(i), "Waveshaper Tanh Amp " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope " + std::to_string(i), "Waveshaper Tanh Slope " + std::to_string(i), NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp " + std::to_string(i), "Waveshaper Sin Amp " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq " + std::to_string(i), "Waveshaper Sin Freq " + std::to_string(i), NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
+    }
+    /*layout.add(std::make_unique<juce::AudioParameterFloat>("Waveshaper Drive", "Waveshaper Drive", NormalisableRange<float>(0.f, 40.f, 0.01f), 10.f, "Waveshaper"));
     layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Mix", "Waveshaper Mix", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
     layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Amp", "Waveshaper Tanh Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
     layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope", "Waveshaper Tanh Slope", NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper"));
     layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp", "Waveshaper Sin Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq", "Waveshaper Sin Freq", NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper"));
+    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq", "Waveshaper Sin Freq", NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper"));*/
 }
 
-WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts)
+WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
 {
     WaveshaperSettings settings;
 
-    settings.drive = apvts.getRawParameterValue("Waveshaper Drive")->load();
-    settings.mix = apvts.getRawParameterValue("Waveshaper Mix")->load();
-    settings.tanhAmp = apvts.getRawParameterValue("Waveshaper Tanh Amp")->load();
-    settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope")->load();
-    settings.sinAmp = apvts.getRawParameterValue("Waveshaper Sine Amp")->load();
-    settings.sinFreq = apvts.getRawParameterValue("Waveshaper Sine Freq")->load();
+    settings.drive = apvts.getRawParameterValue("Waveshaper Drive " + std::to_string(chainPosition))->load();
+    settings.mix = apvts.getRawParameterValue("Waveshaper Mix " + std::to_string(chainPosition))->load();
+    settings.tanhAmp = apvts.getRawParameterValue("Waveshaper Tanh Amp " + std::to_string(chainPosition))->load();
+    settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope " + std::to_string(chainPosition))->load();
+    settings.sinAmp = apvts.getRawParameterValue("Waveshaper Sine Amp " + std::to_string(chainPosition))->load();
+    settings.sinFreq = apvts.getRawParameterValue("Waveshaper Sine Freq " + std::to_string(chainPosition))->load();
 
     return settings;
 }
 
 void WaveshaperModuleDSP::updateDSPState(double)
 {
-    auto settings = getSettings(apvts);
+    auto settings = getSettings(apvts, getChainPosition());
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
 
     tanhAmp.setTargetValue(settings.tanhAmp * 0.01f);
@@ -147,21 +160,21 @@ void WaveshaperModuleDSP::updateDSPState(double)
 
 //==============================================================================
 
-WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p)
+WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition)
     : GUIModule(), audioProcessor(p),
-    waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive"), "dB"),
-    waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix"), "%"),
-    tanhAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Amp"), ""),
-    tanhSlopeSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Slope"), ""),
-    sineAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Amp"), ""),
-    sineFreqSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Freq"), ""),
-    transferFunctionGraph(p),
-    waveshaperDriveSliderAttachment(audioProcessor.apvts, "Waveshaper Drive", waveshaperDriveSlider),
-    waveshaperMixSliderAttachment(audioProcessor.apvts, "Waveshaper Mix", waveshaperMixSlider),
-    tanhAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Amp", tanhAmpSlider),
-    tanhSlopeSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Slope", tanhSlopeSlider),
-    sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp", sineAmpSlider),
-    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq", sineFreqSlider)
+    waveshaperDriveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive " + std::to_string(chainPosition)), "dB"),
+    waveshaperMixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix " + std::to_string(chainPosition)), "%"),
+    tanhAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(chainPosition)), ""),
+    tanhSlopeSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(chainPosition)), ""),
+    sineAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Amp " + std::to_string(chainPosition)), ""),
+    sineFreqSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Freq " + std::to_string(chainPosition)), ""),
+    transferFunctionGraph(p, chainPosition),
+    waveshaperDriveSliderAttachment(audioProcessor.apvts, "Waveshaper Drive " + std::to_string(chainPosition), waveshaperDriveSlider),
+    waveshaperMixSliderAttachment(audioProcessor.apvts, "Waveshaper Mix " + std::to_string(chainPosition), waveshaperMixSlider),
+    tanhAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Amp " + std::to_string(chainPosition), tanhAmpSlider),
+    tanhSlopeSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Slope " + std::to_string(chainPosition), tanhSlopeSlider),
+    sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp " + std::to_string(chainPosition), sineAmpSlider),
+    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq " + std::to_string(chainPosition), sineFreqSlider)
 {
     // labels
     waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);

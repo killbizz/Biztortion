@@ -76,12 +76,14 @@ class WaveshaperModuleDSP : public DSPModule {
 public:
     WaveshaperModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
 
+    void setModuleType() override;
+
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
-    static WaveshaperSettings getSettings(juce::AudioProcessorValueTreeState& apvts);
+    static WaveshaperSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition);
 
 private:
 
@@ -106,7 +108,7 @@ private:
 
 class WaveshaperModuleGUI : public GUIModule {
 public:
-    WaveshaperModuleGUI(BiztortionAudioProcessor& p);
+    WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -121,7 +123,6 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
-    juce::String type;
 
     // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;

@@ -90,7 +90,7 @@ void updateCutFilter(ChainType& monoChain, const CoefficientType& cutCoefficient
 
 class FilterModuleDSP : public DSPModule {
 public:
-    FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String type);
+    FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
     // inline for avoiding linking problems with functions which have declaration + impementation
     // in the file.h (placed here for convenience)
     static inline auto makeLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
@@ -105,11 +105,12 @@ public:
     }
     static Coefficients makePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
 
-    static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type);
+    static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition);
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
-    juce::String getType();
     MonoChain* getOneChain();
+
+    void setModuleType() override;
 
     void updateDSPState(double sampleRate) override;
     void updatePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
@@ -120,7 +121,6 @@ public:
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double) override;
 
 private:
-    juce::String type;
     MonoChain leftChain, rightChain;
 };
 
@@ -132,7 +132,7 @@ private:
 
 class FilterModuleGUI : public GUIModule {
 public:
-    FilterModuleGUI(BiztortionAudioProcessor& p, juce::String _type);
+    FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -147,7 +147,6 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
-    juce::String type;
 
     // filterModule
     RotarySliderWithLabels peakFreqSlider,

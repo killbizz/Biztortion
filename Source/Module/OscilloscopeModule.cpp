@@ -28,24 +28,35 @@ drow::AudioOscilloscope* OscilloscopeModuleDSP::getOscilloscope()
     return &oscilloscope;
 }
 
-OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts)
+OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
 {
     OscilloscopeSettings settings;
-    settings.hZoom = apvts.getRawParameterValue("Oscilloscope H Zoom")->load();
-    settings.vZoom = apvts.getRawParameterValue("Oscilloscope V Zoom")->load();
+    settings.hZoom = apvts.getRawParameterValue("Oscilloscope H Zoom " + std::to_string(chainPosition))->load();
+    settings.vZoom = apvts.getRawParameterValue("Oscilloscope V Zoom " + std::to_string(chainPosition))->load();
 
     return settings;
 }
 
 void OscilloscopeModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
 {
-    layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope H Zoom", "Oscilloscope H Zoom", juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 0.f, "Oscilloscope")));
-    layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope V Zoom", "Oscilloscope V Zoom", juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 1.f, "Oscilloscope")));
+    for (int i = 1; i < 9; ++i) {
+        layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope H Zoom " + std::to_string(i), 
+            "Oscilloscope H Zoom " + std::to_string(i), 
+            juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 0.f, "Oscilloscope " + std::to_string(i))));
+        layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope V Zoom " + std::to_string(i), 
+            "Oscilloscope V Zoom " + std::to_string(i), 
+            juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 1.f, "Oscilloscope " + std::to_string(i))));
+    }
+}
+
+void OscilloscopeModuleDSP::setModuleType()
+{
+    moduleType = ModuleType::Oscilloscope;
 }
 
 void OscilloscopeModuleDSP::updateDSPState(double sampleRate)
 {
-    auto settings = getSettings(apvts);
+    auto settings = getSettings(apvts, getChainPosition());
     oscilloscope.setHorizontalZoom(settings.hZoom);
     oscilloscope.setVerticalZoom(settings.vZoom);
 }
@@ -68,12 +79,12 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 //==============================================================================
 
-OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope)
+OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope, unsigned int chainPosition)
     : GUIModule(), audioProcessor(p), oscilloscope(_oscilloscope),
-    hZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope H Zoom"), ""),
-    vZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope V Zoom"), ""),
-    hZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope H Zoom", hZoomSlider),
-    vZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope V Zoom", vZoomSlider)
+    hZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(chainPosition)), ""),
+    vZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(chainPosition)), ""),
+    hZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope H Zoom " + std::to_string(chainPosition), hZoomSlider),
+    vZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope V Zoom " + std::to_string(chainPosition), vZoomSlider)
 {
     hZoomSlider.labels.add({ 0.f, "0" });
     hZoomSlider.labels.add({ 1.f, "1" });

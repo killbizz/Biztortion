@@ -34,8 +34,10 @@ public:
 
     drow::AudioOscilloscope* getOscilloscope();
 
-    static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts);
+    static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
+
+    void setModuleType() override;
 
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -53,7 +55,7 @@ private:
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope);
+    OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope, unsigned int chainPosition);
     ~OscilloscopeModuleGUI();
 
     std::vector<juce::Component*> getComps() override;

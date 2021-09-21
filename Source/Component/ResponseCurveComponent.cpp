@@ -18,14 +18,14 @@
 //==============================================================================
 
 // component for the response curve in order to paint the curve only in his area
-ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, juce::String _type)
-    : audioProcessor(p), type(_type)
+ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, unsigned int chainPosition)
+    : audioProcessor(p), chainPosition(chainPosition)
 {
     setFilterMonoChain();
 
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
-        if (param->getLabel() == juce::String(type + " Filter")) {
+        if (param->getLabel() == juce::String("Filter " + std::to_string(chainPosition))) {
             param->addListener(this);
         }
     }
@@ -35,7 +35,7 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, juce
 ResponseCurveComponent::~ResponseCurveComponent() {
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
-        if (param->getLabel() == juce::String(type + " Filter")) {
+        if (param->getLabel() == juce::String("Filter " + std::to_string(chainPosition))) {
             param->removeListener(this);
         }
     }
@@ -161,7 +161,7 @@ void ResponseCurveComponent::setFilterMonoChain()
 {
     for (auto it = audioProcessor.DSPmodules.cbegin(); it < audioProcessor.DSPmodules.cend(); ++it) {
         auto temp = dynamic_cast<FilterModuleDSP*>(&(**it));
-        if (temp && temp->getType() == type) {
+        if (temp && temp->getChainPosition() == chainPosition) {
             filterMonoChain = temp->getOneChain();
         }
     }

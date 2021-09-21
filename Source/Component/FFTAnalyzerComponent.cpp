@@ -12,11 +12,14 @@
 #include "../PluginProcessor.h"
 
 // component for the response curve in order to paint the curve only in his area
-FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p, juce::String _type)
+FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p, unsigned int chainPosition)
     : audioProcessor(p), 
-      leftPathProducer( _type == "Pre" ? audioProcessor.preLeftChannelFifo : ( _type == "Post" ? audioProcessor.postLeftChannelFifo : *audioProcessor.midLeftChannelFifo)),
-      rightPathProducer(_type == "Pre" ? audioProcessor.preRightChannelFifo : (_type == "Post" ? audioProcessor.postRightChannelFifo : *audioProcessor.midRightChannelFifo))
+      leftPathProducer(*audioProcessor.leftAnalyzerFIFOs[0]),
+      rightPathProducer(*audioProcessor.rightAnalyzerFIFOs[0])
 {
+    auto index = audioProcessor.getFftAnalyzerFifoIndexOfCorrespondingFilter(chainPosition);
+    leftPathProducer.setSingleChannelSampleFifo(audioProcessor.leftAnalyzerFIFOs[index]);
+    rightPathProducer.setSingleChannelSampleFifo(audioProcessor.rightAnalyzerFIFOs[index]);
 
     startTimerHz(30);
 }

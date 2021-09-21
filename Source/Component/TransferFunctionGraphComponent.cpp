@@ -11,17 +11,15 @@
 #include "TransferFunctionGraphComponent.h"
 #include "../PluginProcessor.h"
 
-TransferFunctionGraphComponent::TransferFunctionGraphComponent(BiztortionAudioProcessor& p)
-	: audioProcessor(p)
+TransferFunctionGraphComponent::TransferFunctionGraphComponent(BiztortionAudioProcessor& p, unsigned int chainPosition)
+	: audioProcessor(p), chainPosition(chainPosition)
 {
-
 	updateParams();
 
 	const auto& params = audioProcessor.getParameters();
 	for (auto param : params) {
-		if (param->getLabel() == juce::String("Waveshaper")) {
+		if (param->getLabel() == juce::String("Waveshaper " + std::to_string(chainPosition))) {
 			param->addListener(this);
-			// std::cout << param->getName(100);
 		}
 	}
 	startTimerHz(60);
@@ -31,7 +29,7 @@ TransferFunctionGraphComponent::~TransferFunctionGraphComponent()
 {
 	const auto& params = audioProcessor.getParameters();
 	for (auto param : params) {
-		if (param->getLabel() == juce::String("Waveshaper")) {
+		if (param->getLabel() == juce::String("Waveshaper " + std::to_string(chainPosition))) {
 			param->removeListener(this);
 		}
 	}
@@ -107,7 +105,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 
 void TransferFunctionGraphComponent::updateParams()
 {
-	WaveshaperSettings settings = WaveshaperModuleDSP::getSettings(audioProcessor.apvts);
+	WaveshaperSettings settings = WaveshaperModuleDSP::getSettings(audioProcessor.apvts, chainPosition);
 	setTanhAmp(settings.tanhAmp);
 	setTanhSlope(settings.tanhSlope);
 	setSineAmp(settings.sinAmp);
