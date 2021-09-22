@@ -71,17 +71,17 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     // TODO : close menu losing the focus
 
     newModuleSelector.onChange = [this] {
-        
-        switch (newModuleSelector.getSelectedId()) {
+        ModuleType type = static_cast<ModuleType>(newModuleSelector.getSelectedId());
+
+        switch (type) {
         case ModuleType::Oscilloscope: {
             audioProcessor.suspendProcessing(true);
             DSPModule* oscilloscopeDSPModule = new OscilloscopeModuleDSP(audioProcessor.apvts);
             addModuleToDSPmodules(oscilloscopeDSPModule);
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
             audioProcessor.suspendProcessing(false);
-            GUIModule* oscilloscopeGUIModule = new OscilloscopeModuleGUI(audioProcessor, dynamic_cast<OscilloscopeModuleDSP*>(oscilloscopeDSPModule)->getOscilloscope(), getChainPosition());
-            addModuleToGUI(oscilloscopeGUIModule);
-            newModuleSetup(ModuleType::Oscilloscope);
+            addModuleToGUI(createGUIModule(type));
+            newModuleSetup(type);
             break;
         }
         case ModuleType::IIRFilter: {
@@ -92,9 +92,8 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             audioProcessor.insertNewAnalyzerFIFO(getChainPosition());
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
             audioProcessor.suspendProcessing(false);
-            GUIModule* filterGUIModule = new FilterModuleGUI(audioProcessor, getChainPosition());
-            addModuleToGUI(filterGUIModule);
-            newModuleSetup(ModuleType::IIRFilter);
+            addModuleToGUI(createGUIModule(type));
+            newModuleSetup(type);
             break;
         }
 
@@ -104,12 +103,18 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             addModuleToDSPmodules(waveshaperDSPModule);
             audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
             audioProcessor.suspendProcessing(false);
-            GUIModule* waveshaperGUIModule = new WaveshaperModuleGUI(audioProcessor, getChainPosition());
-            addModuleToGUI(waveshaperGUIModule);
-            newModuleSetup(ModuleType::Waveshaper);
+            addModuleToGUI(createGUIModule(type));
+            newModuleSetup(type);
             break;
         }
         case ModuleType::Bitcrusher: {
+            audioProcessor.suspendProcessing(true);
+            DSPModule* bitcrusherDSPModule = new BitcrusherModuleDSP(audioProcessor.apvts);
+            addModuleToDSPmodules(bitcrusherDSPModule);
+            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
+            audioProcessor.suspendProcessing(false);
+            addModuleToGUI(createGUIModule(type));
+            newModuleSetup(type);
             break;
         }
         case ModuleType::Clipper: {
@@ -314,6 +319,7 @@ GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
             break;
         }
         case ModuleType::Bitcrusher: {
+            newModule = new BitcrusherModuleGUI(audioProcessor, getChainPosition());
             break;
         }
         case ModuleType::Clipper: {
