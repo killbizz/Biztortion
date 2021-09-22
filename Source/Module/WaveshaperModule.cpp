@@ -117,12 +117,6 @@ void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp " + std::to_string(i), "Waveshaper Sin Amp " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq " + std::to_string(i), "Waveshaper Sin Freq " + std::to_string(i), NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
     }
-    /*layout.add(std::make_unique<juce::AudioParameterFloat>("Waveshaper Drive", "Waveshaper Drive", NormalisableRange<float>(0.f, 40.f, 0.01f), 10.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Mix", "Waveshaper Mix", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Amp", "Waveshaper Tanh Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope", "Waveshaper Tanh Slope", NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp", "Waveshaper Sin Amp", NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper"));
-    layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq", "Waveshaper Sin Freq", NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper"));*/
 }
 
 WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
@@ -261,8 +255,6 @@ void WaveshaperModuleGUI::resized()
     sineFreqSlider.setBounds(waveshaperSineControlsArea);
     sineFreqLabel.setBounds(sineFreqLabelArea);
     sineFreqLabel.setJustificationType(juce::Justification::centred);
-
-    // labels
 }
 
 std::vector<juce::Component*> WaveshaperModuleGUI::getComps()
