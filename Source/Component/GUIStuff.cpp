@@ -27,11 +27,11 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
     auto enabled = slider.isEnabled();
 
     // drawing the slider circle
-    g.setColour(enabled ? Colour(97u, 18u, 167u) : Colours::darkgrey);
+    g.setColour(enabled ? Colours::white : Colours::darkgrey);
     g.fillEllipse(bounds);
 
     // drawing the slider border
-    g.setColour(enabled ? Colour(255u, 154u, 1u) : Colours::grey);
+    g.setColour(enabled ? Colours::black : Colours::grey);
     g.drawEllipse(bounds, 1.f);
 
     if (auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
@@ -159,7 +159,7 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto center = sliderBounds.toFloat().getCentre();
     auto radius = sliderBounds.getWidth() * 0.5f;
 
-    g.setColour(Colour(0u, 172u, 1u));
+    g.setColour(Colours::black);
     g.setFont(getTextHeight());
 
     auto numChoices = labels.size();

@@ -13,10 +13,12 @@
 void GUIModule::drawContainer(juce::Graphics& g)
 {
     // container margin
-    g.setColour(juce::Colours::orange);
+    g.setColour(juce::Colours::white);
     g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
+    g.setColour(juce::Colour(132, 135, 138));
+    g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
     // content margin
-    g.setColour(juce::Colours::yellow);
+    g.setColour(juce::Colours::black);
     g.drawRoundedRectangle(getContentRenderArea().toFloat(), 4.f, 1.f);
 }
 

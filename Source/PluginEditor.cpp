@@ -57,7 +57,8 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     using namespace juce;
 
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(Colour(21, 53, 79));
+    //g.fillAll(Colour(21, 53, 79));
+    g.fillAll(juce::Colours::black);
 
     Path curve;
 
@@ -86,7 +87,7 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     curve.lineTo(center.x, 0.f);
     curve.closeSubPath();
 
-    g.setColour(Colour(97u, 18u, 167u));
+    g.setColour(juce::Colours::gainsboro);
     g.fillPath(curve);
 
     curve.applyTransform(AffineTransform().scaled(-1, 1));
@@ -94,7 +95,7 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillPath(curve);
 
 
-    g.setColour(Colour(255u, 154u, 1u));
+    g.setColour(juce::Colours::black);
     g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
     
 }

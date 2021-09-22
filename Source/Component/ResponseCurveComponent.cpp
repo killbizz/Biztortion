@@ -144,8 +144,8 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
         responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
     }
     // drawing response area
-     g.setColour(Colours::orange);
-     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
+    //g.setColour(Colours::orange);
+    //g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
     // drawing response curve
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));

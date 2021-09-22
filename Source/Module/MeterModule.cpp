@@ -98,7 +98,11 @@ MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
     meterTitle.setFont(14);
     addAndMakeVisible(meterTitle);
 
-    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colours::green);
+    // custom colors
+    lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::black);
+    lnf.setColour(foleys::LevelMeter::lmTicksColour, juce::Colours::white);
+    lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, juce::Colours::darkorange);
+    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colour(0, 240, 48));
     meter.setLookAndFeel(&lnf);
     meter.setMeterSource(getMeterSource());
     addAndMakeVisible(meter);

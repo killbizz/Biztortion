@@ -184,7 +184,7 @@ void NewModuleGUI::resized()
 
     juce::Rectangle<int> newModuleBounds, deleteModuleBounds, currentModuleActivatorBounds;
     newModuleBounds = deleteModuleBounds = currentModuleActivatorBounds = bounds;
-    newModuleBounds.reduce(20, 44);
+    newModuleBounds.reduce(20, 40);
     deleteModuleBounds.reduce(30, 44);
     currentModuleActivatorBounds.reduce(0, 44);
 
@@ -216,7 +216,7 @@ std::vector<juce::Component*> NewModuleGUI::getComps()
 void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
-    laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
+    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
