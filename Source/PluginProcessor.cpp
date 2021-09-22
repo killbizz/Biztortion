@@ -259,6 +259,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
     FilterModuleDSP::addParameters(layout);
     WaveshaperModuleDSP::addParameters(layout);
     OscilloscopeModuleDSP::addParameters(layout);
+    BitcrusherModuleDSP::addParameters(layout);
 
     return layout;
 }

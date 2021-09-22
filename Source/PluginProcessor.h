@@ -12,6 +12,7 @@
 #include "Module/MeterModule.h"
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
+#include "Module/BitcrusherModule.h"
 #include "Module/OscilloscopeModule.h"
 #include "Component/ResponseCurveComponent.h"
 #include "Component/FFTAnalyzerComponent.h"
