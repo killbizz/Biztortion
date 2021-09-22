@@ -146,9 +146,9 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
             for (int i = 0; i < numSamples; i++)
             {
                 // REDUCE BIT DEPTH
-                float totalQLevels = powf(2, bitRedux.getNextValue());
+                float totalQLevels = powf(2.f, bitRedux.getNextValue());
                 float val = data[i];
-                float remainder = fmodf(val, 1 / totalQLevels);
+                float remainder = fmodf(val, 1.f / totalQLevels);
 
                 // Quantize
                 data[i] = val - remainder;
