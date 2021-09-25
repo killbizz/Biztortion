@@ -8,6 +8,8 @@
               companyName="KillBizz" companyEmail="gabriel.bizzo@hotmail.it">
   <MAINGROUP id="WGhc7c" name="Biztortion">
     <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources">
+      <FILE id="WNgRCy" name="AudioCableBase.png" compile="0" resource="1"
+            file="Resources/AudioCableBase.png"/>
       <FILE id="RtnMV3" name="bigNose1.svg" compile="0" resource="1" file="Resources/bigNose1.svg"/>
       <FILE id="VgvQ0L" name="bigNose2.svg" compile="0" resource="1" file="Resources/bigNose2.svg"/>
       <FILE id="fpEDT4" name="male-head-hair-and-beard.svg" compile="0" resource="1"
