@@ -29,6 +29,7 @@ public:
 
     NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition);
     ~NewModuleGUI();
+
     unsigned int getChainPosition();
     void setChainPosition(unsigned int cp);
 
@@ -43,6 +44,7 @@ public:
     void addModuleToGUI(GUIModule* module);
     void addModuleToDSPmodules(DSPModule* module);
     void newModuleSetup(ModuleType type);
+    //void drawRightCable();
 
 private:
 
@@ -68,5 +70,10 @@ private:
 
     ModuleType moduleType = ModuleType::Uninstantiated;
 
+    // UNUSED only by the 8° module
+    std::unique_ptr<juce::Drawable> rightCable;
+
     GUIModule* createGUIModule(ModuleType type);
+    juce::AffineTransform getTransform();
+    std::unique_ptr<juce::Drawable> getRightCable(unsigned int chainPosition);
 };

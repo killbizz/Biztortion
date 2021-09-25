@@ -154,6 +154,12 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         editor.resized();
     };
 
+    // Audio Cables
+    setPaintingIsUnclipped(true);
+    if (chainPosition != 8) {
+        rightCable = getRightCable(chainPosition);
+        addAndMakeVisible(*rightCable);
+    }
 }
 
 NewModuleGUI::~NewModuleGUI()
@@ -176,6 +182,9 @@ void NewModuleGUI::setChainPosition(unsigned int cp)
 void NewModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
+    /*if (chainPosition != 8) {
+        rightCable->draw(g, 1.f, getTransform());
+    }*/
 }
 
 void NewModuleGUI::resized()
@@ -186,7 +195,7 @@ void NewModuleGUI::resized()
     newModuleBounds = deleteModuleBounds = currentModuleActivatorBounds = bounds;
     newModuleBounds.reduce(20, 40);
     deleteModuleBounds.reduce(30, 44);
-    currentModuleActivatorBounds.reduce(0, 44);
+    currentModuleActivatorBounds.reduce(2, 40);
 
     auto chainPositionLabelArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 4.f));
 
@@ -199,9 +208,24 @@ void NewModuleGUI::resized()
     }
     else {
         deleteModule.setBounds(deleteModuleBounds);
-        deleteModule.setCentreRelative(0.75f, 0.2f);
+        deleteModule.setCentreRelative(0.5f, 0.75f);
         currentModuleActivator.setBounds(currentModuleActivatorBounds);
         currentModuleActivator.setCentreRelative(0.5f, 0.5f);
+    }
+
+    // Audio Cables 
+    // NOT WORKING!
+    if (chainPosition != 8) {
+        rightCable->setTransform(getTransform());
+        /*rightCable->setCentreRelative(JUCE_LIVE_CONSTANT(0.95),
+            JUCE_LIVE_CONSTANT(0.27));*/
+        //rightCable->setCentreRelative(0.95, 0.27);
+        /*auto cableBounds = getContentRenderArea();
+        cableBounds.reduce(JUCE_LIVE_CONSTANT(50),
+            JUCE_LIVE_CONSTANT(100));
+        cableBounds.toNearestInt().setX(cableBounds.getWidth() * JUCE_LIVE_CONSTANT( 0.95));
+        cableBounds.toNearestInt().setY(cableBounds.getHeight() * JUCE_LIVE_CONSTANT( 0.27));*/
+        //rightCable->setBounds(cableBounds.toNearestInt());
     }
 }
 
@@ -294,6 +318,19 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
     editor.resized();
 }
 
+//void NewModuleGUI::drawRightCable()
+//{
+//    // Audio Cables
+//    setPaintingIsUnclipped(true);
+//    if (chainPosition != 8) {
+//        rightCable = getRightCable(chainPosition);
+//        addAndMakeVisible(*rightCable);
+//        rightCable->setTransform(getTransform());
+//        rightCable->setCentreRelative(0.95, 0.27);
+//        repaint();
+//    }
+//}
+
 GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
 {
     GUIModule* newModule = nullptr;
@@ -360,4 +397,29 @@ void NewModuleGUI::addModuleToDSPmodules(DSPModule* module)
         }
         // else continue to iterate to find the right grid position
     }
+}
+
+juce::AffineTransform NewModuleGUI::getTransform()
+{
+    return juce::AffineTransform::scale(0.07, 0.08).translated(40.f, -7.f);
+        //JUCE_LIVE_CONSTANT(10),
+        //JUCE_LIVE_CONSTANT(40)
+    //);
+}
+
+std::unique_ptr<juce::Drawable> NewModuleGUI::getRightCable(unsigned int chainPosition)
+{
+    switch (chainPosition) {
+
+        case 1: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+        case 2: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+        case 3: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+        case 4: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+        case 5: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+        case 6: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+        case 7: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+
+        default: break;
+    }
+    
 }
