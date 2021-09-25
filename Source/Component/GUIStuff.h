@@ -67,12 +67,12 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
             auto halfThickness = lineThickness * 0.5f;
 
             Path outline;
-            outline.addRoundedRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness,
-                cornerSize, cornerSize,
+            outline.addRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness);
+                /*cornerSize, cornerSize,
                 !(flatOnLeft || flatOnTop),
                 !(flatOnRight || flatOnTop),
                 !(flatOnLeft || flatOnBottom),
-                !(flatOnRight || flatOnBottom));
+                !(flatOnRight || flatOnBottom));*/
 
             auto outlineColour = button.findColour(button.getToggleState() ? TextButton::textColourOnId
                 : TextButton::textColourOffId);
