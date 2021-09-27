@@ -38,24 +38,17 @@ public:
 
     std::vector<juce::Component*> getComps() override;
     void setupNewModuleColours(juce::LookAndFeel& laf);
+    void setupNewModuleSelectorColours(juce::LookAndFeel& laf);
     void setupDeleteModuleColours(juce::LookAndFeel& laf);
     void setupCurrentModuleActivatorColours(juce::LookAndFeel& laf);
 
     void addModuleToGUI(GUIModule* module);
     void addModuleToDSPmodules(DSPModule* module);
     void newModuleSetup(ModuleType type);
-    //void drawRightCable();
-
-private:
-
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    BiztortionAudioProcessor& audioProcessor;
-    BiztortionAudioProcessorEditor& editor;
-    unsigned int chainPosition;
-    juce::Label chainPositionLabel;
+    void resetButtonsColors();
 
     // newModule
+    ModuleLookAndFeel newModuleSelectorLookAndFeel;
     juce::ComboBox newModuleSelector;
     ModuleLookAndFeel newModuleLookAndFeel;
     juce::TextButton newModule{ "+" };
@@ -67,6 +60,15 @@ private:
     // currentModuleActivator
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
     juce::TextButton currentModuleActivator;
+
+private:
+
+    // This reference is provided as a quick way for your editor to
+    // access the processor object that created it.
+    BiztortionAudioProcessor& audioProcessor;
+    BiztortionAudioProcessorEditor& editor;
+    unsigned int chainPosition;
+    juce::Label chainPositionLabel;
 
     ModuleType moduleType = ModuleType::Uninstantiated;
 

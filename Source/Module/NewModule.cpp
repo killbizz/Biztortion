@@ -38,16 +38,21 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
     // deleteModule
     addAndMakeVisible(deleteModule);
+    deleteModule.setClickingTogglesState(true);
+    deleteModule.setToggleState(true, juce::dontSendNotification);
 
     setupDeleteModuleColours(deleteModuleLookAndFeel);
     deleteModule.setLookAndFeel(&deleteModuleLookAndFeel);
 
     // currentModuleActivator
     addAndMakeVisible(currentModuleActivator);
+    deleteModule.setClickingTogglesState(true);
+    deleteModule.setToggleState(true, juce::dontSendNotification);
 
     setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
     currentModuleActivator.setLookAndFeel(&currentModuleActivatorLookAndFeel);
 
+    // newModuleSelector
     // 999 id for the default text entry
     newModuleSelector.addItem("Select one module here", 999);
     newModuleSelector.addItem("Oscilloscope", ModuleType::Oscilloscope);
@@ -57,6 +62,11 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     newModuleSelector.addItem("Clipper", ModuleType::Clipper);
 
     newModuleSelector.setSelectedId(999);
+    
+    setupNewModuleSelectorColours(newModuleSelectorLookAndFeel);
+    newModuleSelector.setLookAndFeel(&newModuleSelectorLookAndFeel);
+
+    // lambdas
 
     newModule.onClick = [this] {
         editor.removeChildComponent(&newModuleSelector);
@@ -66,6 +76,9 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         newModuleBounds.reduce(230.f, 175.f);
         newModuleBounds.setCentre(editor.currentGUIModule->getBounds().getCentre());
         newModuleSelector.setBounds(newModuleBounds);
+        if (newModule.getToggleState()) {
+            newModuleSelector.showPopup();
+        }
     };
 
     // TODO : close menu losing the focus
@@ -214,18 +227,8 @@ void NewModuleGUI::resized()
     }
 
     // Audio Cables 
-    // NOT WORKING!
     if (chainPosition != 8) {
         rightCable->setTransform(getTransform());
-        /*rightCable->setCentreRelative(JUCE_LIVE_CONSTANT(0.95),
-            JUCE_LIVE_CONSTANT(0.27));*/
-        //rightCable->setCentreRelative(0.95, 0.27);
-        /*auto cableBounds = getContentRenderArea();
-        cableBounds.reduce(JUCE_LIVE_CONSTANT(50),
-            JUCE_LIVE_CONSTANT(100));
-        cableBounds.toNearestInt().setX(cableBounds.getWidth() * JUCE_LIVE_CONSTANT( 0.95));
-        cableBounds.toNearestInt().setY(cableBounds.getHeight() * JUCE_LIVE_CONSTANT( 0.27));*/
-        //rightCable->setBounds(cableBounds.toNearestInt());
     }
 }
 
@@ -246,10 +249,18 @@ void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
 }
 
+void NewModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
+{
+    laf.setColour(juce::ComboBox::backgroundColourId, juce::Colour((juce::uint8) 205, (juce::uint8) 164, (juce::uint8) 52, 0.7f));
+    laf.setColour(juce::ComboBox::textColourId, juce::Colours::white);
+    laf.setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+    laf.setColour(juce::PopupMenu::backgroundColourId, juce::Colour((juce::uint8)205, (juce::uint8)164, (juce::uint8)52, 0.7f));
+}
+
 void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-    //laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
+    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
+    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::red);
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
@@ -257,8 +268,8 @@ void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 
 void NewModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-    //laf.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff00b5f6));
+    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
+    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::green);
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
@@ -318,18 +329,10 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
     editor.resized();
 }
 
-//void NewModuleGUI::drawRightCable()
-//{
-//    // Audio Cables
-//    setPaintingIsUnclipped(true);
-//    if (chainPosition != 8) {
-//        rightCable = getRightCable(chainPosition);
-//        addAndMakeVisible(*rightCable);
-//        rightCable->setTransform(getTransform());
-//        rightCable->setCentreRelative(0.95, 0.27);
-//        repaint();
-//    }
-//}
+void NewModuleGUI::resetButtonsColors()
+{
+
+}
 
 GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
 {
@@ -370,7 +373,13 @@ GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
 
 void NewModuleGUI::addModuleToGUI(GUIModule* module)
 {
+    for (auto it = editor.newModules.begin(); it < editor.newModules.end(); ++it) {
+        (**it).currentModuleActivator.setToggleState(false, juce::NotificationType::dontSendNotification);
+        (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+    }
     editor.currentGUIModule = std::unique_ptr<GUIModule>(module);
+    this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
+    this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
     editor.addAndMakeVisible(*editor.currentGUIModule);
 }
 
@@ -411,13 +420,13 @@ std::unique_ptr<juce::Drawable> NewModuleGUI::getRightCable(unsigned int chainPo
 {
     switch (chainPosition) {
 
-        case 1: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
-        case 2: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
-        case 3: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
-        case 4: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
-        case 5: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
-        case 6: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
-        case 7: return juce::Drawable::createFromImageData(BinaryData::AudioCableBase_png, BinaryData::AudioCableBase_pngSize);
+        case 1: return juce::Drawable::createFromImageData(BinaryData::AudioCableRosa_png, BinaryData::AudioCableRosa_pngSize);
+        case 2: return juce::Drawable::createFromImageData(BinaryData::AudioCableVerdeAcqua_png, BinaryData::AudioCableVerdeAcqua_pngSize);
+        case 3: return juce::Drawable::createFromImageData(BinaryData::AudioCableGiallo_png, BinaryData::AudioCableGiallo_pngSize);
+        case 4: return juce::Drawable::createFromImageData(BinaryData::AudioCableViola_png, BinaryData::AudioCableViola_pngSize);
+        case 5: return juce::Drawable::createFromImageData(BinaryData::AudioCableArancione_png, BinaryData::AudioCableArancione_pngSize);
+        case 6: return juce::Drawable::createFromImageData(BinaryData::AudioCableBlu_png, BinaryData::AudioCableBlu_pngSize);
+        case 7: return juce::Drawable::createFromImageData(BinaryData::AudioCableRosso_png, BinaryData::AudioCableRosso_pngSize);
 
         default: break;
     }

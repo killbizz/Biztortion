@@ -8,8 +8,26 @@
 
 namespace BinaryData
 {
-    extern const char*   AudioCableBase_png;
-    const int            AudioCableBase_pngSize = 77735;
+    extern const char*   AudioCableArancione_png;
+    const int            AudioCableArancione_pngSize = 79213;
+
+    extern const char*   AudioCableBlu_png;
+    const int            AudioCableBlu_pngSize = 78724;
+
+    extern const char*   AudioCableGiallo_png;
+    const int            AudioCableGiallo_pngSize = 78524;
+
+    extern const char*   AudioCableRosa_png;
+    const int            AudioCableRosa_pngSize = 77735;
+
+    extern const char*   AudioCableRosso_png;
+    const int            AudioCableRosso_pngSize = 73004;
+
+    extern const char*   AudioCableVerdeAcqua_png;
+    const int            AudioCableVerdeAcqua_pngSize = 79242;
+
+    extern const char*   AudioCableViola_png;
+    const int            AudioCableViola_pngSize = 80031;
 
     extern const char*   bigNose1_svg;
     const int            bigNose1_svgSize = 3366;
@@ -21,7 +39,7 @@ namespace BinaryData
     const int            maleheadhairandbeard_svgSize = 2004;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 4;
+    const int namedResourceListSize = 10;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
