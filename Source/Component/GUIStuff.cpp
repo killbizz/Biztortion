@@ -65,7 +65,7 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
         r.setSize(strWidth + 2, rswl->getTextHeight() + 2);
         r.setCentre(bounds.getCentre());
 
-        g.setColour(enabled ? Colours::black.withAlpha(0.6f) : Colours::darkgrey);
+        g.setColour(enabled ? Colours::black.withAlpha(0.45f) : Colours::darkgrey);
         g.fillRect(r);
 
         g.setColour(enabled ? Colours::white : Colours::lightgrey);

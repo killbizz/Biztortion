@@ -34,7 +34,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     outputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor, "Output"));
     addAndMakeVisible(*outputMeter);
 
-    for (auto it = newModules.cbegin(); it < newModules.cend(); ++it)
+    for (auto it = newModules.rbegin(); it < newModules.rend(); ++it)
     {
         addAndMakeVisible(**it);
     }
@@ -42,7 +42,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     editorSetup();
 
     //setSize (1400, 782);
-    setSize(900, 557);
+    setSize(900, 577);
     setResizable(false, false);
     // setResizeLimits(400, 332, 3840, 2160);
 }

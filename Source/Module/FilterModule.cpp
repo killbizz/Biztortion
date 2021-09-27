@@ -246,7 +246,7 @@ void FilterModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
 
-    g.setColour(juce::Colours::grey);
+    g.setColour(juce::Colours::white);
     g.setFont(10);
     g.drawFittedText("LowCut", lowCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
     g.drawFittedText("Peak", peakQualitySlider.getBounds(), juce::Justification::centredBottom, 1);
