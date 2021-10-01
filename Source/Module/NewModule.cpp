@@ -251,10 +251,10 @@ void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
 
 void NewModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::ComboBox::backgroundColourId, juce::Colour((juce::uint8) 205, (juce::uint8) 164, (juce::uint8) 52, 0.7f));
+    laf.setColour(juce::ComboBox::backgroundColourId, juce::Colours::darkgrey.withAlpha(0.75f));
     laf.setColour(juce::ComboBox::textColourId, juce::Colours::white);
     laf.setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
-    laf.setColour(juce::PopupMenu::backgroundColourId, juce::Colour((juce::uint8)205, (juce::uint8)164, (juce::uint8)52, 0.7f));
+    laf.setColour(juce::PopupMenu::backgroundColourId, laf.findColour(juce::ComboBox::backgroundColourId));
 }
 
 void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
