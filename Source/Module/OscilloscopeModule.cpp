@@ -86,6 +86,17 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
     hZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope H Zoom " + std::to_string(chainPosition), hZoomSlider),
     vZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope V Zoom " + std::to_string(chainPosition), vZoomSlider)
 {
+    // title setup
+    title.setText("Oscilloscope", juce::dontSendNotification);
+    title.setFont(24);
+
+    // labels
+
+    hZoomLabel.setText("H Zoom", juce::dontSendNotification);
+    hZoomLabel.setFont(10);
+    vZoomLabel.setText("V Zoom", juce::dontSendNotification);
+    vZoomLabel.setFont(10);
+
     hZoomSlider.labels.add({ 0.f, "0" });
     hZoomSlider.labels.add({ 1.f, "1" });
     vZoomSlider.labels.add({ 0.f, "0" });
@@ -110,6 +121,9 @@ std::vector<juce::Component*> OscilloscopeModuleGUI::getComps()
 {
     return {
         oscilloscope,
+        &title,
+        &hZoomLabel,
+        &vZoomLabel,
         &hZoomSlider,
         &vZoomSlider
     };
@@ -124,10 +138,24 @@ void OscilloscopeModuleGUI::resized()
 {
     auto oscilloscopeArea = getContentRenderArea();
 
-    auto graphArea = oscilloscopeArea.removeFromLeft(oscilloscopeArea.getWidth() * (1.f / 2.f));
+    auto titleAndBypassArea = oscilloscopeArea.removeFromTop(30);
+
+    auto graphArea = oscilloscopeArea.removeFromTop(oscilloscopeArea.getHeight() * (2.f / 3.f));
     graphArea.reduce(10, 10);
+
     auto hZoomArea = oscilloscopeArea.removeFromLeft(oscilloscopeArea.getWidth() * (1.f / 2.f));
+    auto hZoomLabelArea = hZoomArea.removeFromTop(12);
+
     auto vZoomArea = oscilloscopeArea;
+    auto vZoomLabelArea = vZoomArea.removeFromTop(12);
+
+    title.setBounds(titleAndBypassArea);
+    title.setJustificationType(juce::Justification::centred);
+
+    hZoomLabel.setBounds(hZoomLabelArea);
+    hZoomLabel.setJustificationType(juce::Justification::centred);
+    vZoomLabel.setBounds(vZoomLabelArea);
+    vZoomLabel.setJustificationType(juce::Justification::centred);
 
     oscilloscope->setBounds(graphArea);
     hZoomSlider.setBounds(hZoomArea);

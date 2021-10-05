@@ -70,6 +70,10 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
+    juce::Label title;
+
+    juce::Label hZoomLabel,
+        vZoomLabel;
 
     RotarySliderWithLabels hZoomSlider, vZoomSlider;
     Attachment hZoomSliderAttachment, vZoomSliderAttachment;

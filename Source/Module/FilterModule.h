@@ -147,6 +147,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
+    juce::Label title;
 
     // filterModule
     RotarySliderWithLabels peakFreqSlider,

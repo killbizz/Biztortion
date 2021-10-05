@@ -220,6 +220,11 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
     lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope " + std::to_string(chainPosition), lowCutSlopeSlider),
     highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope " + std::to_string(chainPosition), highCutSlopeSlider)
 {
+    // title setup
+    title.setText("Filter", juce::dontSendNotification);
+    title.setFont(24);
+
+    // labels
 
     peakFreqSlider.labels.add({ 0.f, "20Hz" });
     peakFreqSlider.labels.add({ 1.f, "20kHz" });
@@ -255,12 +260,17 @@ void FilterModuleGUI::paint(juce::Graphics& g)
 
 void FilterModuleGUI::resized()
 {
-    auto bounds = getContentRenderArea();
+    auto filtersArea = getContentRenderArea();
 
-    auto filtersArea = bounds;
+    auto titleAndBypassArea = filtersArea.removeFromTop(30);
+
     auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
+    responseCurveArea.reduce(10, 10);
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
+
+    title.setBounds(titleAndBypassArea);
+    title.setJustificationType(juce::Justification::centred);
 
     filterFftAnalyzerComponent.setBounds(responseCurveArea);
     responseCurveComponent.setBounds(responseCurveArea);
@@ -276,6 +286,7 @@ void FilterModuleGUI::resized()
 std::vector<juce::Component*> FilterModuleGUI::getComps()
 {
     return {
+        &title,
         // filter
         &peakFreqSlider,
         &peakGainSlider,

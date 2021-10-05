@@ -212,6 +212,10 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
     bitcrusherRateReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Rate Redux " + std::to_string(chainPosition), bitcrusherRateReduxSlider),
     bitcrusherBitReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Bit Redux " + std::to_string(chainPosition), bitcrusherBitReduxSlider)
 {
+    // title setup
+    title.setText("Bitcrusher", juce::dontSendNotification);
+    title.setFont(24);
+
     // labels
     bitcrusherMixLabel.setText("Mix", juce::dontSendNotification);
     bitcrusherMixLabel.setFont(10);
@@ -246,6 +250,8 @@ void BitcrusherModuleGUI::resized()
 {
     auto bitcrusherArea = getContentRenderArea();
 
+    auto titleAndBypassArea = bitcrusherArea.removeFromTop(30);
+
     auto bitcrusherMixDitherControlsArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
     auto MixDitherControlsLabelsArea = bitcrusherMixDitherControlsArea.removeFromTop(12);
     auto mixLabelArea = MixDitherControlsLabelsArea.removeFromLeft(MixDitherControlsLabelsArea.getWidth() * (1.f / 2.f));
@@ -255,6 +261,9 @@ void BitcrusherModuleGUI::resized()
     auto RateBitControlsLabelsArea = bitcrusherRateBitControlsArea.removeFromTop(12);
     auto rateLabelArea = RateBitControlsLabelsArea.removeFromLeft(RateBitControlsLabelsArea.getWidth() * (1.f / 2.f));
     auto bitLabelArea = RateBitControlsLabelsArea;
+
+    title.setBounds(titleAndBypassArea);
+    title.setJustificationType(juce::Justification::centred);
 
     bitcrusherMixSlider.setBounds(bitcrusherMixDitherControlsArea.removeFromLeft(bitcrusherMixDitherControlsArea.getWidth() * (1.f / 2.f)));
     bitcrusherMixLabel.setBounds(mixLabelArea);
@@ -276,6 +285,7 @@ void BitcrusherModuleGUI::resized()
 std::vector<juce::Component*> BitcrusherModuleGUI::getComps()
 {
     return {
+        &title,
         &bitcrusherMixSlider,
         &bitcrusherDitherSlider,
         &bitcrusherRateReduxSlider,

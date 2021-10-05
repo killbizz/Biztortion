@@ -170,6 +170,10 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned i
     sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp " + std::to_string(chainPosition), sineAmpSlider),
     sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq " + std::to_string(chainPosition), sineFreqSlider)
 {
+    // title setup
+    title.setText("Waveshaper", juce::dontSendNotification);
+    title.setFont(24);
+
     // labels
     waveshaperDriveLabel.setText("Drive", juce::dontSendNotification);
     waveshaperDriveLabel.setFont(10);
@@ -212,6 +216,8 @@ void WaveshaperModuleGUI::resized()
 {
     auto waveshaperArea = getContentRenderArea();
 
+    auto titleAndBypassArea = waveshaperArea.removeFromTop(30);
+
     auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 2.f));
     waveshaperGraphArea.reduce(10, 10);
 
@@ -229,6 +235,10 @@ void WaveshaperModuleGUI::resized()
     auto sineControlsLabelsArea = waveshaperSineControlsArea.removeFromTop(12);
     auto sineAmpLabelArea = sineControlsLabelsArea.removeFromLeft(sineControlsLabelsArea.getWidth() * (1.f / 2.f));
     auto sineFreqLabelArea = sineControlsLabelsArea;
+
+    
+    title.setBounds(titleAndBypassArea);
+    title.setJustificationType(juce::Justification::centred);
 
     transferFunctionGraph.setBounds(waveshaperGraphArea);
 
@@ -260,6 +270,7 @@ void WaveshaperModuleGUI::resized()
 std::vector<juce::Component*> WaveshaperModuleGUI::getComps()
 {
     return {
+        &title,
         &transferFunctionGraph,
         &waveshaperDriveSlider,
         &waveshaperMixSlider,
