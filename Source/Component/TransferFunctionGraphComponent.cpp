@@ -95,7 +95,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	for (int i = 1; i < resolution; i++)
 		t.lineTo(x[i], y[i]);
 
-	t.applyTransform(juce::AffineTransform::scale(40.0f, 90.0f));
+	t.applyTransform(juce::AffineTransform::scale(60.0f, 138.0f));
 	t.applyTransform(juce::AffineTransform::translation(width / 2.f, height / 2.f));
 	t.applyTransform(juce::AffineTransform::verticalFlip(height));
 
