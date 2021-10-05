@@ -19,7 +19,8 @@ void GUIModule::drawContainer(juce::Graphics& g)
     g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
     // content margin
     g.setColour(juce::Colours::black);
-    g.drawRoundedRectangle(getContentRenderArea().toFloat(), 4.f, 1.f);
+    auto renderArea = getContentRenderArea();
+    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
 }
 
 juce::Rectangle<int> GUIModule::getContainerArea()
