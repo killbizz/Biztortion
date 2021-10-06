@@ -86,6 +86,8 @@ void BitcrusherModuleDSP::updateDSPState(double sampleRate)
 {
     auto settings = getSettings(apvts, getChainPosition());
 
+    bypassed = settings.bypassed;
+
     rateRedux.setTargetValue(settings.rateRedux);
     bitRedux.setTargetValue(settings.bitRedux);
     dither.setTargetValue(settings.dither * 0.01f);
@@ -99,13 +101,15 @@ void BitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     noiseBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
-    isActive = true;
     updateDSPState(sampleRate);
 }
 
 void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
 {
-    if (isActive) {
+
+    updateDSPState(sampleRate);
+
+    if (!bypassed) {
 
         // SAFETY CHECK :::: since some hosts will change buffer sizes without calling prepToPlay (ex: Bitwig)
         int numSamples = buffer.getNumSamples();
@@ -114,8 +118,6 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
             wetBuffer.setSize(2, numSamples, false, true, true); // clears
             noiseBuffer.setSize(2, numSamples, false, true, true); // clears
         }
-
-        updateDSPState(sampleRate);
 
         // PROCESSING
         
@@ -180,6 +182,8 @@ void BitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Rate Redux " + std::to_string(i), "Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bit Redux " + std::to_string(i), "Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Dither " + std::to_string(i), "Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
+        // bypass button
+        layout.add(std::make_unique<AudioParameterBool>("Bitcrusher Bypassed " + std::to_string(i), "Bitcrusher Bypassed " + std::to_string(i), false, "Bitcrusher " + std::to_string(i)));
     }
 }
 
@@ -191,6 +195,7 @@ BitcrusherSettings BitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTre
     settings.rateRedux = apvts.getRawParameterValue("Bitcrusher Rate Redux " + std::to_string(chainPosition))->load();
     settings.bitRedux = apvts.getRawParameterValue("Bitcrusher Bit Redux " + std::to_string(chainPosition))->load();
     settings.dither = apvts.getRawParameterValue("Bitcrusher Dither " + std::to_string(chainPosition))->load();
+    settings.bypassed = apvts.getRawParameterValue("Bitcrusher Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
 
     return settings;
 }
@@ -210,7 +215,8 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
     bitcrusherMixSliderAttachment(audioProcessor.apvts, "Bitcrusher Mix " + std::to_string(chainPosition), bitcrusherMixSlider),
     bitcrusherDitherSliderAttachment(audioProcessor.apvts, "Bitcrusher Dither " + std::to_string(chainPosition), bitcrusherDitherSlider),
     bitcrusherRateReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Rate Redux " + std::to_string(chainPosition), bitcrusherRateReduxSlider),
-    bitcrusherBitReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Bit Redux " + std::to_string(chainPosition), bitcrusherBitReduxSlider)
+    bitcrusherBitReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Bit Redux " + std::to_string(chainPosition), bitcrusherBitReduxSlider),
+    bypassButtonAttachment(audioProcessor.apvts, "Bitcrusher Bypassed " + std::to_string(chainPosition), bypassButton)
 {
     // title setup
     title.setText("Bitcrusher", juce::dontSendNotification);
@@ -221,9 +227,9 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
     bitcrusherMixLabel.setFont(10);
     bitcrusherDitherLabel.setText("Dither", juce::dontSendNotification);
     bitcrusherDitherLabel.setFont(10);
-    bitcrusherRateReduxLabel.setText("Rate Redux", juce::dontSendNotification);
+    bitcrusherRateReduxLabel.setText("SampleRate Redux", juce::dontSendNotification);
     bitcrusherRateReduxLabel.setFont(10);
-    bitcrusherBitReduxLabel.setText("Bit Redux", juce::dontSendNotification);
+    bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
     bitcrusherBitReduxLabel.setFont(10);
 
     bitcrusherMixSlider.labels.add({ 0.f, "0%" });
@@ -235,10 +241,31 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
     bitcrusherBitReduxSlider.labels.add({ 0.f, "1" });
     bitcrusherBitReduxSlider.labels.add({ 1.f, "16" });
 
+    bypassButton.setLookAndFeel(&lnf);
+
+    auto safePtr = juce::Component::SafePointer<BitcrusherModuleGUI>(this);
+    bypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto bypassed = comp->bypassButton.getToggleState();
+
+            comp->bitcrusherMixSlider.setEnabled(!bypassed);
+            comp->bitcrusherDitherSlider.setEnabled(!bypassed);
+            comp->bitcrusherRateReduxSlider.setEnabled(!bypassed);
+            comp->bitcrusherBitReduxSlider.setEnabled(!bypassed);
+        }
+    };
+
     for (auto* comp : getComps())
     {
         addAndMakeVisible(comp);
     }
+}
+
+BitcrusherModuleGUI::~BitcrusherModuleGUI()
+{
+    bypassButton.setLookAndFeel(nullptr);
 }
 
 void BitcrusherModuleGUI::paint(juce::Graphics& g)
@@ -249,6 +276,16 @@ void BitcrusherModuleGUI::paint(juce::Graphics& g)
 void BitcrusherModuleGUI::resized()
 {
     auto bitcrusherArea = getContentRenderArea();
+
+    // bypass
+    auto temp = bitcrusherArea;
+    auto bypassButtonArea = temp.removeFromTop(25);
+
+    bypassButtonArea.setWidth(35.f);
+    bypassButtonArea.setX(145.f);
+    bypassButtonArea.setY(20.f);
+
+    bypassButton.setBounds(bypassButtonArea);
 
     auto titleAndBypassArea = bitcrusherArea.removeFromTop(30);
 
@@ -294,6 +331,8 @@ std::vector<juce::Component*> BitcrusherModuleGUI::getComps()
         &bitcrusherMixLabel,
         &bitcrusherDitherLabel,
         &bitcrusherRateReduxLabel,
-        &bitcrusherBitReduxLabel
+        &bitcrusherBitReduxLabel,
+        // bypass
+        &bypassButton
     };
 }

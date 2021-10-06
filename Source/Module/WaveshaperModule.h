@@ -110,6 +110,7 @@ private:
 class WaveshaperModuleGUI : public GUIModule {
 public:
     WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
+    ~WaveshaperModuleGUI();
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -147,5 +148,9 @@ private:
         tanhSlopeSliderAttachment,
         sineAmpSliderAttachment,
         sineFreqSliderAttachment;
+
+    PowerButton bypassButton;
+    ButtonAttachment bypassButtonAttachment;
+    ButtonsLookAndFeel lnf;
 
 };

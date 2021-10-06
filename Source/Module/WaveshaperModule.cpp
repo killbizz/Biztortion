@@ -37,6 +37,9 @@ void WaveshaperModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 
 void WaveshaperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
 {
+
+    updateDSPState(sampleRate);
+
     if (!bypassed) {
 
         // SAFETY CHECK :::: since some hosts will change buffer sizes without calling prepToPlay (ex: Bitwig)
@@ -45,8 +48,6 @@ void WaveshaperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         {
             wetBuffer.setSize(2, numSamples, false, true, true); // clears
         }
-
-        updateDSPState(sampleRate);
         
         // Wet Buffer feeding
         for (auto channel = 0; channel < 2; channel++)
@@ -173,7 +174,8 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned i
     tanhAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Amp " + std::to_string(chainPosition), tanhAmpSlider),
     tanhSlopeSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Slope " + std::to_string(chainPosition), tanhSlopeSlider),
     sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp " + std::to_string(chainPosition), sineAmpSlider),
-    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq " + std::to_string(chainPosition), sineFreqSlider)
+    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq " + std::to_string(chainPosition), sineFreqSlider),
+    bypassButtonAttachment(audioProcessor.apvts, "Waveshaper Bypassed " + std::to_string(chainPosition), bypassButton)
 {
     // title setup
     title.setText("Waveshaper", juce::dontSendNotification);
@@ -206,10 +208,33 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned i
     sineFreqSlider.labels.add({ 0.f, "0" });
     sineFreqSlider.labels.add({ 1.f, "100" });
 
+    bypassButton.setLookAndFeel(&lnf);
+
+    auto safePtr = juce::Component::SafePointer<WaveshaperModuleGUI>(this);
+    bypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto bypassed = comp->bypassButton.getToggleState();
+
+            comp->waveshaperDriveSlider.setEnabled(!bypassed);
+            comp->waveshaperMixSlider.setEnabled(!bypassed);
+            comp->tanhAmpSlider.setEnabled(!bypassed);
+            comp->tanhSlopeSlider.setEnabled(!bypassed);
+            comp->sineAmpSlider.setEnabled(!bypassed);
+            comp->sineFreqSlider.setEnabled(!bypassed);
+        }
+    };
+
     for (auto* comp : getComps())
     {
         addAndMakeVisible(comp);
     }
+}
+
+WaveshaperModuleGUI::~WaveshaperModuleGUI()
+{
+    bypassButton.setLookAndFeel(nullptr);
 }
 
 void WaveshaperModuleGUI::paint(juce::Graphics& g)
@@ -220,6 +245,16 @@ void WaveshaperModuleGUI::paint(juce::Graphics& g)
 void WaveshaperModuleGUI::resized()
 {
     auto waveshaperArea = getContentRenderArea();
+
+    // bypass
+    auto temp = waveshaperArea;
+    auto bypassButtonArea = temp.removeFromTop(25);
+
+    bypassButtonArea.setWidth(35.f);
+    bypassButtonArea.setX(145.f);
+    bypassButtonArea.setY(20.f);
+
+    bypassButton.setBounds(bypassButtonArea);
 
     auto titleAndBypassArea = waveshaperArea.removeFromTop(30);
 
@@ -289,6 +324,8 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getComps()
         &tanhAmpLabel,
         &tanhSlopeLabel,
         &sineAmpLabel,
-        &sineFreqLabel
+        &sineFreqLabel,
+        // bypass
+        &bypassButton
     };
 }

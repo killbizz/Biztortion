@@ -24,6 +24,7 @@ class BiztortionAudioProcessor;
 
 struct BitcrusherSettings {
     float mix{ 0 }, rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
+    bool bypassed{ false };
 };
 
 
@@ -43,7 +44,7 @@ public:
 
 private:
 
-    bool isActive = false;
+    bool bypassed = false;
     juce::AudioBuffer<float> wetBuffer, noiseBuffer;
     juce::LinearSmoothedValue<float> dryGain, wetGain, dither;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
@@ -59,6 +60,7 @@ private:
 class BitcrusherModuleGUI : public GUIModule {
 public:
     BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
+    ~BitcrusherModuleGUI();
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -69,6 +71,7 @@ private:
 
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
+    using ButtonAttachment = APVTS::ButtonAttachment;
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -87,5 +90,9 @@ private:
         bitcrusherDitherSliderAttachment,
         bitcrusherRateReduxSliderAttachment,
         bitcrusherBitReduxSliderAttachment;
+
+    PowerButton bypassButton;
+    ButtonAttachment bypassButtonAttachment;
+    ButtonsLookAndFeel lnf;
 
 };
