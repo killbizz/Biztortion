@@ -25,6 +25,7 @@ class BiztortionAudioProcessor;
 
 struct WaveshaperSettings {
     float mix{ 0 }, drive{ 0 }, tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
+    bool bypassed{ false };
 };
 
 // TODO : implementing oversampling
@@ -87,7 +88,7 @@ public:
 
 private:
 
-    bool isActive = false;
+    bool bypassed = false;
     juce::AudioBuffer<float> wetBuffer;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> tanhAmp, tanhSlope, sineAmp, sineFreq;
@@ -119,13 +120,13 @@ private:
 
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
+    using ButtonAttachment = APVTS::ButtonAttachment;
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
     juce::Label title;
 
-    // waveshaperModule
     TransferFunctionGraphComponent transferFunctionGraph;
     // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
     juce::Label waveshaperDriveLabel,

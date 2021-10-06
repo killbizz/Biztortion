@@ -30,7 +30,6 @@ void WaveshaperModuleDSP::setModuleType()
 void WaveshaperModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
-    isActive = true;
     updateDSPState(sampleRate);
     /*oversampler.initProcessing(samplesPerBlock);
     oversampler.reset();*/
@@ -38,7 +37,7 @@ void WaveshaperModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 
 void WaveshaperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
 {
-    if (isActive) {
+    if (!bypassed) {
 
         // SAFETY CHECK :::: since some hosts will change buffer sizes without calling prepToPlay (ex: Bitwig)
         int numSamples = buffer.getNumSamples();
@@ -116,6 +115,8 @@ void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope " + std::to_string(i), "Waveshaper Tanh Slope " + std::to_string(i), NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp " + std::to_string(i), "Waveshaper Sin Amp " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq " + std::to_string(i), "Waveshaper Sin Freq " + std::to_string(i), NormalisableRange<float>(0.5f, 100.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
+        // bypass button
+        layout.add(std::make_unique<AudioParameterBool>("Waveshaper Bypassed " + std::to_string(i), "Waveshaper Bypassed " + std::to_string(i), false, "Waveshaper " + std::to_string(i)));
     }
 }
 
@@ -129,6 +130,7 @@ WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTre
     settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope " + std::to_string(chainPosition))->load();
     settings.sinAmp = apvts.getRawParameterValue("Waveshaper Sine Amp " + std::to_string(chainPosition))->load();
     settings.sinFreq = apvts.getRawParameterValue("Waveshaper Sine Freq " + std::to_string(chainPosition))->load();
+    settings.bypassed = apvts.getRawParameterValue("Waveshaper Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
 
     return settings;
 }
@@ -136,6 +138,9 @@ WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTre
 void WaveshaperModuleDSP::updateDSPState(double)
 {
     auto settings = getSettings(apvts, getChainPosition());
+
+    bypassed = settings.bypassed;
+
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
 
     tanhAmp.setTargetValue(settings.tanhAmp * 0.01f);
