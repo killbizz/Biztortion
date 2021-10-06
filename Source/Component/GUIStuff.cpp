@@ -73,58 +73,73 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
     }
 }
 
-//void SliderLookAndFeel::drawToggleButton(juce::Graphics& g,
-//    juce::ToggleButton& toggleButton,
-//    bool shouldDrawButtonAsHighlighted,
-//    bool shouldDrawButtonAsDown)
-//{
-//    using namespace juce;
-//
-//    if (auto* pb = dynamic_cast<PowerButton*>(&toggleButton))
-//    {
-//        Path powerButton;
-//
-//        auto bounds = toggleButton.getLocalBounds();
-//
-//        auto size = jmin(bounds.getWidth(), bounds.getHeight()) - 6;
-//        auto r = bounds.withSizeKeepingCentre(size, size).toFloat();
-//
-//        float ang = 30.f; //30.f;
-//
-//        size -= 6;
-//
-//        powerButton.addCentredArc(r.getCentreX(),
-//            r.getCentreY(),
-//            size * 0.5,
-//            size * 0.5,
-//            0.f,
-//            degreesToRadians(ang),
-//            degreesToRadians(360.f - ang),
-//            true);
-//
-//        powerButton.startNewSubPath(r.getCentreX(), r.getY());
-//        powerButton.lineTo(r.getCentre());
-//
-//        PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
-//
-//        auto color = toggleButton.getToggleState() ? Colours::dimgrey : Colour(0u, 172u, 1u);
-//
-//        g.setColour(color);
-//        g.strokePath(powerButton, pst);
-//        g.drawEllipse(r, 2);
-//    }
-//    else if (auto* analyzerButton = dynamic_cast<AnalyzerButton*>(&toggleButton))
-//    {
-//        auto color = !toggleButton.getToggleState() ? Colours::dimgrey : Colour(0u, 172u, 1u);
-//
-//        g.setColour(color);
-//
-//        auto bounds = toggleButton.getLocalBounds();
-//        g.drawRect(bounds);
-//
-//        g.strokePath(analyzerButton->randomPath, PathStrokeType(1.f));
-//    }
-//}
+void ButtonsLookAndFeel::drawToggleButton(juce::Graphics& g,
+    juce::ToggleButton& toggleButton,
+    bool shouldDrawButtonAsHighlighted,
+    bool shouldDrawButtonAsDown)
+{
+    using namespace juce;
+
+    if (auto* pb = dynamic_cast<PowerButton*>(&toggleButton))
+    {
+        Path powerButton;
+
+        auto bounds = toggleButton.getLocalBounds();
+
+        auto size = jmin(bounds.getWidth(), bounds.getHeight()) - 6;
+        auto r = bounds.withSizeKeepingCentre(size, size).toFloat();
+
+        float ang = 30.f;
+
+        size -= 6;
+
+        powerButton.addCentredArc(r.getCentreX(),
+            r.getCentreY(),
+            size * 0.5,
+            size * 0.5,
+            0.f,
+            degreesToRadians(ang),
+            degreesToRadians(360.f - ang),
+            true);
+
+        powerButton.startNewSubPath(r.getCentreX(), r.getY());
+        powerButton.lineTo(r.getCentre());
+
+        PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
+        // Colour(0u, 172u, 1u)
+        auto color = toggleButton.getToggleState() ? Colours::dimgrey : Colours::lightgreen;
+
+        g.setColour(color);
+        g.strokePath(powerButton, pst);
+        g.drawEllipse(r, 2);
+    }
+    else if (auto* analyzerButton = dynamic_cast<AnalyzerButton*>(&toggleButton))
+    {
+        // Colour(0u, 172u, 1u)
+        auto color = !toggleButton.getToggleState() ? Colours::dimgrey : Colours::lightgreen;
+
+        g.setColour(color);
+
+        auto bounds = toggleButton.getLocalBounds();
+        g.drawRect(bounds);
+
+        g.strokePath(analyzerButton->randomPath, PathStrokeType(1.f));
+    }
+}
+
+RotarySliderWithLabels::RotarySliderWithLabels(juce::RangedAudioParameter& rap, const juce::String& unitSuffix) :
+    juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+        juce::Slider::TextEntryBoxPosition::NoTextBox),
+    param(&rap),
+    suffix(unitSuffix)
+{
+    setLookAndFeel(&lnf);
+}
+
+RotarySliderWithLabels::~RotarySliderWithLabels()
+{
+    setLookAndFeel(nullptr);
+}
 
 void RotarySliderWithLabels::paint(juce::Graphics& g)
 {
@@ -237,4 +252,23 @@ juce::String RotarySliderWithLabels::getDisplayString() const
     }
 
     return str;
+}
+
+void AnalyzerButton::resized()
+{
+    auto bounds = getLocalBounds();
+    auto insetRect = bounds.reduced(4);
+
+    randomPath.clear();
+
+    juce::Random r;
+
+    randomPath.startNewSubPath(insetRect.getX(),
+        insetRect.getY() + insetRect.getHeight() * r.nextFloat());
+
+    for (auto x = insetRect.getX() + 1; x < insetRect.getRight(); x += 2)
+    {
+        randomPath.lineTo(x,
+            insetRect.getY() + insetRect.getHeight() * r.nextFloat());
+    }
 }

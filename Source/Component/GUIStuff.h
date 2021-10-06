@@ -266,11 +266,14 @@ struct SliderLookAndFeel : juce::LookAndFeel_V4
         float rotaryStartAngle,
         float rotaryEndAngle,
         juce::Slider&) override;
+};
 
-    /*void drawToggleButton(juce::Graphics& g,
+struct ButtonsLookAndFeel : juce::LookAndFeel_V4
+{
+    void drawToggleButton(juce::Graphics& g,
         juce::ToggleButton& toggleButton,
         bool shouldDrawButtonAsHighlighted,
-        bool shouldDrawButtonAsDown) override;*/
+        bool shouldDrawButtonAsDown) override;
 };
 
 struct LabelWithPosition
@@ -281,19 +284,8 @@ struct LabelWithPosition
 
 struct RotarySliderWithLabels : juce::Slider
 {
-    RotarySliderWithLabels(juce::RangedAudioParameter& rap, const juce::String& unitSuffix) :
-        juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
-            juce::Slider::TextEntryBoxPosition::NoTextBox),
-        param(&rap),
-        suffix(unitSuffix)
-    {
-        setLookAndFeel(&lnf);
-    }
-
-    ~RotarySliderWithLabels()
-    {
-        setLookAndFeel(nullptr);
-    }
+    RotarySliderWithLabels(juce::RangedAudioParameter& rap, const juce::String& unitSuffix);
+    ~RotarySliderWithLabels();
 
     juce::Array<LabelWithPosition> labels;
 
@@ -306,4 +298,13 @@ private:
     SliderLookAndFeel lnf;
     juce::RangedAudioParameter* param;
     juce::String suffix;
+};
+
+struct PowerButton : juce::ToggleButton { };
+
+struct AnalyzerButton : juce::ToggleButton
+{
+    void resized() override;
+
+    juce::Path randomPath;
 };
