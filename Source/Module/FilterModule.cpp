@@ -42,6 +42,9 @@ FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeSt
     settings.peakQuality = apvts.getRawParameterValue("Peak Quality " + std::to_string(chainPosition))->load();
     settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope " + std::to_string(chainPosition))->load();
     settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope " + std::to_string(chainPosition))->load();
+    // bypass
+    settings.bypassed = apvts.getRawParameterValue("Filter Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
+    settings.analyzerBypassed = apvts.getRawParameterValue("Filter Analyzer Enabled " + std::to_string(chainPosition))->load() > 0.5f;
 
     return settings;
 }
@@ -122,6 +125,9 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
         layout.add(std::move(lowCutGroup));
         layout.add(std::move(highCutGroup));
         layout.add(std::move(peakGroup));
+
+        layout.add(std::make_unique<AudioParameterBool>("Filter Bypassed " + std::to_string(i), "Filter Bypassed " + std::to_string(i), false, "Filter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("Filter Analyzer Enabled " + std::to_string(i), "Filter Analyzer Enabled " + std::to_string(i), true, "Filter " + std::to_string(i)));
     }
 
 }
@@ -138,6 +144,8 @@ void FilterModuleDSP::setModuleType()
 
 void FilterModuleDSP::updateDSPState(double sampleRate) {
     auto settings = getSettings(apvts, getChainPosition());
+
+    bypassed = settings.bypassed;
     updateLowCutFilter(settings, sampleRate);
     updatePeakFilter(settings, sampleRate);
     updateHighCutFilter(settings, sampleRate);
@@ -148,6 +156,9 @@ void FilterModuleDSP::updatePeakFilter(const FilterChainSettings& chainSettings,
     // JUCE allocates coefficients on the HEAP
     updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+
+    leftChain.setBypassed<ChainPositions::Peak>(chainSettings.bypassed);
+    rightChain.setBypassed<ChainPositions::Peak>(chainSettings.bypassed);
 }
 
 void FilterModuleDSP::updateLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
@@ -156,6 +167,9 @@ void FilterModuleDSP::updateLowCutFilter(const FilterChainSettings& chainSetting
     updateCutFilter(leftLowCut, lowCutCoefficients, static_cast<FilterSlope>(chainSettings.lowCutSlope));
     auto& rightLowCut = rightChain.get<ChainPositions::LowCut>();
     updateCutFilter(rightLowCut, lowCutCoefficients, static_cast<FilterSlope>(chainSettings.lowCutSlope));
+
+    leftChain.setBypassed<ChainPositions::LowCut>(chainSettings.bypassed);
+    rightChain.setBypassed<ChainPositions::LowCut>(chainSettings.bypassed);
 }
 
 void FilterModuleDSP::updateHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
@@ -164,6 +178,9 @@ void FilterModuleDSP::updateHighCutFilter(const FilterChainSettings& chainSettin
     updateCutFilter(leftHighCut, highCutCoefficients, static_cast<FilterSlope>(chainSettings.highCutSlope));
     auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
     updateCutFilter(rightHighCut, highCutCoefficients, static_cast<FilterSlope>(chainSettings.highCutSlope));
+
+    leftChain.setBypassed<ChainPositions::HighCut>(chainSettings.bypassed);
+    rightChain.setBypassed<ChainPositions::HighCut>(chainSettings.bypassed);
 }
 
 void FilterModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
@@ -218,7 +235,9 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
     lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq " + std::to_string(chainPosition), lowCutFreqSlider),
     highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq " + std::to_string(chainPosition), highCutFreqSlider),
     lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope " + std::to_string(chainPosition), lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope " + std::to_string(chainPosition), highCutSlopeSlider)
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope " + std::to_string(chainPosition), highCutSlopeSlider),
+    bypassButtonAttachment(audioProcessor.apvts, "Filter Bypassed " + std::to_string(chainPosition), bypassButton),
+    analyzerButtonAttachment(audioProcessor.apvts, "Filter Analyzer Enabled " + std::to_string(chainPosition), analyzerButton)
 {
     // title setup
     title.setText("Filter", juce::dontSendNotification);
@@ -241,10 +260,47 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
     highCutSlopeSlider.labels.add({ 0.0f, "12" });
     highCutSlopeSlider.labels.add({ 1.f, "48" });
 
+    // buttons
+
+    bypassButton.setLookAndFeel(&lnf);
+    analyzerButton.setLookAndFeel(&lnf);
+
+    auto safePtr = juce::Component::SafePointer<FilterModuleGUI>(this);
+    bypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto bypassed = comp->bypassButton.getToggleState();
+
+            comp->peakFreqSlider.setEnabled(!bypassed);
+            comp->peakGainSlider.setEnabled(!bypassed);
+            comp->peakQualitySlider.setEnabled(!bypassed);
+            comp->lowCutFreqSlider.setEnabled(!bypassed);
+            comp->lowCutSlopeSlider.setEnabled(!bypassed);
+            comp->highCutFreqSlider.setEnabled(!bypassed);
+            comp->highCutSlopeSlider.setEnabled(!bypassed);
+        }
+    };
+
+    analyzerButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto enable = comp->analyzerButton.getToggleState();
+            comp->filterFftAnalyzerComponent.toggleFFTanaysis(enable);
+        }
+    };
+
     for (auto* comp : getComps())
     {
         addAndMakeVisible(comp);
     }
+}
+
+FilterModuleGUI::~FilterModuleGUI()
+{
+    bypassButton.setLookAndFeel(nullptr);
+    analyzerButton.setLookAndFeel(nullptr);
 }
 
 void FilterModuleGUI::paint(juce::Graphics& g)
@@ -261,6 +317,26 @@ void FilterModuleGUI::paint(juce::Graphics& g)
 void FilterModuleGUI::resized()
 {
     auto filtersArea = getContentRenderArea();
+
+    // bypass
+    auto temp = filtersArea;
+    auto bypassButtonArea = temp.removeFromTop(25);
+
+    bypassButtonArea.setWidth(35.f);
+    bypassButtonArea.setX(145.f);
+    bypassButtonArea.setY(20.f);
+
+    bypassButton.setBounds(bypassButtonArea);
+
+    // analyzer
+    auto temp2 = filtersArea;
+    auto analyzerButtonArea = temp2.removeFromTop(25);
+
+    analyzerButtonArea.setWidth(50.f);
+    analyzerButtonArea.setX(450.f);
+    analyzerButtonArea.setY(22.f);
+
+    analyzerButton.setBounds(analyzerButtonArea);
 
     auto titleAndBypassArea = filtersArea.removeFromTop(30);
 
@@ -298,5 +374,8 @@ std::vector<juce::Component*> FilterModuleGUI::getComps()
         // responseCurve
         &filterFftAnalyzerComponent,
         &responseCurveComponent,
+        // bypass
+        &bypassButton,
+        &analyzerButton
     };
 }

@@ -35,6 +35,7 @@ struct FilterChainSettings {
     float peakFreq{ 0 }, peakGainInDecibels{ 0 }, peakQuality{ 1.f };
     float lowCutFreq{ 0 }, highCutFreq{ 0 };
     int lowCutSlope{ FilterSlope::Slope_12 }, highCutSlope{ FilterSlope::Slope_12 };
+    bool bypassed{ false }, analyzerBypassed{ false };
 };
 
 using Filter = juce::dsp::IIR::Filter<float>;
@@ -122,6 +123,7 @@ public:
 
 private:
     MonoChain leftChain, rightChain;
+    bool bypassed = false;
 };
 
 //==============================================================================
@@ -133,6 +135,7 @@ private:
 class FilterModuleGUI : public GUIModule {
 public:
     FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
+    ~FilterModuleGUI();
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -143,13 +146,13 @@ private:
 
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
+    using ButtonAttachment = APVTS::ButtonAttachment;
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
     juce::Label title;
 
-    // filterModule
     RotarySliderWithLabels peakFreqSlider,
         peakGainSlider,
         peakQualitySlider,
@@ -164,6 +167,13 @@ private:
         highCutFreqSliderAttachment,
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
+
+    PowerButton bypassButton;
+    AnalyzerButton analyzerButton;
+    ButtonAttachment bypassButtonAttachment,
+        analyzerButtonAttachment;
+    ButtonsLookAndFeel lnf;
+    // TODO : modifico ResponseCurveComponent e FFTAnalyzerCOmponent quando bypass è attivo
     ResponseCurveComponent responseCurveComponent;
     FFTAnalyzerComponent filterFftAnalyzerComponent;
 
