@@ -21,27 +21,19 @@ FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p, unsigned
     leftPathProducer.setSingleChannelSampleFifo(audioProcessor.leftAnalyzerFIFOs[index]);
     rightPathProducer.setSingleChannelSampleFifo(audioProcessor.rightAnalyzerFIFOs[index]);
 
-    startTimerHz(30);
-}
-
-FFTAnalyzerComponent::~FFTAnalyzerComponent()
-{
-
-}
-
-
-void FFTAnalyzerComponent::parameterValueChanged(int parameterIndex, float newValue) {
-    
+    startTimerHz(59);
 }
 
 void FFTAnalyzerComponent::timerCallback() {
 
-    auto fftBounds = getAnalysysArea().toFloat();
-    auto sampleRate = audioProcessor.getSampleRate();
-    leftPathProducer.process(fftBounds, sampleRate);
-    rightPathProducer.process(fftBounds, sampleRate);
+    if (enableFFTanalysis) {
+        auto fftBounds = getAnalysysArea().toFloat();
+        auto sampleRate = audioProcessor.getSampleRate();
+        leftPathProducer.process(fftBounds, sampleRate);
+        rightPathProducer.process(fftBounds, sampleRate);
 
-    repaint();
+        repaint();
+    }
 }
 
 void FFTAnalyzerComponent::paint(juce::Graphics& g)
@@ -50,6 +42,7 @@ void FFTAnalyzerComponent::paint(juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     // g.fillAll(Colours::black);
 
+    // BACKGROUND
     g.drawImage(background, getLocalBounds().toFloat());
 
     auto responseArea = getAnalysysArea();
@@ -57,17 +50,19 @@ void FFTAnalyzerComponent::paint(juce::Graphics& g)
     auto sampleRate = audioProcessor.getSampleRate();
 
     // FFT ANALYZER
-    auto leftChannelFFTPath = leftPathProducer.getPath();
-    leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(),
-        responseArea.getY()));
-    g.setColour(Colours::skyblue);
-    g.strokePath(leftChannelFFTPath, PathStrokeType(1));
+    if (enableFFTanalysis) {
+        auto leftChannelFFTPath = leftPathProducer.getPath();
+        leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(),
+            responseArea.getY()));
+        g.setColour(Colours::skyblue);
+        g.strokePath(leftChannelFFTPath, PathStrokeType(1));
 
-    auto rightChannelFFTPath = rightPathProducer.getPath();
-    rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(),
-        responseArea.getY()));
-    g.setColour(Colours::lightyellow);
-    g.strokePath(rightChannelFFTPath, PathStrokeType(1));
+        auto rightChannelFFTPath = rightPathProducer.getPath();
+        rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(),
+            responseArea.getY()));
+        g.setColour(Colours::lightyellow);
+        g.strokePath(rightChannelFFTPath, PathStrokeType(1));
+    }
 }
 
 void FFTAnalyzerComponent::resized()
@@ -188,6 +183,11 @@ PathProducer& FFTAnalyzerComponent::getLeftPathProducer()
 PathProducer& FFTAnalyzerComponent::getRightPathProducer()
 {
     return rightPathProducer;
+}
+
+void FFTAnalyzerComponent::toggleFFTanaysis(bool shouldEnableFFTanalysis)
+{
+    enableFFTanalysis = shouldEnableFFTanalysis;
 }
 
 juce::Rectangle<int> FFTAnalyzerComponent::getRenderArea()

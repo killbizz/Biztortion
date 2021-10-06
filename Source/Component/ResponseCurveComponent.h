@@ -29,6 +29,7 @@ struct ResponseCurveComponent : juce::Component,
 
     ResponseCurveComponent(BiztortionAudioProcessor& p, unsigned int chainPosition);
     ~ResponseCurveComponent();
+
     /** Receives a callback when a parameter has been changed.
 
             IMPORTANT NOTE: This will be called synchronously when a parameter changes, and
@@ -60,7 +61,6 @@ struct ResponseCurveComponent : juce::Component,
         callback to change the subsequent intervals.
     */
     void timerCallback() override;
-    //void monoChainUpdate();
     void paint(juce::Graphics& g) override;
     void resized() override;
     void setFilterMonoChain();

@@ -29,7 +29,7 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, unsi
             param->addListener(this);
         }
     }
-    startTimerHz(60);
+    startTimerHz(59);
 }
 
 ResponseCurveComponent::~ResponseCurveComponent() {
@@ -53,22 +53,6 @@ void ResponseCurveComponent::timerCallback() {
         repaint();
     }
 }
-
-//void ResponseCurveComponent::monoChainUpdate()
-//{
-//    // update the monoChain
-//    auto chainSettings = FilterModuleDSP::getSettings(audioProcessor.apvts, type);
-//    auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
-//    updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
-//
-//    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, audioProcessor.getSampleRate());
-//    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, audioProcessor.getSampleRate());
-//
-//    updateCutFilter(monoChain.get<ChainPositions::LowCut>(), lowCutCoefficients,
-//        static_cast<FilterSlope>(chainSettings.lowCutSlope));
-//    updateCutFilter(monoChain.get<ChainPositions::HighCut>(), highCutCoefficients,
-//        static_cast<FilterSlope>(chainSettings.highCutSlope));
-//}
 
 void ResponseCurveComponent::paint(juce::Graphics& g)
 {
@@ -97,35 +81,37 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
         double mag = 1.f;
         // normalising pixel number = double(i) / double(responseWidth)
         auto freq = mapToLog10(double(i) / double(responseWidth), 20.0, 20000.0);
-        // getting magnitude for each frequency
+        // getting magnitude for each frequency if filter isn't bypassed
         if (!filterMonoChain->isBypassed<ChainPositions::Peak>()) {
             mag *= peak.coefficients->getMagnitudeForFrequency(freq, sampleRate);
         }
-
-        if (!lowcut.isBypassed<0>()) {
-            mag *= lowcut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        if (!filterMonoChain->isBypassed<ChainPositions::LowCut>()) {
+            if (!lowcut.isBypassed<0>()) {
+                mag *= lowcut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
+            if (!lowcut.isBypassed<1>()) {
+                mag *= lowcut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
+            if (!lowcut.isBypassed<2>()) {
+                mag *= lowcut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
+            if (!lowcut.isBypassed<3>()) {
+                mag *= lowcut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
         }
-        if (!lowcut.isBypassed<1>()) {
-            mag *= lowcut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        }
-        if (!lowcut.isBypassed<2>()) {
-            mag *= lowcut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        }
-        if (!lowcut.isBypassed<3>()) {
-            mag *= lowcut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        }
-
-        if (!highcut.isBypassed<0>()) {
-            mag *= highcut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        }
-        if (!highcut.isBypassed<1>()) {
-            mag *= highcut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        }
-        if (!highcut.isBypassed<2>()) {
-            mag *= highcut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        }
-        if (!highcut.isBypassed<3>()) {
-            mag *= highcut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        if (!filterMonoChain->isBypassed<ChainPositions::HighCut>()) {
+            if (!highcut.isBypassed<0>()) {
+                mag *= highcut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
+            if (!highcut.isBypassed<1>()) {
+                mag *= highcut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
+            if (!highcut.isBypassed<2>()) {
+                mag *= highcut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
+            if (!highcut.isBypassed<3>()) {
+                mag *= highcut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            }
         }
         magnitudes[i] = Decibels::gainToDecibels(mag);
     }
