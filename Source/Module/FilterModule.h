@@ -173,7 +173,7 @@ private:
     ButtonAttachment bypassButtonAttachment,
         analyzerButtonAttachment;
     ButtonsLookAndFeel lnf;
-    // TODO : modifico ResponseCurveComponent e FFTAnalyzerCOmponent quando bypass è attivo
+    
     ResponseCurveComponent responseCurveComponent;
     FFTAnalyzerComponent filterFftAnalyzerComponent;
 
