@@ -53,7 +53,8 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	auto width = static_cast<float> (getWidth());
 	auto height = static_cast<float> (getHeight());
 
-	g.fillAll(juce::Colours::darkslategrey.withMultipliedBrightness(.4f));
+	//g.fillAll(juce::Colours::darkslategrey.withMultipliedBrightness(.4f));
+	g.fillAll(juce::Colours::black);
 
 	// X
 	juce::Array<float> x;
