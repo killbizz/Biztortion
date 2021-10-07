@@ -26,6 +26,7 @@ class BiztortionAudioProcessor;
 struct OscilloscopeSettings {
     float hZoom{ 0 };
     float vZoom{ 0 };
+    bool bypassed{ false };
 };
 
 class OscilloscopeModuleDSP : public DSPModule {
@@ -44,6 +45,7 @@ public:
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
 private:
+    bool bypassed = false;
     drow::AudioOscilloscope oscilloscope;
 };
 
@@ -66,6 +68,7 @@ private:
 
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
+    using ButtonAttachment = APVTS::ButtonAttachment;
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -79,6 +82,13 @@ private:
 
     RotarySliderWithLabels hZoomSlider, vZoomSlider;
     Attachment hZoomSliderAttachment, vZoomSliderAttachment;
-    drow::AudioOscilloscope* oscilloscope;
+    
+    juce::LookAndFeel_V4 freezeLnf;
+    juce::TextButton freezeButton{ "Freeze" };
+    PowerButton bypassButton;
+    ButtonAttachment bypassButtonAttachment;
+    ButtonsLookAndFeel lnf;
 
+    // TODO : add a sample-and-hold algorithm to drow::oscilloscope for a better visual + fix visual glitches
+    drow::AudioOscilloscope* oscilloscope;
 };
