@@ -60,6 +60,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     newModuleSelector.addItem("Waveshaper", ModuleType::Waveshaper);
     newModuleSelector.addItem("Bitcrusher", ModuleType::Bitcrusher);
     newModuleSelector.addItem("Clipper", ModuleType::Clipper);
+    newModuleSelector.addItem("Slew Limiter", ModuleType::SlewLimiter);
 
     newModuleSelector.setSelectedId(999);
     
@@ -133,6 +134,16 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         case ModuleType::Clipper: {
             break;
         }
+        case ModuleType::SlewLimiter: {
+            audioProcessor.suspendProcessing(true);
+            DSPModule* slewLimiterDSPModule = new SlewLimiterModuleDSP(audioProcessor.apvts);
+            addModuleToDSPmodules(slewLimiterDSPModule);
+            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
+            audioProcessor.suspendProcessing(false);
+            addModuleToGUI(createGUIModule(type));
+            newModuleSetup(type);
+            break;
+        }
         default: {
             break;
         }
@@ -195,9 +206,6 @@ void NewModuleGUI::setChainPosition(unsigned int cp)
 void NewModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
-    /*if (chainPosition != 8) {
-        rightCable->draw(g, 1.f, getTransform());
-    }*/
 }
 
 void NewModuleGUI::resized()
@@ -315,6 +323,10 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
                 typeString = "Clipper";
                 break;
             }
+            case ModuleType::SlewLimiter: {
+                typeString = "Slew Limiter";
+                break;
+            }
             default:
                 break;
         }
@@ -351,7 +363,7 @@ GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
                     found = true;
                 }
             }
-            newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getOscilloscope(), getChainPosition());
+            newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), getChainPosition());
             break;
         }
         case ModuleType::Waveshaper: {
@@ -363,6 +375,10 @@ GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
             break;
         }
         case ModuleType::Clipper: {
+            break;
+        }
+        case ModuleType::SlewLimiter: {
+            newModule = new SlewLimiterModuleGUI(audioProcessor, getChainPosition());
             break;
         }
         default :

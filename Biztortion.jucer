@@ -64,6 +64,10 @@
               file="Source/Module/OscilloscopeModule.cpp"/>
         <FILE id="w2Avkr" name="OscilloscopeModule.h" compile="0" resource="0"
               file="Source/Module/OscilloscopeModule.h"/>
+        <FILE id="jvYXSY" name="SlewLimiterModule.cpp" compile="1" resource="0"
+              file="Source/Module/SlewLimiterModule.cpp"/>
+        <FILE id="vEv7b8" name="SlewLimiterModule.h" compile="0" resource="0"
+              file="Source/Module/SlewLimiterModule.h"/>
         <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
               file="Source/Module/WaveshaperModule.cpp"/>
         <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"

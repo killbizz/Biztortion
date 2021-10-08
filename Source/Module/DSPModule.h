@@ -20,7 +20,8 @@ enum ModuleType {
     Oscilloscope,
     Waveshaper,
     Bitcrusher,
-    Clipper
+    Clipper,
+    SlewLimiter
 };
 
 class DSPModule {
