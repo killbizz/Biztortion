@@ -20,12 +20,18 @@
 OscilloscopeModuleDSP::OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
     : DSPModule(_apvts)
 {
-    oscilloscope.clear();
+    leftOscilloscope.clear();
+    rightOscilloscope.clear();
 }
 
-drow::AudioOscilloscope* OscilloscopeModuleDSP::getOscilloscope()
+drow::AudioOscilloscope* OscilloscopeModuleDSP::getLeftOscilloscope()
 {
-    return &oscilloscope;
+    return &leftOscilloscope;
+}
+
+drow::AudioOscilloscope* OscilloscopeModuleDSP::getRightOscilloscope()
+{
+    return &rightOscilloscope;
 }
 
 OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
@@ -62,13 +68,16 @@ void OscilloscopeModuleDSP::updateDSPState(double sampleRate)
 {
     auto settings = getSettings(apvts, getChainPosition());
     bypassed = settings.bypassed;
-    oscilloscope.setHorizontalZoom(settings.hZoom);
-    oscilloscope.setVerticalZoom(settings.vZoom);
+    leftOscilloscope.setHorizontalZoom(settings.hZoom);
+    leftOscilloscope.setVerticalZoom(settings.vZoom);
+    rightOscilloscope.setHorizontalZoom(settings.hZoom);
+    rightOscilloscope.setVerticalZoom(settings.vZoom);
 }
 
 void OscilloscopeModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    oscilloscope.clear();
+    leftOscilloscope.clear();
+    rightOscilloscope.clear();
     updateDSPState(sampleRate);
 }
 
@@ -76,7 +85,8 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 {
     updateDSPState(sampleRate);
     if (!bypassed) {
-        oscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
+        leftOscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
+        rightOscilloscope.processBlock(buffer.getReadPointer(1), buffer.getNumSamples());
     }
 }
 
@@ -86,8 +96,8 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 //==============================================================================
 
-OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope, unsigned int chainPosition)
-    : GUIModule(), audioProcessor(p), oscilloscope(_oscilloscope),
+OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int chainPosition)
+    : GUIModule(), audioProcessor(p), leftOscilloscope(_leftOscilloscope), rightOscilloscope(_rightOscilloscope),
     hZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(chainPosition)), ""),
     vZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(chainPosition)), ""),
     hZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope H Zoom " + std::to_string(chainPosition), hZoomSlider),
@@ -143,10 +153,12 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
         {
             auto freeze = comp->freezeButton.getToggleState();
             if (freeze) {
-                comp->oscilloscope->stopTimer();
+                comp->leftOscilloscope->stopTimer();
+                comp->rightOscilloscope->stopTimer();
             }
             else {
-                comp->oscilloscope->startTimerHz(59);
+                comp->leftOscilloscope->startTimerHz(59);
+                comp->rightOscilloscope->startTimerHz(59);
             }
             
         }
@@ -157,13 +169,16 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
         addAndMakeVisible(comp);
     }
 
-    oscilloscope->startTimerHz(60);
+    leftOscilloscope->startTimerHz(59);
+    rightOscilloscope->startTimerHz(59);
 }
 
 OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
 {
-    oscilloscope->stopTimer();
-    oscilloscope = nullptr;
+    leftOscilloscope->stopTimer();
+    rightOscilloscope->stopTimer();
+    leftOscilloscope = nullptr;
+    rightOscilloscope = nullptr;
     freezeButton.setLookAndFeel(nullptr);
     bypassButton.setLookAndFeel(nullptr);
 }
@@ -171,7 +186,8 @@ OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
 std::vector<juce::Component*> OscilloscopeModuleGUI::getComps()
 {
     return {
-        oscilloscope,
+        leftOscilloscope,
+        rightOscilloscope,
         &title,
         &hZoomLabel,
         &vZoomLabel,
@@ -225,7 +241,8 @@ void OscilloscopeModuleGUI::resized()
     vZoomLabel.setBounds(vZoomLabelArea);
     vZoomLabel.setJustificationType(juce::Justification::centred);
 
-    oscilloscope->setBounds(graphArea);
+    leftOscilloscope->setBounds(graphArea.removeFromTop(graphArea.getHeight() * (1.f / 2.f)));
+    rightOscilloscope->setBounds(graphArea);
     hZoomSlider.setBounds(hZoomArea);
     vZoomSlider.setBounds(vZoomArea);
     freezeButton.setBounds(freezeCorrectArea);

@@ -33,7 +33,8 @@ class OscilloscopeModuleDSP : public DSPModule {
 public:
     OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
 
-    drow::AudioOscilloscope* getOscilloscope();
+    drow::AudioOscilloscope* getLeftOscilloscope();
+    drow::AudioOscilloscope* getRightOscilloscope();
 
     static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
@@ -46,7 +47,8 @@ public:
 
 private:
     bool bypassed = false;
-    drow::AudioOscilloscope oscilloscope;
+    drow::AudioOscilloscope leftOscilloscope;
+    drow::AudioOscilloscope rightOscilloscope;
 };
 
 //==============================================================================
@@ -57,7 +59,7 @@ private:
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _oscilloscope, unsigned int chainPosition);
+    OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int chainPosition);
     ~OscilloscopeModuleGUI();
 
     std::vector<juce::Component*> getComps() override;
@@ -90,5 +92,6 @@ private:
     ButtonsLookAndFeel lnf;
 
     // TODO : add a sample-and-hold algorithm to drow::oscilloscope for a better visual + fix visual glitches
-    drow::AudioOscilloscope* oscilloscope;
+    drow::AudioOscilloscope* leftOscilloscope;
+    drow::AudioOscilloscope* rightOscilloscope;
 };
