@@ -67,34 +67,37 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
         float slewRise = slewMax * Ts * std::pow(slewMin / slewMax, rise.getNextValue());
         float slewFall = slewMax * Ts * std::pow(slewMin / slewMax, fall.getNextValue());
 
-        // state variables
-        float output = 0.f;
+        // temporary variable to handle the last output at the end of the processing
+        float temp = lastOutput;
 
         // Processing
         // TODO : eliminare artefatti introdotti dal processing + calibrare i parametri in modo che comportamento sia prevedibile e gli slider facciano quello che devono fare
-        for (auto channel = 0; channel < 2; channel++)
+        for (auto channel = 0; channel < 2; ++channel)
         {
             auto* channelData = wetBuffer.getWritePointer(channel);
-
-            for (auto i = 0; i < numSamples; i++) {
+            float output = lastOutput;
+            for (auto i = 0; i < numSamples; ++i) {
 
                 auto input = channelData[i];
+
                 // Rise limiting
                 if (input > output) {
-                    output = jmin(input, output + slewRise);
+                    output = jmin(input, output + slewFall);
                 }
                 // Fall limiting
                 else {
-                    output = jmax(input, output - slewFall);
+                    output = jmax(input, output - slewRise);
                 }
                 channelData[i] = output;
             }
+            temp = output;
         }
+        lastOutput = temp;
 
         // Mixing buffers
         buffer.clear();
         for (auto channel = 0; channel < 2; channel++)
-            buffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);
+            buffer.addFrom(channel, 0, wetBuffer, channel, 0, numSamples);
     }
 }
 

@@ -47,7 +47,8 @@ private:
     juce::AudioBuffer<float> wetBuffer;
 
     float slewMin = 0.1f;
-    float slewMax = 10000.f;
+    float slewMax = 1000.f;
+    float lastOutput = 0.f;
 
 };
 
