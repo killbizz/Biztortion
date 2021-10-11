@@ -265,11 +265,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
     return layout;
 }
 
-void BiztortionAudioProcessor::updateModulesChain(juce::String moduleName, unsigned int gridPosition)
-{
-
-}
-
 int BiztortionAudioProcessor::getNumSamples()
 {
     return numSamples;
