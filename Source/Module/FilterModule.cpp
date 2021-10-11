@@ -291,6 +291,8 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
         }
     };
 
+    filterFftAnalyzerComponent.toggleFFTanaysis(analyzerButton.getToggleState());
+
     for (auto* comp : getComps())
     {
         addAndMakeVisible(comp);
