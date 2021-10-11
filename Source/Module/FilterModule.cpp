@@ -8,6 +8,16 @@
   ==============================================================================
 */
 
+/*
+  ==============================================================================
+
+    CREDITS for the original Equalizer Algorithm
+    Author: Charles Schiermeyer
+    Source: https://github.com/matkatmusic/SimpleEQ
+
+  ==============================================================================
+*/
+
 #include "FilterModule.h"
 #include "../PluginProcessor.h"
 
