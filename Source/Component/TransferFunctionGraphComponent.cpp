@@ -8,6 +8,16 @@
   ==============================================================================
 */
 
+/*
+  ==============================================================================
+
+	CREDITS for the Transfer Function Graph
+	Author: Daniele Filaretti
+	Source: https://github.com/dfilaretti/waveshaper-demo
+
+  ==============================================================================
+*/
+
 #include "TransferFunctionGraphComponent.h"
 #include "../PluginProcessor.h"
 

@@ -8,6 +8,16 @@
   ==============================================================================
 */
 
+/*
+  ==============================================================================
+
+    CREDITS for the original Slew Limiter Algorithm
+    Author: Ivan Cohen
+    Source: https://www.youtube.com/watch?v=oIChUOV_0w4&t=1787s&ab_channel=JUCE
+
+  ==============================================================================
+*/
+
 #pragma once
 
 #include <JuceHeader.h>
@@ -46,7 +56,9 @@ private:
     juce::LinearSmoothedValue<float> rise, fall;
     juce::AudioBuffer<float> wetBuffer;
 
+    // minimum slope in volts per second
     float slewMin = 0.1f;
+    // maximum slope in volts per second
     float slewMax = 1000.f;
     float lastOutput = 0.f;
 

@@ -8,6 +8,16 @@
   ==============================================================================
 */
 
+/*
+  ==============================================================================
+
+    CREDITS for the original Bitcrusher Algorithm
+    Author: Aaron Leese
+    Source: https://youtu.be/1PLn8IAKEb4
+
+  ==============================================================================
+*/
+
 #include "BitcrusherModule.h"
 #include "../PluginProcessor.h"
 
@@ -43,9 +53,7 @@ Array<float> BitcrusherModuleDSP::getWhiteNoise(int numSamples) {
 
     for (int s = 0; s < numSamples; s++)
     {
-
-        // GENERATE ::::
-        // using box muller method
+        // box muller method
         // https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
         generate = !generate;
 

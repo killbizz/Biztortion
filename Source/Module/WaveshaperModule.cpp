@@ -11,6 +11,16 @@
 #include "WaveshaperModule.h"
 #include "../PluginProcessor.h"
 
+/*
+  ==============================================================================
+
+    CREDITS for the original Waveshaper Algorithm
+    Author: Daniele Filaretti
+    Source: https://github.com/dfilaretti/waveshaper-demo
+
+  ==============================================================================
+*/
+
 //==============================================================================
 
 /* WaveshaperModule DSP */

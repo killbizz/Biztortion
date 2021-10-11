@@ -8,6 +8,16 @@
   ==============================================================================
 */
 
+/*
+  ==============================================================================
+
+    CREDITS for the original Waveshaper Algorithm
+    Author: Daniele Filaretti
+    Source: https://github.com/dfilaretti/waveshaper-demo
+
+  ==============================================================================
+*/
+
 #pragma once
 
 #include <JuceHeader.h>
@@ -34,7 +44,7 @@ struct WaveshaperSettings {
 //public:
 //    Waveshaper()
 //    {
-//        // This is where the magic happens :D
+//        
 //        waveshaper.functionToUse = [](float in)
 //        {
 //            float out = tanhAmp.getNextValue() * std::tanh(in * tanhSlope.getNextValue())

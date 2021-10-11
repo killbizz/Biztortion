@@ -8,6 +8,16 @@
   ==============================================================================
 */
 
+/*
+  ==============================================================================
+
+    CREDITS for the original Slew Limiter Algorithm
+    Author: Ivan Cohen
+    Source: https://www.youtube.com/watch?v=oIChUOV_0w4&t=1787s&ab_channel=JUCE
+
+  ==============================================================================
+*/
+
 #include "SlewLimiterModule.h"
 
 #include "../PluginProcessor.h"
@@ -71,7 +81,6 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
         float temp = lastOutput;
 
         // Processing
-        // TODO : eliminare artefatti introdotti dal processing + calibrare i parametri in modo che comportamento sia prevedibile e gli slider facciano quello che devono fare
         for (auto channel = 0; channel < 2; ++channel)
         {
             auto* channelData = wetBuffer.getWritePointer(channel);
