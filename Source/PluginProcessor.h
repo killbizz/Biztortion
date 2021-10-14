@@ -77,6 +77,10 @@ public:
     std::vector<std::unique_ptr<DSPModule>> DSPmodules;
 
     int getNumSamples();
+    DSPModule* createDSPModule(ModuleType mt);
+    void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
+    void addDSPmoduleTypeAndPositionToAPVTS(ModuleType mt, unsigned int chainPosition);
+    void removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition);
     unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
     void insertNewAnalyzerFIFO(unsigned int chainPosition);
     void deleteOldAnalyzerFIFO(unsigned int chainPosition);
@@ -85,9 +89,11 @@ private:
 
     // test signal
     // juce::dsp::Oscillator<float> osc;
-    static juce::Identifier modulesChainID;
-    juce::Value modulesChain;
     int numSamples;
+
+    // parameter which should not be visible in the DAW
+    juce::Value moduleTypes;
+    juce::Value moduleChainPositions;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessor)
