@@ -41,7 +41,6 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
     editorSetup();
 
-    //setSize (1400, 782);
     setSize(900, 577);
     setResizable(false, false);
     // setResizeLimits(400, 332, 3840, 2160);
@@ -64,7 +63,6 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     auto bounds = getLocalBounds();
     auto center = bounds.getCentre();
 
-    //g.setFont(Font("Iosevka Term Slab", 30, 0)); //https://github.com/be5invis/Iosevka
     g.setFont(Font("Prestige Elite Std", 30, 0));
 
     String title{ "Biztortion" };
