@@ -89,44 +89,30 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
         switch (type) {
         case ModuleType::Oscilloscope: {
-            audioProcessor.suspendProcessing(true);
-            DSPModule* oscilloscopeDSPModule = new OscilloscopeModuleDSP(audioProcessor.apvts);
-            addModuleToDSPmodules(oscilloscopeDSPModule);
-            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
-            audioProcessor.suspendProcessing(false);
+            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
             break;
         }
         case ModuleType::IIRFilter: {
-            audioProcessor.suspendProcessing(true);
-            DSPModule* filterDSPModule = new FilterModuleDSP(audioProcessor.apvts);
-            addModuleToDSPmodules(filterDSPModule);
-            // FIFOs allocation for fft analyzer
-            audioProcessor.insertNewAnalyzerFIFO(getChainPosition());
-            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
-            audioProcessor.suspendProcessing(false);
+            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
             break;
         }
 
         case ModuleType::Waveshaper: {
-            audioProcessor.suspendProcessing(true);
-            DSPModule* waveshaperDSPModule = new WaveshaperModuleDSP(audioProcessor.apvts);
-            addModuleToDSPmodules(waveshaperDSPModule);
-            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
-            audioProcessor.suspendProcessing(false);
+            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
             break;
         }
         case ModuleType::Bitcrusher: {
-            audioProcessor.suspendProcessing(true);
-            DSPModule* bitcrusherDSPModule = new BitcrusherModuleDSP(audioProcessor.apvts);
-            addModuleToDSPmodules(bitcrusherDSPModule);
-            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
-            audioProcessor.suspendProcessing(false);
+            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
             break;
@@ -135,11 +121,8 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             break;
         }
         case ModuleType::SlewLimiter: {
-            audioProcessor.suspendProcessing(true);
-            DSPModule* slewLimiterDSPModule = new SlewLimiterModuleDSP(audioProcessor.apvts);
-            addModuleToDSPmodules(slewLimiterDSPModule);
-            audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getNumSamples());
-            audioProcessor.suspendProcessing(false);
+            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
             break;
@@ -171,6 +154,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
                 audioProcessor.suspendProcessing(false);
             }
         }
+        audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
     };
 
     currentModuleActivator.onClick = [this] {
@@ -397,31 +381,6 @@ void NewModuleGUI::addModuleToGUI(GUIModule* module)
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
     editor.addAndMakeVisible(*editor.currentGUIModule);
-}
-
-void NewModuleGUI::addModuleToDSPmodules(DSPModule* module)
-{
-    // DSP module setup
-    module->setChainPosition(getChainPosition());
-    module->setModuleType();
-    // insert module to DSPmodules vector
-    bool inserted = false;
-    for (auto it = audioProcessor.DSPmodules.begin(); !inserted; ++it) {
-        // end = 8° grid cell
-        if ((**it).getChainPosition() == 8) {
-            inserted = true;
-            it = audioProcessor.DSPmodules.insert(it, std::unique_ptr<DSPModule>(module));
-            continue;
-        }
-        // there is at least one module in the vector
-        auto next = it;
-        ++next;
-        if ((**it).getChainPosition() < getChainPosition() && getChainPosition() < (**next).getChainPosition()) {
-            inserted = true;
-            it = audioProcessor.DSPmodules.insert(next, std::unique_ptr<DSPModule>(module));
-        }
-        // else continue to iterate to find the right grid position
-    }
 }
 
 juce::AffineTransform NewModuleGUI::getTransform()

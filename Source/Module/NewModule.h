@@ -43,7 +43,6 @@ public:
     void setupCurrentModuleActivatorColours(juce::LookAndFeel& laf);
 
     void addModuleToGUI(GUIModule* module);
-    void addModuleToDSPmodules(DSPModule* module);
     void newModuleSetup(ModuleType type);
     void resetButtonsColors();
 
