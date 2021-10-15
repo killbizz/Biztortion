@@ -89,14 +89,14 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
         switch (type) {
         case ModuleType::Oscilloscope: {
-            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
             audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
             break;
         }
         case ModuleType::IIRFilter: {
-            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
             audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
@@ -104,14 +104,14 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         }
 
         case ModuleType::Waveshaper: {
-            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
             audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
             break;
         }
         case ModuleType::Bitcrusher: {
-            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
             audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
@@ -121,7 +121,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             break;
         }
         case ModuleType::SlewLimiter: {
-            audioProcessor.addModuleToDSPmodules(audioProcessor.createDSPModule(type), getChainPosition());
+            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
             audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
