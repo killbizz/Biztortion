@@ -27,7 +27,6 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
     DSPModule* outputMeter = new MeterModuleDSP(apvts, "Output");
     DSPmodules.push_back(std::unique_ptr<DSPModule>(outputMeter));
 
-    //// modules types and chainPositions to re-create DSPmodules saved in the APVTS
     //if (!apvts.state.hasProperty("moduleTypes")) {
     //    apvts.state.setProperty("moduleTypes", var(juce::Array<juce::var>()), nullptr);
     //}
@@ -38,6 +37,7 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
     //}
     //moduleChainPositions.referTo(apvts.state.getPropertyAsValue("moduleChainPositions", nullptr));
 
+    //// modules types and chainPositions to re-create DSPmodules saved in the APVTS
     //auto mt = moduleTypes.getValue().getArray();
     //if (!moduleTypes.getValue().isArray()) {
     //    jassertfalse;
@@ -47,10 +47,18 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
     //    jassertfalse;
     //}
 
-    //for (auto i = 0; i < mt->size(); ++i) {
-    //    auto type = mt->getReference(i);
-    //    auto chainPosition = mcp->getReference(i);
-    //    addModuleToDSPmodules(createDSPModule(static_cast<ModuleType>(int(type))), int(chainPosition));
+    //auto chainPosition = mcp->begin();
+    //for (auto type = mt->begin(); type < mt->end(); ++type) {
+    //    //auto type = mt->begin();
+
+    //    addModuleToDSPmodules(createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
+    //    //++type;
+    //    ++chainPosition;
+    //}
+
+    //// updateDSPState for all the modules int the chain
+    //for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
+    //    (**it).updateDSPState(getSampleRate());
     //}
 
 }
@@ -244,19 +252,22 @@ void BiztortionAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 
     juce::MemoryOutputStream mos(destData, true);
     apvts.state.writeToStream(mos);
+
+    /*auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);*/
 }
 
 void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+     // You should use this method to restore your parameters from this memory block,
+     // whose contents will have been created by the getStateInformation() call.
 
     auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
     if (tree.isValid())
     {
         apvts.replaceState(tree);
 
-        // modules types and chainPositions to re-create DSPmodules saved in the APVTS
         if (!apvts.state.hasProperty("moduleTypes")) {
             apvts.state.setProperty("moduleTypes", var(juce::Array<juce::var>()), nullptr);
         }
@@ -267,6 +278,8 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         }
         moduleChainPositions.referTo(apvts.state.getPropertyAsValue("moduleChainPositions", nullptr));
 
+        // modules types and chainPositions to re-create DSPmodules saved in the APVTS
+
         auto mt = moduleTypes.getValue().getArray();
         if (!moduleTypes.getValue().isArray()) {
             jassertfalse;
@@ -276,12 +289,10 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
             jassertfalse;
         }
 
+        // restoring DSP modules
         auto chainPosition = mcp->begin();
         for (auto type = mt->begin(); type < mt->end(); ++type) {
-            //auto type = mt->begin();
-
             addModuleToDSPmodules(createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
-            //++type;
             ++chainPosition;
         }
 
@@ -290,8 +301,29 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
             (**it).updateDSPState(getSampleRate());
         }
     }
-    /*MemoryInputStream stream(data, sizeInBytes, false);
-    apvts.state.readFromStream(stream);*/
+
+    //// ------------------ TRY ---------------------------
+
+    //ModuleTypes mt;
+    //ModuleChainPositions mcp;
+
+    //std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    //if (xmlState.get() != nullptr) {
+    //    if (xmlState->hasTagName(apvts.state.getType()))
+    //        apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+    //}
+
+    //if (!apvts.state.hasProperty("moduleTypes")) {
+    //    apvts.state.setProperty("moduleTypes", mt.toString(), nullptr);
+    //}
+    //
+    //if (!apvts.state.hasProperty("moduleChainPositions")) {
+    //    apvts.state.setProperty("moduleChainPositions", mcp.toString(), nullptr);
+    //}
+    //
+    //// modules types and chainPositions to re-create DSPmodules saved in the APVTS
+    //
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::createParameterLayout() {
@@ -349,15 +381,16 @@ DSPModule* BiztortionAudioProcessor::createDSPModule(ModuleType mt)
 
 void BiztortionAudioProcessor::addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition)
 {
+
+    // TODO: capisco perchè ricrendo lo stato del plugin non mi ricrea correttamente un Filtro (non sembra allocare il modulo e la relativa analyzerFIFO
+
     // DSP module setup
     module->setChainPosition(chainPosition);
     module->setModuleType();
-    // suspend audio processing
-    suspendProcessing(true);
     // insert module to DSPmodules vector
     bool inserted = false;
     for (auto it = DSPmodules.begin(); !inserted; ++it) {
-        // end = 8� grid cell
+        // end = 8° grid cell
         if ((**it).getChainPosition() == 8) {
             inserted = true;
             it = DSPmodules.insert(it, std::unique_ptr<DSPModule>(module));
@@ -376,6 +409,13 @@ void BiztortionAudioProcessor::addModuleToDSPmodules(DSPModule* module, unsigned
     if (dynamic_cast<FilterModuleDSP*>(module)) {
         insertNewAnalyzerFIFO(chainPosition);
     }
+}
+
+void BiztortionAudioProcessor::addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition)
+{
+    // suspend audio processing
+    suspendProcessing(true);
+    addModuleToDSPmodules(module, chainPosition);
     // prepare to play the audio chain
     prepareToPlay(getSampleRate(), getNumSamples());
     // re-enable audio processing
@@ -390,7 +430,7 @@ void BiztortionAudioProcessor::addDSPmoduleTypeAndPositionToAPVTS(ModuleType mt,
 
 void BiztortionAudioProcessor::removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition)
 {
-    // TO FIX
+    // TO CHECK
 
     auto mt = moduleTypes.getValue().getArray();
     if (!moduleTypes.getValue().isArray()) {
@@ -411,6 +451,8 @@ void BiztortionAudioProcessor::removeDSPmoduleTypeAndPositionFromAPVTS(unsigned 
         }
         ++cp;
     }
+    moduleTypes.setValue(*mt);
+    moduleChainPositions.setValue(*mcp);
 }
 
 unsigned int BiztortionAudioProcessor::getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition)

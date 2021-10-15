@@ -18,6 +18,42 @@
 #include "Component/ResponseCurveComponent.h"
 #include "Component/FFTAnalyzerComponent.h"
 
+struct ModuleTypes {
+    ModuleTypes() = default;
+    ModuleTypes(const String& s) {
+        auto tokens = StringArray::fromTokens(s, "|", "");
+        for (int i = 0; i < tokens.size(); ++i) {
+            types.push_back(tokens[i].getIntValue());
+        }
+    }
+    String toString() const {
+        StringArray s;
+        for (auto it = types.cbegin(); it < types.cend(); ++it) {
+            s.add(std::to_string(*it));
+        }
+        return s.joinIntoString("|");
+    }
+    std::vector<int> types;
+};
+
+struct ModuleChainPositions {
+    ModuleChainPositions() = default;
+    ModuleChainPositions(const String& s) {
+        auto tokens = StringArray::fromTokens(s, "|", "");
+        for (int i = 0; i < tokens.size(); ++i) {
+            chainPositions.push_back(tokens[i].getIntValue());
+        }
+    }
+    String toString() const {
+        StringArray s;
+        for (auto it = chainPositions.cbegin(); it < chainPositions.cend(); ++it) {
+            s.add(std::to_string(*it));
+        }
+        return s.joinIntoString("|");
+    }
+    std::vector<int> chainPositions;
+};
+
 //==============================================================================
 /**
 */
@@ -79,6 +115,7 @@ public:
     int getNumSamples();
     DSPModule* createDSPModule(ModuleType mt);
     void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
+    void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
     void addDSPmoduleTypeAndPositionToAPVTS(ModuleType mt, unsigned int chainPosition);
     void removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition);
     unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
