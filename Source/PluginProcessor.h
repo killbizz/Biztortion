@@ -18,42 +18,6 @@
 #include "Component/ResponseCurveComponent.h"
 #include "Component/FFTAnalyzerComponent.h"
 
-struct ModuleTypes {
-    ModuleTypes() = default;
-    ModuleTypes(const String& s) {
-        auto tokens = StringArray::fromTokens(s, "|", "");
-        for (int i = 0; i < tokens.size(); ++i) {
-            types.push_back(tokens[i].getIntValue());
-        }
-    }
-    String toString() const {
-        StringArray s;
-        for (auto it = types.cbegin(); it < types.cend(); ++it) {
-            s.add(std::to_string(*it));
-        }
-        return s.joinIntoString("|");
-    }
-    std::vector<int> types;
-};
-
-struct ModuleChainPositions {
-    ModuleChainPositions() = default;
-    ModuleChainPositions(const String& s) {
-        auto tokens = StringArray::fromTokens(s, "|", "");
-        for (int i = 0; i < tokens.size(); ++i) {
-            chainPositions.push_back(tokens[i].getIntValue());
-        }
-    }
-    String toString() const {
-        StringArray s;
-        for (auto it = chainPositions.cbegin(); it < chainPositions.cend(); ++it) {
-            s.add(std::to_string(*it));
-        }
-        return s.joinIntoString("|");
-    }
-    std::vector<int> chainPositions;
-};
-
 //==============================================================================
 /**
 */
@@ -112,7 +76,6 @@ public:
     // modules
     std::vector<std::unique_ptr<DSPModule>> DSPmodules;
 
-    int getNumSamples();
     DSPModule* createDSPModule(ModuleType mt);
     void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
     void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
@@ -126,7 +89,6 @@ private:
 
     // test signal
     // juce::dsp::Oscillator<float> osc;
-    int numSamples;
 
     // parameter which should not be visible in the DAW
     juce::Value moduleTypes;

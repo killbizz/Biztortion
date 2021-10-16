@@ -206,8 +206,6 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    numSamples = numSamples == buffer.getNumSamples() ? numSamples : buffer.getNumSamples();
-
     if (!isSuspended()) {
         // using a filter modules counter to find the right fft analyzer FIFO associated with the current filter
         unsigned int filterModuleCounter = 0;
@@ -292,7 +290,7 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         // restoring DSP modules
         auto chainPosition = mcp->begin();
         for (auto type = mt->begin(); type < mt->end(); ++type) {
-            addModuleToDSPmodules(createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
+            addAndSetupModuleForDSP(createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
             ++chainPosition;
         }
 
@@ -300,6 +298,7 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
             (**it).updateDSPState(getSampleRate());
         }
+
     }
 
     //// ------------------ TRY ---------------------------
@@ -339,11 +338,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::cr
     SlewLimiterModuleDSP::addParameters(layout);
 
     return layout;
-}
-
-int BiztortionAudioProcessor::getNumSamples()
-{
-    return numSamples;
 }
 
 DSPModule* BiztortionAudioProcessor::createDSPModule(ModuleType mt)
@@ -417,7 +411,7 @@ void BiztortionAudioProcessor::addAndSetupModuleForDSP(DSPModule* module, unsign
     suspendProcessing(true);
     addModuleToDSPmodules(module, chainPosition);
     // prepare to play the audio chain
-    prepareToPlay(getSampleRate(), getNumSamples());
+    prepareToPlay(getSampleRate(), getBlockSize());
     // re-enable audio processing
     suspendProcessing(false);
 }
