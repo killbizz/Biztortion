@@ -300,29 +300,6 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         }
 
     }
-
-    //// ------------------ TRY ---------------------------
-
-    //ModuleTypes mt;
-    //ModuleChainPositions mcp;
-
-    //std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-
-    //if (xmlState.get() != nullptr) {
-    //    if (xmlState->hasTagName(apvts.state.getType()))
-    //        apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
-    //}
-
-    //if (!apvts.state.hasProperty("moduleTypes")) {
-    //    apvts.state.setProperty("moduleTypes", mt.toString(), nullptr);
-    //}
-    //
-    //if (!apvts.state.hasProperty("moduleChainPositions")) {
-    //    apvts.state.setProperty("moduleChainPositions", mcp.toString(), nullptr);
-    //}
-    //
-    //// modules types and chainPositions to re-create DSPmodules saved in the APVTS
-    //
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout BiztortionAudioProcessor::createParameterLayout() {
@@ -424,8 +401,6 @@ void BiztortionAudioProcessor::addDSPmoduleTypeAndPositionToAPVTS(ModuleType mt,
 
 void BiztortionAudioProcessor::removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition)
 {
-    // TO CHECK
-
     auto mt = moduleTypes.getValue().getArray();
     if (!moduleTypes.getValue().isArray()) {
         jassertfalse;
