@@ -27,7 +27,8 @@ public:
     BiztortionAudioProcessorEditor (BiztortionAudioProcessor&);
     ~BiztortionAudioProcessorEditor() override;
 
-    //==============================================================================
+    void editorSetup();
+
     void paint (juce::Graphics&) override;
     void resized() override;
 
@@ -46,8 +47,6 @@ private:
     BiztortionAudioProcessor& audioProcessor;
 
     juce::HyperlinkButton githubLink;
-
-    void editorSetup();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };

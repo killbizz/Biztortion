@@ -19,7 +19,7 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ), moduleTypes(var(juce::Array<juce::var>())), moduleChainPositions(var(juce::Array<juce::var>()))
 #endif
 {
     DSPModule* inputMeter = new MeterModuleDSP(apvts, "Input");
@@ -27,39 +27,15 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
     DSPModule* outputMeter = new MeterModuleDSP(apvts, "Output");
     DSPmodules.push_back(std::unique_ptr<DSPModule>(outputMeter));
 
-    //if (!apvts.state.hasProperty("moduleTypes")) {
-    //    apvts.state.setProperty("moduleTypes", var(juce::Array<juce::var>()), nullptr);
-    //}
-    //moduleTypes.referTo(apvts.state.getPropertyAsValue("moduleTypes", nullptr));
+    if (!apvts.state.hasProperty("moduleTypes")) {
+        apvts.state.setProperty("moduleTypes", var(juce::Array<juce::var>()), nullptr);
+    }
+    moduleTypes.referTo(apvts.state.getPropertyAsValue("moduleTypes", nullptr));
 
-    //if (!apvts.state.hasProperty("moduleChainPositions")) {
-    //    apvts.state.setProperty("moduleChainPositions", var(juce::Array<juce::var>()), nullptr);
-    //}
-    //moduleChainPositions.referTo(apvts.state.getPropertyAsValue("moduleChainPositions", nullptr));
-
-    //// modules types and chainPositions to re-create DSPmodules saved in the APVTS
-    //auto mt = moduleTypes.getValue().getArray();
-    //if (!moduleTypes.getValue().isArray()) {
-    //    jassertfalse;
-    //}
-    //auto mcp = moduleChainPositions.getValue().getArray();
-    //if (!moduleChainPositions.getValue().isArray()) {
-    //    jassertfalse;
-    //}
-
-    //auto chainPosition = mcp->begin();
-    //for (auto type = mt->begin(); type < mt->end(); ++type) {
-    //    //auto type = mt->begin();
-
-    //    addModuleToDSPmodules(createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
-    //    //++type;
-    //    ++chainPosition;
-    //}
-
-    //// updateDSPState for all the modules int the chain
-    //for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
-    //    (**it).updateDSPState(getSampleRate());
-    //}
+    if (!apvts.state.hasProperty("moduleChainPositions")) {
+        apvts.state.setProperty("moduleChainPositions", var(juce::Array<juce::var>()), nullptr);
+    }
+    moduleChainPositions.referTo(apvts.state.getPropertyAsValue("moduleChainPositions", nullptr));
 
 }
 
@@ -295,8 +271,12 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         }
 
         // updateDSPState for all the modules int the chain
-        for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
+        /*for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
             (**it).updateDSPState(getSampleRate());
+        }*/
+
+        if (getActiveEditor() != nullptr) {
+            static_cast<BiztortionAudioProcessorEditor*>(getActiveEditor())->editorSetup();
         }
 
     }
@@ -395,8 +375,20 @@ void BiztortionAudioProcessor::addAndSetupModuleForDSP(DSPModule* module, unsign
 
 void BiztortionAudioProcessor::addDSPmoduleTypeAndPositionToAPVTS(ModuleType mt, unsigned int chainPosition)
 {
-    moduleTypes.getValue().getArray()->add(var((int) mt));
-    moduleChainPositions.getValue().getArray()->add(var((int) chainPosition));
+    auto mtArray = moduleTypes.getValue().getArray();
+    if (!moduleTypes.getValue().isArray()) {
+        jassertfalse;
+    }
+    auto mcpArray = moduleChainPositions.getValue().getArray();
+    if (!moduleChainPositions.getValue().isArray()) {
+        jassertfalse;
+    }
+
+    mtArray->add(var((int)mt));
+    mcpArray->add(var((int)chainPosition));
+
+    moduleTypes.setValue(*mtArray);
+    moduleChainPositions.setValue(*mcpArray);
 }
 
 void BiztortionAudioProcessor::removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition)
@@ -410,7 +402,6 @@ void BiztortionAudioProcessor::removeDSPmoduleTypeAndPositionFromAPVTS(unsigned 
         jassertfalse;
     }
 
-    //auto type = mt->begin();
     auto cp = mcp->begin();
     for (auto type = mt->begin(); type < mt->end(); ++type) {
         if (chainPosition == int(*cp)) {
