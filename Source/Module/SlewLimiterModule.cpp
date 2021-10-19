@@ -44,6 +44,7 @@ void SlewLimiterModuleDSP::updateDSPState(double sampleRate)
 
     bypassed = settings.bypassed;
 
+    symmetry.setTargetValue(settings.symmetry * 0.01f);
     rise.setTargetValue(settings.rise * 0.01f);
     fall.setTargetValue(settings.fall * 0.01f);
 }
@@ -103,10 +104,42 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
         }
         lastOutput = temp;
 
+        // Apply symmetry
+        float s = symmetry.getNextValue();
+        float dryGain = std::abs(s);
+        float wetGain = 1 - dryGain;
+        
+        for (auto channel = 0; channel < 2; ++channel)
+        {
+            auto* wetData = wetBuffer.getWritePointer(channel);
+            auto* bufferData = buffer.getWritePointer(channel);
+            for (auto i = 0; i < numSamples; ++i) {
+                if (s == 0.f) {
+                    bufferData[i] = wetData[i];
+                }
+                else if (s > 0.f) {
+                    if (bufferData[i] < 0.f) {
+                        bufferData[i] = sumSignals(bufferData[i], 0.f, wetData[i], 1.f);
+                    }
+                    else {
+                        bufferData[i] = sumSignals(bufferData[i], dryGain, wetData[i], wetGain);
+                    }
+                }
+                else {
+                    if (bufferData[i] >= 0.f) {
+                        bufferData[i] = sumSignals(bufferData[i], 0.f, wetData[i], 1.f);
+                    }
+                    else {
+                        bufferData[i] = sumSignals(bufferData[i], dryGain, wetData[i], wetGain);
+                    }
+                }
+            }
+        }
+        
         // Mixing buffers
-        buffer.clear();
+        /*buffer.clear();
         for (auto channel = 0; channel < 2; channel++)
-            buffer.addFrom(channel, 0, wetBuffer, channel, 0, numSamples);
+            buffer.addFrom(channel, 0, wetBuffer, channel, 0, numSamples);*/
     }
 }
 
@@ -117,8 +150,8 @@ void SlewLimiterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Par
     for (int i = 1; i < 9; ++i) {
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Rise " + std::to_string(i), "SlewLimiter Rise " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Fall " + std::to_string(i), "SlewLimiter Fall " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
-        // bypass button
-        layout.add(std::make_unique<AudioParameterBool>("SlewLimiter Bypassed " + std::to_string(i), "Bitcrusher Bypassed " + std::to_string(i), false, "Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Symmetry " + std::to_string(i), "SlewLimiter Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "SlewLimiter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("SlewLimiter Bypassed " + std::to_string(i), "SlewLimiter Bypassed " + std::to_string(i), false, "SlewLimiter " + std::to_string(i)));
     }
 }
 
@@ -128,9 +161,15 @@ SlewLimiterSettings SlewLimiterModuleDSP::getSettings(juce::AudioProcessorValueT
 
     settings.rise = apvts.getRawParameterValue("SlewLimiter Rise " + std::to_string(chainPosition))->load();
     settings.fall = apvts.getRawParameterValue("SlewLimiter Fall " + std::to_string(chainPosition))->load();
+    settings.symmetry = apvts.getRawParameterValue("SlewLimiter Symmetry " + std::to_string(chainPosition))->load();
     settings.bypassed = apvts.getRawParameterValue("SlewLimiter Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
 
     return settings;
+}
+
+float SlewLimiterModuleDSP::sumSignals(float drySignal, float dryGain, float wetSignal, float wetGain)
+{
+    return (drySignal * dryGain) + (wetSignal * wetGain);
 }
 
 //==============================================================================
@@ -143,8 +182,10 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned
     : GUIModule(), audioProcessor(p),
     slewLimiterRiseSlider(*audioProcessor.apvts.getParameter("SlewLimiter Rise " + std::to_string(chainPosition)), "%"),
     slewLimiterFallSlider(*audioProcessor.apvts.getParameter("SlewLimiter Fall " + std::to_string(chainPosition)), "%"),
+    slewLimiterSymmetrySlider(*audioProcessor.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(chainPosition)), "%"),
     slewLimiterRiseSliderAttachment(audioProcessor.apvts, "SlewLimiter Rise " + std::to_string(chainPosition), slewLimiterRiseSlider),
     slewLimiterFallSliderAttachment(audioProcessor.apvts, "SlewLimiter Fall " + std::to_string(chainPosition), slewLimiterFallSlider),
+    slewLimiterSymmetrySliderAttachment(audioProcessor.apvts, "SlewLimiter Symmetry " + std::to_string(chainPosition), slewLimiterSymmetrySlider),
     bypassButtonAttachment(audioProcessor.apvts, "SlewLimiter Bypassed " + std::to_string(chainPosition), bypassButton)
 {
     // title setup
@@ -156,11 +197,15 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned
     slewLimiterRiseLabel.setFont(10);
     slewLimiterFallLabel.setText("Fall", juce::dontSendNotification);
     slewLimiterFallLabel.setFont(10);
+    slewLimiterSymmetryLabel.setText("Symmetry", juce::dontSendNotification);
+    slewLimiterSymmetryLabel.setFont(10);
 
     slewLimiterRiseSlider.labels.add({ 0.f, "0%" });
     slewLimiterRiseSlider.labels.add({ 1.f, "100%" });
     slewLimiterFallSlider.labels.add({ 0.f, "0%" });
     slewLimiterFallSlider.labels.add({ 1.f, "100%" });
+    slewLimiterSymmetrySlider.labels.add({ 0.f, "-100%" });
+    slewLimiterSymmetrySlider.labels.add({ 1.f, "+100%" });
 
     bypassButton.setLookAndFeel(&lnf);
 
@@ -173,6 +218,7 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned
 
             comp->slewLimiterRiseSlider.setEnabled(!bypassed);
             comp->slewLimiterFallSlider.setEnabled(!bypassed);
+            comp->slewLimiterSymmetrySlider.setEnabled(!bypassed);
         }
     };
 
@@ -209,19 +255,24 @@ void SlewLimiterModuleGUI::resized()
     auto titleAndBypassArea = slewLimiterArea.removeFromTop(30);
 
     auto slewLimiterLabelsArea = slewLimiterArea.removeFromTop(12);
-    auto riseLabelArea = slewLimiterLabelsArea.removeFromLeft(slewLimiterLabelsArea.getWidth() * (1.f / 2.f));
-    auto fallLabelArea = slewLimiterLabelsArea;
+    auto riseLabelArea = slewLimiterLabelsArea.removeFromLeft(slewLimiterLabelsArea.getWidth() * (1.f / 3.f));
+    auto fallLabelArea = slewLimiterLabelsArea.removeFromLeft(slewLimiterLabelsArea.getWidth() * (1.f / 2.f));
+    auto symmetryLabelArea = slewLimiterLabelsArea;
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centred);
 
-    slewLimiterRiseSlider.setBounds(slewLimiterArea.removeFromLeft(slewLimiterArea.getWidth() * (1.f / 2.f)));
+    slewLimiterRiseSlider.setBounds(slewLimiterArea.removeFromLeft(slewLimiterArea.getWidth() * (1.f / 3.f)));
     slewLimiterRiseLabel.setBounds(riseLabelArea);
     slewLimiterRiseLabel.setJustificationType(juce::Justification::centred);
 
-    slewLimiterFallSlider.setBounds(slewLimiterArea);
+    slewLimiterFallSlider.setBounds(slewLimiterArea.removeFromLeft(slewLimiterArea.getWidth() * (1.f / 2.f)));
     slewLimiterFallLabel.setBounds(fallLabelArea);
     slewLimiterFallLabel.setJustificationType(juce::Justification::centred);
+
+    slewLimiterSymmetrySlider.setBounds(slewLimiterArea);
+    slewLimiterSymmetryLabel.setBounds(symmetryLabelArea);
+    slewLimiterSymmetryLabel.setJustificationType(juce::Justification::centred);
 }
 
 std::vector<juce::Component*> SlewLimiterModuleGUI::getComps()
@@ -230,9 +281,11 @@ std::vector<juce::Component*> SlewLimiterModuleGUI::getComps()
         &title,
         &slewLimiterRiseSlider,
         &slewLimiterFallSlider,
+        &slewLimiterSymmetrySlider,
         // labels
         &slewLimiterRiseLabel,
         &slewLimiterFallLabel,
+        &slewLimiterSymmetryLabel,
         // bypass
         &bypassButton
     };
