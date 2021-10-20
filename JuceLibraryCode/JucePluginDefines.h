@@ -41,7 +41,7 @@
  #define JucePlugin_Name                   "Biztortion"
 #endif
 #ifndef  JucePlugin_Desc
- #define JucePlugin_Desc                   "Distortion plugin"
+ #define JucePlugin_Desc                   "Modular Distortion Plugin"
 #endif
 #ifndef  JucePlugin_Manufacturer
  #define JucePlugin_Manufacturer           "KillBizz"
@@ -89,7 +89,7 @@
  #define JucePlugin_VSTCategory            kPlugCategEffect
 #endif
 #ifndef  JucePlugin_Vst3Category
- #define JucePlugin_Vst3Category           "Fx|Analyzer|Distortion|EQ|Filter"
+ #define JucePlugin_Vst3Category           "Fx|Analyzer|Distortion|EQ|Filter|Stereo"
 #endif
 #ifndef  JucePlugin_AUMainType
  #define JucePlugin_AUMainType             'aufx'
