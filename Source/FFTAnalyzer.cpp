@@ -23,7 +23,7 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
     while (leftChannelFifo->getNumCompleteBuffersAvailable() > 0) {
         if (leftChannelFifo->getAudioBuffer(tempIncomingBuffer)) {
             // notice that with these operations monoBuffer never changes size
-            auto size = tempIncomingBuffer.getNumSamples();
+            auto size = leftChannelFifo->getSize();
             // left shifting of audio data in the buffer (losting the first block)
             juce::FloatVectorOperations::copy(
                 monoBuffer.getWritePointer(0, 0),
