@@ -29,7 +29,7 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, unsi
             param->addListener(this);
         }
     }
-    startTimerHz(59);
+    startTimerHz(60);
 }
 
 ResponseCurveComponent::~ResponseCurveComponent() {
@@ -49,9 +49,9 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
 void ResponseCurveComponent::timerCallback() {
 
     if (parameterChanged.compareAndSetBool(false, true)) {
-        // signal a repaint
-        repaint();
+        updateResponseCurve();
     }
+    repaint();
 }
 
 void ResponseCurveComponent::paint(juce::Graphics& g)
@@ -60,6 +60,32 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll(Colours::black.withAlpha(0.f));
 
+    // drawing response curve
+    g.setColour(Colours::white);
+    g.strokePath(responseCurve, PathStrokeType(2.f));
+
+}
+
+void ResponseCurveComponent::resized()
+{
+    using namespace juce;
+
+    responseCurve.preallocateSpace(getWidth() * 3);
+    updateResponseCurve();
+}
+
+void ResponseCurveComponent::setFilterMonoChain()
+{
+    for (auto it = audioProcessor.DSPmodules.cbegin(); it < audioProcessor.DSPmodules.cend(); ++it) {
+        auto temp = dynamic_cast<FilterModuleDSP*>(&(**it));
+        if (temp && temp->getChainPosition() == chainPosition) {
+            filterMonoChain = temp->getOneChain();
+        }
+    }
+}
+
+void ResponseCurveComponent::updateResponseCurve()
+{
     auto responseArea = getAnalysysArea();
     auto responseWidth = responseArea.getWidth();
 
@@ -116,7 +142,8 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
         magnitudes[i] = Decibels::gainToDecibels(mag);
     }
 
-    Path responseCurve;
+    responseCurve.clear();
+
     const double outputMin = responseArea.getBottom();
     const double outputMax = responseArea.getY();
     // lambda function
@@ -128,28 +155,6 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     responseCurve.startNewSubPath(responseArea.getX(), map(magnitudes.front()));
     for (size_t i = 1; i < magnitudes.size(); ++i) {
         responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
-    }
-    // drawing response area
-    //g.setColour(Colours::orange);
-    //g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
-    // drawing response curve
-    g.setColour(Colours::white);
-    g.strokePath(responseCurve, PathStrokeType(2.f));
-
-}
-
-void ResponseCurveComponent::resized()
-{
-
-}
-
-void ResponseCurveComponent::setFilterMonoChain()
-{
-    for (auto it = audioProcessor.DSPmodules.cbegin(); it < audioProcessor.DSPmodules.cend(); ++it) {
-        auto temp = dynamic_cast<FilterModuleDSP*>(&(**it));
-        if (temp && temp->getChainPosition() == chainPosition) {
-            filterMonoChain = temp->getOneChain();
-        }
     }
 }
 

@@ -71,6 +71,9 @@ private:
     juce::Atomic<bool> parameterChanged{ false };
     MonoChain* filterMonoChain = nullptr;
     unsigned int chainPosition;
+    juce::Path responseCurve;
+
+    void updateResponseCurve();
 
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysysArea();
