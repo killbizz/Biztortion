@@ -46,14 +46,15 @@ void FFTAnalyzerComponent::paint(juce::Graphics& g)
     g.drawImage(background, getLocalBounds().toFloat());
 
     auto responseArea = getAnalysysArea();
-    auto responseWidth = responseArea.getWidth();
-    auto sampleRate = audioProcessor.getSampleRate();
+
+    g.reduceClipRegion(responseArea);
 
     // FFT ANALYZER
     if (enableFFTanalysis) {
         auto leftChannelFFTPath = leftPathProducer.getPath();
-        leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(),
-            responseArea.getY()));
+        leftChannelFFTPath.applyTransform(AffineTransform()
+            .translated(responseArea.getX(), responseArea.getY())
+        );
         g.setColour(Colours::skyblue);
         g.strokePath(leftChannelFFTPath, PathStrokeType(1));
 
