@@ -13,7 +13,7 @@
 PathProducer::PathProducer(SingleChannelSampleFifo<juce::AudioBuffer<float>>& scsf) :
     leftChannelFifo(&scsf)
 {
-    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048);
+    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order4096);
     monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
 }
 
@@ -23,11 +23,11 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
     while (leftChannelFifo->getNumCompleteBuffersAvailable() > 0) {
         if (leftChannelFifo->getAudioBuffer(tempIncomingBuffer)) {
             // notice that with these operations monoBuffer never changes size
-            auto size = leftChannelFifo->getSize();
+            auto size = tempIncomingBuffer.getNumSamples();
             // left shifting of audio data in the buffer (losting the first block)
             juce::FloatVectorOperations::copy(
                 monoBuffer.getWritePointer(0, 0),
-                monoBuffer.getReadPointer(0, size),
+                monoBuffer.getReadPointer(0, size - 1),
                 monoBuffer.getNumSamples() - size);
             // appending fresh audio data block in the buffer
             juce::FloatVectorOperations::copy(
