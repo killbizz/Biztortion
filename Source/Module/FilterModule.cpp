@@ -61,9 +61,6 @@ FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeSt
 
 void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
 {
-
-    // PRE-FILTER
-
     for (int i = 1; i < 9; ++i) {
         auto lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
             "LowCut Freq " + std::to_string(i),

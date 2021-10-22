@@ -59,7 +59,6 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     newModuleSelector.addItem("Filter", ModuleType::IIRFilter);
     newModuleSelector.addItem("Waveshaper", ModuleType::Waveshaper);
     newModuleSelector.addItem("Bitcrusher", ModuleType::Bitcrusher);
-    newModuleSelector.addItem("Clipper", ModuleType::Clipper);
     newModuleSelector.addItem("Slew Limiter", ModuleType::SlewLimiter);
 
     newModuleSelector.setSelectedId(999);
@@ -115,9 +114,6 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
             audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
             addModuleToGUI(createGUIModule(type));
             newModuleSetup(type);
-            break;
-        }
-        case ModuleType::Clipper: {
             break;
         }
         case ModuleType::SlewLimiter: {
@@ -303,10 +299,6 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
                 typeString = "Bitcrusher";
                 break;
             }
-            case ModuleType::Clipper: {
-                typeString = "Clipper";
-                break;
-            }
             case ModuleType::SlewLimiter: {
                 typeString = "Slew Limiter";
                 break;
@@ -356,9 +348,6 @@ GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
         }
         case ModuleType::Bitcrusher: {
             newModule = new BitcrusherModuleGUI(audioProcessor, getChainPosition());
-            break;
-        }
-        case ModuleType::Clipper: {
             break;
         }
         case ModuleType::SlewLimiter: {
