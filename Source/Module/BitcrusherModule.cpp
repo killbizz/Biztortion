@@ -148,6 +148,12 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         wetBuffer.addFrom(0, 0, noiseBuffer.getReadPointer(0), numSamples);
         wetBuffer.addFrom(1, 0, noiseBuffer.getReadPointer(1), numSamples);
 
+
+        // TODO : frequency-domain bitcrushing (and a way to switch between time/frequency-domain)
+        // parameters: time/freq-domain switch; FFTorder selector; rate/bitRedux performs in the same way in each type of bitcrushing.
+        // see FFTAnalyzerComponent for FFT-related stuff 
+
+
         // Resampling
         for (int chan = 0; chan < wetBuffer.getNumChannels(); chan++)
         {

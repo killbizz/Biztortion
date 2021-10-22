@@ -11,7 +11,7 @@
 /*
   ==============================================================================
 
-    CREDITS for the original Bitcrusher Algorithm
+    CREDITS for the original Time-Domain Bitcrusher Algorithm
     Author: Aaron Leese
     Source: https://youtu.be/1PLn8IAKEb4
 
