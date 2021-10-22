@@ -317,9 +317,6 @@ DSPModule* BiztortionAudioProcessor::createDSPModule(ModuleType mt)
         newModule = new BitcrusherModuleDSP(apvts);
         break;
     }
-    case ModuleType::Clipper: {
-        break;
-    }
     case ModuleType::SlewLimiter: {
         newModule = new SlewLimiterModuleDSP(apvts);
         break;
