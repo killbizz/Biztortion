@@ -20,7 +20,6 @@ enum ModuleType {
     Oscilloscope,
     Waveshaper,
     Bitcrusher,
-    Clipper,
     SlewLimiter
 };
 
@@ -40,4 +39,16 @@ protected:
     // 0 - 9
     unsigned int chainPosition;
     ModuleType moduleType;
+
+    /**
+    * @param    drySignal the original signal before processing
+    * @param    wetSignal the signal after being processed
+    * @param    symmetryAmount determines the percentage of wet signal in the positive or negative part of the waveform
+    * @param    symmetryBias determines the threshold to determine the separation between positive or negative part of the waveform
+    * @param    numSamples determines the number of samples in the buffer
+    */
+    void applyAsymmetry(juce::AudioBuffer<float>& drySignal, juce::AudioBuffer<float>& wetSignal, float symmetryAmount, float symmetryBias, int numSamples);
+
+private:
+    float sumSignals(float drySignal, float dryGain, float wetSignal, float wetGain);
 };
