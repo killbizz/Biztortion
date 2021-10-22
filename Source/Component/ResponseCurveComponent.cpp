@@ -167,6 +167,10 @@ void ResponseCurveComponent::updateChain()
     updateCutFilter(monoChain.get<ChainPositions::HighCut>(),
         highCutCoefficients,
         static_cast<FilterSlope>(chainSettings.highCutSlope));
+
+    monoChain.setBypassed<ChainPositions::Peak>(chainSettings.bypassed);
+    monoChain.setBypassed<ChainPositions::LowCut>(chainSettings.bypassed);
+    monoChain.setBypassed<ChainPositions::HighCut>(chainSettings.bypassed);
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
