@@ -34,7 +34,7 @@ class BiztortionAudioProcessor;
 
 struct SlewLimiterSettings {
     float rise{ 0 }, fall{ 0 };
-    float symmetry{ 0 };
+    float symmetry{ 0 }, bias{ 0 };
     bool bypassed{ false };
 };
 
@@ -54,7 +54,7 @@ public:
 private:
 
     bool bypassed = false;
-    juce::LinearSmoothedValue<float> symmetry;
+    juce::LinearSmoothedValue<float> symmetry, bias;
     juce::LinearSmoothedValue<float> rise, fall;
     juce::AudioBuffer<float> wetBuffer;
 
@@ -63,8 +63,6 @@ private:
     // maximum slope in volts per second
     float slewMax = 10000.f;
     float lastOutput = 0.f;
-
-    float sumSignals(float drySignal, float dryGain, float wetSignal, float wetGain);
 
 };
 
@@ -101,12 +99,15 @@ private:
 
     juce::Label slewLimiterRiseLabel,
         slewLimiterFallLabel,
-        slewLimiterSymmetryLabel;
+        slewLimiterSymmetryLabel,
+        slewLimiterBiasLabel;
     RotarySliderWithLabels slewLimiterRiseSlider,
         slewLimiterFallSlider,
-        slewLimiterSymmetrySlider;
+        slewLimiterSymmetrySlider,
+        slewLimiterBiasSlider;
     Attachment slewLimiterRiseSliderAttachment,
         slewLimiterFallSliderAttachment,
-        slewLimiterSymmetrySliderAttachment;
+        slewLimiterSymmetrySliderAttachment,
+        slewLimiterBiasSliderAttachment;
 
 };
