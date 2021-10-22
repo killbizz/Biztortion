@@ -21,7 +21,6 @@
 ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, unsigned int chainPosition)
     : audioProcessor(p), chainPosition(chainPosition)
 {
-    setFilterMonoChain();
 
     const auto& params = audioProcessor.getParameters();
     for (auto param : params) {
@@ -29,6 +28,8 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, unsi
             param->addListener(this);
         }
     }
+    updateChain();
+
     startTimerHz(60);
 }
 
@@ -49,6 +50,7 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
 void ResponseCurveComponent::timerCallback() {
 
     if (parameterChanged.compareAndSetBool(false, true)) {
+        updateChain();
         updateResponseCurve();
     }
     repaint();
@@ -74,24 +76,14 @@ void ResponseCurveComponent::resized()
     updateResponseCurve();
 }
 
-void ResponseCurveComponent::setFilterMonoChain()
-{
-    for (auto it = audioProcessor.DSPmodules.cbegin(); it < audioProcessor.DSPmodules.cend(); ++it) {
-        auto temp = dynamic_cast<FilterModuleDSP*>(&(**it));
-        if (temp && temp->getChainPosition() == chainPosition) {
-            filterMonoChain = temp->getOneChain();
-        }
-    }
-}
-
 void ResponseCurveComponent::updateResponseCurve()
 {
     auto responseArea = getAnalysysArea();
     auto responseWidth = responseArea.getWidth();
 
-    auto& lowcut = filterMonoChain->get<ChainPositions::LowCut>();
-    auto& peak = filterMonoChain->get<ChainPositions::Peak>();
-    auto& highcut = filterMonoChain->get<ChainPositions::HighCut>();
+    auto& lowcut = monoChain.get<ChainPositions::LowCut>();
+    auto& peak = monoChain.get<ChainPositions::Peak>();
+    auto& highcut = monoChain.get<ChainPositions::HighCut>();
 
     auto sampleRate = audioProcessor.getSampleRate();
 
@@ -108,10 +100,10 @@ void ResponseCurveComponent::updateResponseCurve()
         // normalising pixel number = double(i) / double(responseWidth)
         auto freq = mapToLog10(double(i) / double(responseWidth), 20.0, 20000.0);
         // getting magnitude for each frequency if filter isn't bypassed
-        if (!filterMonoChain->isBypassed<ChainPositions::Peak>()) {
+        if (!monoChain.isBypassed<ChainPositions::Peak>()) {
             mag *= peak.coefficients->getMagnitudeForFrequency(freq, sampleRate);
         }
-        if (!filterMonoChain->isBypassed<ChainPositions::LowCut>()) {
+        if (!monoChain.isBypassed<ChainPositions::LowCut>()) {
             if (!lowcut.isBypassed<0>()) {
                 mag *= lowcut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
             }
@@ -125,7 +117,7 @@ void ResponseCurveComponent::updateResponseCurve()
                 mag *= lowcut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
             }
         }
-        if (!filterMonoChain->isBypassed<ChainPositions::HighCut>()) {
+        if (!monoChain.isBypassed<ChainPositions::HighCut>()) {
             if (!highcut.isBypassed<0>()) {
                 mag *= highcut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
             }
@@ -156,6 +148,25 @@ void ResponseCurveComponent::updateResponseCurve()
     for (size_t i = 1; i < magnitudes.size(); ++i) {
         responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
     }
+}
+
+void ResponseCurveComponent::updateChain()
+{
+    auto chainSettings = FilterModuleDSP::getSettings(audioProcessor.apvts, chainPosition);
+
+    auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+    updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+
+    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, audioProcessor.getSampleRate());
+    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, audioProcessor.getSampleRate());
+
+    updateCutFilter(monoChain.get<ChainPositions::LowCut>(),
+        lowCutCoefficients,
+        static_cast<FilterSlope>(chainSettings.lowCutSlope));
+
+    updateCutFilter(monoChain.get<ChainPositions::HighCut>(),
+        highCutCoefficients,
+        static_cast<FilterSlope>(chainSettings.highCutSlope));
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
