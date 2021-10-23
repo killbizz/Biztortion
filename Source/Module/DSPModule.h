@@ -41,10 +41,13 @@ protected:
     ModuleType moduleType;
 
     /**
+    * Use this function only in distortion modules to apply asymmetry (if symmetryBias !=0)
+    * symmetryBias range is -0.9/+0.9 so select carefully your bias in order to apply the desired asymmetry effect
+    * 
     * @param    drySignal the original signal before processing
     * @param    wetSignal the signal after being processed
     * @param    symmetryAmount determines the percentage of wet signal in the positive or negative part of the waveform
-    * @param    symmetryBias determines the threshold to determine the separation between positive or negative part of the waveform
+    * @param    symmetryBias determines the threshold to determine the separation between positive and negative phase of the waveform
     * @param    numSamples determines the number of samples in the buffer
     */
     void applyAsymmetry(juce::AudioBuffer<float>& drySignal, juce::AudioBuffer<float>& wetSignal, float symmetryAmount, float symmetryBias, int numSamples);
