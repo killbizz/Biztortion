@@ -32,9 +32,6 @@ ModuleType DSPModule::getModuleType()
 
 void DSPModule::applyAsymmetry(juce::AudioBuffer<float>& drySignal, juce::AudioBuffer<float>& wetSignal, float symmetryAmount, float symmetryBias, int numSamples)
 {
-
-    // TO FIX
-
     float dryGain = std::abs(symmetryAmount);
     float wetGain = 1 - dryGain;
 
