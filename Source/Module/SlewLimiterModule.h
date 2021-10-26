@@ -35,8 +35,10 @@ class BiztortionAudioProcessor;
 struct SlewLimiterSettings {
     float rise{ 0 }, fall{ 0 };
     float symmetry{ 0 }, bias{ 0 };
-    bool bypassed{ false };
+    bool bypassed{ false }, DCoffsetRemove{ false };
 };
+
+using Filter = juce::dsp::IIR::Filter<float>;
 
 
 class SlewLimiterModuleDSP : public DSPModule {
@@ -57,11 +59,13 @@ private:
     juce::LinearSmoothedValue<float> symmetry, bias;
     juce::LinearSmoothedValue<float> rise, fall;
     juce::AudioBuffer<float> wetBuffer;
+    Filter leftDCoffsetRemoveHPF, rightDCoffsetRemoveHPF;
+    bool DCoffsetRemoveEnabled = false;
 
     // minimum slope in volts per second
-    float slewMin = 0.1f;
+    const float slewMin = 0.1f;
     // maximum slope in volts per second
-    float slewMax = 10000.f;
+    const float slewMax = 10000.f;
     float lastOutput = 0.f;
 
 };
@@ -96,6 +100,10 @@ private:
     PowerButton bypassButton;
     ButtonAttachment bypassButtonAttachment;
     ButtonsLookAndFeel lnf;
+
+    juce::ToggleButton DCoffsetEnabledButton;
+    ButtonAttachment DCoffsetEnabledButtonAttachment;
+    juce::Label DCoffsetEnabledButtonLabel;
 
     juce::Label slewLimiterRiseLabel,
         slewLimiterFallLabel,
