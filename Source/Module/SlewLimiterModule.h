@@ -33,8 +33,8 @@ class BiztortionAudioProcessor;
 //==============================================================================
 
 struct SlewLimiterSettings {
+    float symmetry{ 0 }, bias{ 0 }, drive{ 0 }, mix{ 0 };
     float rise{ 0 }, fall{ 0 };
-    float symmetry{ 0 }, bias{ 0 };
     bool bypassed{ false }, DCoffsetRemove{ false };
 };
 
@@ -57,8 +57,9 @@ private:
 
     bool bypassed = false;
     juce::LinearSmoothedValue<float> symmetry, bias;
+    juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rise, fall;
-    juce::AudioBuffer<float> wetBuffer;
+    juce::AudioBuffer<float> wetBuffer, tempBuffer;
     Filter leftDCoffsetRemoveHPF, rightDCoffsetRemoveHPF;
     bool DCoffsetRemoveEnabled = false;
 
@@ -105,17 +106,23 @@ private:
     ButtonAttachment DCoffsetEnabledButtonAttachment;
     juce::Label DCoffsetEnabledButtonLabel;
 
-    juce::Label slewLimiterRiseLabel,
-        slewLimiterFallLabel,
-        slewLimiterSymmetryLabel,
-        slewLimiterBiasLabel;
-    RotarySliderWithLabels slewLimiterRiseSlider,
-        slewLimiterFallSlider,
-        slewLimiterSymmetrySlider,
-        slewLimiterBiasSlider;
-    Attachment slewLimiterRiseSliderAttachment,
-        slewLimiterFallSliderAttachment,
-        slewLimiterSymmetrySliderAttachment,
-        slewLimiterBiasSliderAttachment;
+    juce::Label driveLabel,
+        mixLabel,
+        symmetryLabel,
+        biasLabel,
+        slewLimiterRiseLabel,
+        slewLimiterFallLabel;
+    RotarySliderWithLabels driveSlider,
+        mixSlider,
+        symmetrySlider,
+        biasSlider,
+        slewLimiterRiseSlider,
+        slewLimiterFallSlider;
+    Attachment driveSliderAttachment,
+        mixSliderAttachment,
+        symmetrySliderAttachment,
+        biasSliderAttachment,
+        slewLimiterRiseSliderAttachment,
+        slewLimiterFallSliderAttachment;
 
 };

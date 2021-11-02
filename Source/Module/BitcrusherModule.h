@@ -33,7 +33,9 @@ class BiztortionAudioProcessor;
 //==============================================================================
 
 struct BitcrusherSettings {
-    float mix{ 0 }, rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
+    float mix{ 0 }, drive{ 0 };
+    float symmetry{ 0 }, bias{ 0 };
+    float rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
     bool bypassed{ false };
 };
 
@@ -55,8 +57,9 @@ public:
 private:
 
     bool bypassed = false;
-    juce::AudioBuffer<float> wetBuffer, noiseBuffer;
-    juce::LinearSmoothedValue<float> dryGain, wetGain, dither;
+    juce::AudioBuffer<float> wetBuffer, noiseBuffer, tempBuffer;
+    juce::LinearSmoothedValue<float> symmetry, bias;
+    juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain, dither;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
 
 };
@@ -88,15 +91,24 @@ private:
     BiztortionAudioProcessor& audioProcessor;
     juce::Label title;
 
-    juce::Label bitcrusherMixLabel,
+    juce::Label driveLabel,
+        mixLabel,
+        symmetryLabel,
+        biasLabel,
         bitcrusherDitherLabel,
         bitcrusherRateReduxLabel,
         bitcrusherBitReduxLabel;
-    RotarySliderWithLabels bitcrusherMixSlider,
+    RotarySliderWithLabels driveSlider,
+        mixSlider,
+        symmetrySlider,
+        biasSlider,
         bitcrusherDitherSlider,
         bitcrusherRateReduxSlider,
         bitcrusherBitReduxSlider;
-    Attachment bitcrusherMixSliderAttachment,
+    Attachment driveSliderAttachment,
+        mixSliderAttachment,
+        symmetrySliderAttachment,
+        biasSliderAttachment,
         bitcrusherDitherSliderAttachment,
         bitcrusherRateReduxSliderAttachment,
         bitcrusherBitReduxSliderAttachment;

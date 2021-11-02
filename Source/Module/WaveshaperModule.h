@@ -34,7 +34,8 @@ class BiztortionAudioProcessor;
 //==============================================================================
 
 struct WaveshaperSettings {
-    float mix{ 0 }, drive{ 0 }, tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
+    float mix{ 0 }, drive{ 0 }, symmetry{ 0 }, bias{ 0 };
+    float tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
     bool bypassed{ false };
 };
 
@@ -99,7 +100,8 @@ public:
 private:
 
     bool bypassed = false;
-    juce::AudioBuffer<float> wetBuffer;
+    juce::AudioBuffer<float> wetBuffer, tempBuffer;
+    juce::LinearSmoothedValue<float> symmetry, bias;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> tanhAmp, tanhSlope, sineAmp, sineFreq;
 
@@ -140,20 +142,26 @@ private:
 
     TransferFunctionGraphComponent transferFunctionGraph;
     // juce::LookAndFeel_V4 lookAndFeel1, lookAndFeel2, lookAndFeel3;
-    juce::Label waveshaperDriveLabel,
-        waveshaperMixLabel,
+    juce::Label driveLabel,
+        mixLabel,
+        symmetryLabel,
+        biasLabel,
         tanhAmpLabel,
         tanhSlopeLabel,
         sineAmpLabel,
         sineFreqLabel;
-    RotarySliderWithLabels waveshaperDriveSlider,
-        waveshaperMixSlider,
+    RotarySliderWithLabels driveSlider,
+        mixSlider,
+        symmetrySlider,
+        biasSlider,
         tanhAmpSlider,
         tanhSlopeSlider,
         sineAmpSlider,
         sineFreqSlider;
-    Attachment waveshaperDriveSliderAttachment,
-        waveshaperMixSliderAttachment,
+    Attachment driveSliderAttachment,
+        mixSliderAttachment,
+        symmetrySliderAttachment,
+        biasSliderAttachment,
         tanhAmpSliderAttachment,
         tanhSlopeSliderAttachment,
         sineAmpSliderAttachment,

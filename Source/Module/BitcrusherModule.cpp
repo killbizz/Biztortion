@@ -8,15 +8,6 @@
   ==============================================================================
 */
 
-/*
-  ==============================================================================
-
-    CREDITS for the original Bitcrusher Algorithm
-    Author: Aaron Leese
-    Source: https://youtu.be/1PLn8IAKEb4
-
-  ==============================================================================
-*/
 
 #include "BitcrusherModule.h"
 #include "../PluginProcessor.h"
@@ -96,19 +87,23 @@ void BitcrusherModuleDSP::updateDSPState(double sampleRate)
 
     bypassed = settings.bypassed;
 
-    rateRedux.setTargetValue(settings.rateRedux);
-    bitRedux.setTargetValue(settings.bitRedux);
-    dither.setTargetValue(settings.dither * 0.01f);
-
     auto mix = settings.mix * 0.01f;
     dryGain.setTargetValue(1.f - mix);
     wetGain.setTargetValue(mix);
+    driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
+    symmetry.setTargetValue(settings.symmetry * 0.01f);
+    bias.setTargetValue(settings.bias * 0.01f);
+
+    rateRedux.setTargetValue(settings.rateRedux);
+    bitRedux.setTargetValue(settings.bitRedux);
+    dither.setTargetValue(settings.dither * 0.01f);
 }
 
 void BitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     noiseBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
+    tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     updateDSPState(sampleRate);
 }
 
@@ -125,6 +120,7 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         {
             wetBuffer.setSize(2, numSamples, false, true, true); // clears
             noiseBuffer.setSize(2, numSamples, false, true, true); // clears
+            tempBuffer.setSize(2, numSamples, false, true, true); // clears
         }
 
         // PROCESSING
@@ -132,6 +128,13 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         // Wet Buffer feeding
         for (auto channel = 0; channel < 2; channel++)
             wetBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
+
+        // Drive
+        driveGain.applyGain(wetBuffer, numSamples);
+
+        // Temp Buffer feeding for applying asymmetry
+        for (auto channel = 0; channel < 2; channel++)
+            tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);
 
         // Noise building
         noiseBuffer.clear();
@@ -178,12 +181,14 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
             }
         }
 
+        applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
+
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
-        wetGain.applyGain(wetBuffer, numSamples);
+        wetGain.applyGain(tempBuffer, numSamples);
 
         for (auto channel = 0; channel < 2; channel++)
-            buffer.addFrom(channel, 0, wetBuffer, channel, 0, numSamples);
+            buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
     }
 }
 
@@ -192,11 +197,13 @@ void BitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
     using namespace juce;
 
     for (int i = 1; i < 9; ++i) {
+        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Drive " + std::to_string(i), "Bitcrusher Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Mix " + std::to_string(i), "Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Symmetry " + std::to_string(i), "Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bias " + std::to_string(i), "Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-90.f, 90.f, 1.f), 0.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Rate Redux " + std::to_string(i), "Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bit Redux " + std::to_string(i), "Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Dither " + std::to_string(i), "Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
-        // bypass button
         layout.add(std::make_unique<AudioParameterBool>("Bitcrusher Bypassed " + std::to_string(i), "Bitcrusher Bypassed " + std::to_string(i), false, "Bitcrusher " + std::to_string(i)));
     }
 }
@@ -205,7 +212,10 @@ BitcrusherSettings BitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTre
 {
     BitcrusherSettings settings;
 
+    settings.drive = apvts.getRawParameterValue("Bitcrusher Drive " + std::to_string(chainPosition))->load();
     settings.mix = apvts.getRawParameterValue("Bitcrusher Mix " + std::to_string(chainPosition))->load();
+    settings.symmetry = apvts.getRawParameterValue("Bitcrusher Symmetry " + std::to_string(chainPosition))->load();
+    settings.bias = apvts.getRawParameterValue("Bitcrusher Bias " + std::to_string(chainPosition))->load();
     settings.rateRedux = apvts.getRawParameterValue("Bitcrusher Rate Redux " + std::to_string(chainPosition))->load();
     settings.bitRedux = apvts.getRawParameterValue("Bitcrusher Bit Redux " + std::to_string(chainPosition))->load();
     settings.dither = apvts.getRawParameterValue("Bitcrusher Dither " + std::to_string(chainPosition))->load();
@@ -222,11 +232,17 @@ BitcrusherSettings BitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTre
 
 BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition)
     : GUIModule(), audioProcessor(p),
-    bitcrusherMixSlider(*audioProcessor.apvts.getParameter("Bitcrusher Mix " + std::to_string(chainPosition)), "%"),
+    driveSlider(*audioProcessor.apvts.getParameter("Bitcrusher Drive " + std::to_string(chainPosition)), "dB"),
+    mixSlider(*audioProcessor.apvts.getParameter("Bitcrusher Mix " + std::to_string(chainPosition)), "%"),
+    symmetrySlider(*audioProcessor.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(chainPosition)), "%"),
+    biasSlider(*audioProcessor.apvts.getParameter("Bitcrusher Bias " + std::to_string(chainPosition)), ""),
     bitcrusherDitherSlider(*audioProcessor.apvts.getParameter("Bitcrusher Dither " + std::to_string(chainPosition)), "%"),
     bitcrusherRateReduxSlider(*audioProcessor.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(chainPosition)), "Hz"),
     bitcrusherBitReduxSlider(*audioProcessor.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(chainPosition)), ""),
-    bitcrusherMixSliderAttachment(audioProcessor.apvts, "Bitcrusher Mix " + std::to_string(chainPosition), bitcrusherMixSlider),
+    driveSliderAttachment(audioProcessor.apvts, "Bitcrusher Drive " + std::to_string(chainPosition), driveSlider),
+    mixSliderAttachment(audioProcessor.apvts, "Bitcrusher Mix " + std::to_string(chainPosition), mixSlider),
+    symmetrySliderAttachment(audioProcessor.apvts, "Bitcrusher Symmetry " + std::to_string(chainPosition), symmetrySlider),
+    biasSliderAttachment(audioProcessor.apvts, "Bitcrusher Bias " + std::to_string(chainPosition), biasSlider),
     bitcrusherDitherSliderAttachment(audioProcessor.apvts, "Bitcrusher Dither " + std::to_string(chainPosition), bitcrusherDitherSlider),
     bitcrusherRateReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Rate Redux " + std::to_string(chainPosition), bitcrusherRateReduxSlider),
     bitcrusherBitReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Bit Redux " + std::to_string(chainPosition), bitcrusherBitReduxSlider),
@@ -237,8 +253,14 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
     title.setFont(24);
 
     // labels
-    bitcrusherMixLabel.setText("Mix", juce::dontSendNotification);
-    bitcrusherMixLabel.setFont(10);
+    driveLabel.setText("Drive", juce::dontSendNotification);
+    driveLabel.setFont(10);
+    mixLabel.setText("Mix", juce::dontSendNotification);
+    mixLabel.setFont(10);
+    symmetryLabel.setText("Symmetry", juce::dontSendNotification);
+    symmetryLabel.setFont(10);
+    biasLabel.setText("Bias", juce::dontSendNotification);
+    biasLabel.setFont(10);
     bitcrusherDitherLabel.setText("Dither", juce::dontSendNotification);
     bitcrusherDitherLabel.setFont(10);
     bitcrusherRateReduxLabel.setText("SampleRate Redux", juce::dontSendNotification);
@@ -246,8 +268,14 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
     bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
     bitcrusherBitReduxLabel.setFont(10);
 
-    bitcrusherMixSlider.labels.add({ 0.f, "0%" });
-    bitcrusherMixSlider.labels.add({ 1.f, "100%" });
+    driveSlider.labels.add({ 0.f, "0dB" });
+    driveSlider.labels.add({ 1.f, "40dB" });
+    mixSlider.labels.add({ 0.f, "0%" });
+    mixSlider.labels.add({ 1.f, "100%" });
+    symmetrySlider.labels.add({ 0.f, "-100%" });
+    symmetrySlider.labels.add({ 1.f, "+100%" });
+    biasSlider.labels.add({ 0.f, "-0.9" });
+    biasSlider.labels.add({ 1.f, "+0.9" });
     bitcrusherDitherSlider.labels.add({ 0.f, "0%" });
     bitcrusherDitherSlider.labels.add({ 1.f, "100%" });
     bitcrusherRateReduxSlider.labels.add({ 0.f, "100Hz" });
@@ -264,7 +292,10 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
         {
             auto bypassed = comp->bypassButton.getToggleState();
 
-            comp->bitcrusherMixSlider.setEnabled(!bypassed);
+            comp->driveSlider.setEnabled(!bypassed);
+            comp->mixSlider.setEnabled(!bypassed);
+            comp->symmetrySlider.setEnabled(!bypassed);
+            comp->biasSlider.setEnabled(!bypassed);
             comp->bitcrusherDitherSlider.setEnabled(!bypassed);
             comp->bitcrusherRateReduxSlider.setEnabled(!bypassed);
             comp->bitcrusherBitReduxSlider.setEnabled(!bypassed);
@@ -303,46 +334,80 @@ void BitcrusherModuleGUI::resized()
 
     auto titleAndBypassArea = bitcrusherArea.removeFromTop(30);
 
-    auto bitcrusherMixDitherControlsArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
-    auto MixDitherControlsLabelsArea = bitcrusherMixDitherControlsArea.removeFromTop(12);
-    auto mixLabelArea = MixDitherControlsLabelsArea.removeFromLeft(MixDitherControlsLabelsArea.getWidth() * (1.f / 2.f));
-    auto ditherLabelArea = MixDitherControlsLabelsArea;
+    auto topArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
+    auto bottomArea = bitcrusherArea;
 
-    auto bitcrusherRateBitControlsArea = bitcrusherArea;
-    auto RateBitControlsLabelsArea = bitcrusherRateBitControlsArea.removeFromTop(12);
-    auto rateLabelArea = RateBitControlsLabelsArea.removeFromLeft(RateBitControlsLabelsArea.getWidth() * (1.f / 2.f));
-    auto bitLabelArea = RateBitControlsLabelsArea;
+    auto topLabelsArea = topArea.removeFromTop(12);
+    auto bottomLabelsArea = bottomArea.removeFromTop(12);
+
+    // label areas
+    temp = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
+    auto driveLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto mixLabelArea = temp;
+    auto symmetryLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
+    auto biasLabelArea = topLabelsArea;
+    auto rateLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 3.f));
+    auto bitLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
+    auto ditherLabelArea = bottomLabelsArea;
+
+    // slider areas
+    temp = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
+    auto driveArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto mixArea = temp;
+    auto symmetryArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
+    auto biasArea = topArea;
+    auto rateArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 3.f));
+    auto bitArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
+    auto ditherArea = bottomArea;
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centred);
 
-    bitcrusherMixSlider.setBounds(bitcrusherMixDitherControlsArea.removeFromLeft(bitcrusherMixDitherControlsArea.getWidth() * (1.f / 2.f)));
-    bitcrusherMixLabel.setBounds(mixLabelArea);
-    bitcrusherMixLabel.setJustificationType(juce::Justification::centred);
+    driveSlider.setBounds(driveArea);
+    driveLabel.setBounds(driveLabelArea);
+    driveLabel.setJustificationType(juce::Justification::centred);
 
-    bitcrusherDitherSlider.setBounds(bitcrusherMixDitherControlsArea);
-    bitcrusherDitherLabel.setBounds(ditherLabelArea);
-    bitcrusherDitherLabel.setJustificationType(juce::Justification::centred);
+    mixSlider.setBounds(mixArea);
+    mixLabel.setBounds(mixLabelArea);
+    mixLabel.setJustificationType(juce::Justification::centred);
 
-    bitcrusherRateReduxSlider.setBounds(bitcrusherRateBitControlsArea.removeFromLeft(bitcrusherRateBitControlsArea.getWidth() * (1.f / 2.f)));
+    symmetrySlider.setBounds(symmetryArea);
+    symmetryLabel.setBounds(symmetryLabelArea);
+    symmetryLabel.setJustificationType(juce::Justification::centred);
+
+    biasSlider.setBounds(biasArea);
+    biasLabel.setBounds(biasLabelArea);
+    biasLabel.setJustificationType(juce::Justification::centred);
+
+    bitcrusherRateReduxSlider.setBounds(rateArea);
     bitcrusherRateReduxLabel.setBounds(rateLabelArea);
     bitcrusherRateReduxLabel.setJustificationType(juce::Justification::centred);
 
-    bitcrusherBitReduxSlider.setBounds(bitcrusherRateBitControlsArea);
+    bitcrusherBitReduxSlider.setBounds(bitArea);
     bitcrusherBitReduxLabel.setBounds(bitLabelArea);
     bitcrusherBitReduxLabel.setJustificationType(juce::Justification::centred);
+
+    bitcrusherDitherSlider.setBounds(ditherArea);
+    bitcrusherDitherLabel.setBounds(ditherLabelArea);
+    bitcrusherDitherLabel.setJustificationType(juce::Justification::centred);
 }
 
 std::vector<juce::Component*> BitcrusherModuleGUI::getComps()
 {
     return {
         &title,
-        &bitcrusherMixSlider,
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
         &bitcrusherDitherSlider,
         &bitcrusherRateReduxSlider,
         &bitcrusherBitReduxSlider,
         // labels
-        &bitcrusherMixLabel,
+        &driveLabel,
+        &mixLabel,
+        &symmetryLabel,
+        &biasLabel,
         &bitcrusherDitherLabel,
         &bitcrusherRateReduxLabel,
         &bitcrusherBitReduxLabel,
