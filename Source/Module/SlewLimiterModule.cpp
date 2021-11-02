@@ -94,6 +94,8 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
         float slewRise = slewMax * Ts * std::pow(slewMin / slewMax, rise.getNextValue());
         float slewFall = slewMax * Ts * std::pow(slewMin / slewMax, fall.getNextValue());
 
+        // TODO : aggiungo MIX tra 2 diverse computazioni dei valori slewRise e slewFall per diversi effetti
+
         // trying to compute slewRise/Fall values with different functions (exponential is the best)
         //float slewRise = 0.000001f / rise.getNextValue();
         //float slewFall = 0.000001f / fall.getNextValue();
