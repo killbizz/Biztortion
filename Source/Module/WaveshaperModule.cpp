@@ -8,16 +8,6 @@
   ==============================================================================
 */
 
-/*
-  ==============================================================================
-
-    CREDITS for the original Waveshaper Algorithm
-    Author: Daniele Filaretti
-    Source: https://github.com/dfilaretti/waveshaper-demo
-
-  ==============================================================================
-*/
-
 #include "WaveshaperModule.h"
 #include "../PluginProcessor.h"
 
@@ -293,7 +283,7 @@ void WaveshaperModuleGUI::resized()
 
     auto titleAndBypassArea = waveshaperArea.removeFromTop(30);
 
-    auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (1.f / 3.f));
+    auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (4.f / 10.f));
     waveshaperGraphArea.reduce(10, 10);
 
     auto topArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
