@@ -2,8 +2,8 @@
   ==============================================================================
 
     SlewLimiterModule.h
-    Created: 8 Oct 2021 3:54:07pm
-    Author:  gabri
+
+    Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
   ==============================================================================
 */
@@ -11,11 +11,30 @@
 /*
   ==============================================================================
 
-    CREDITS for the original Slew Limiter Algorithm
-    Author: Ivan Cohen
-    Source: https://www.youtube.com/watch?v=oIChUOV_0w4&t=1787s&ab_channel=JUCE
+    Copyright (c) 2017 Ivan Cohen
+    Content: the original Slew Limiter Algorithm
+    Source: https://www.dropbox.com/s/cjq4t08u6pqkaas/ADC17FiftyShadesDistortion.zip?dl=0
 
   ==============================================================================
+*/
+
+/*
+
+This file is part of Biztortion software.
+
+Biztortion is free software : you can redistribute it and /or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Biztortion is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
+
 */
 
 #pragma once

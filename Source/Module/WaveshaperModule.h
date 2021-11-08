@@ -2,8 +2,8 @@
   ==============================================================================
 
     WaveshaperModule.h
-    Created: 26 Aug 2021 12:05:19pm
-    Author:  gabri
+
+    Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
   ==============================================================================
 */
@@ -11,11 +11,30 @@
 /*
   ==============================================================================
 
-    CREDITS for the original Waveshaper Algorithm
-    Author: Daniele Filaretti
+    Copyright (c) 2018 Daniele Filaretti
+    Content: the original Waveshaper Algorithm
     Source: https://github.com/dfilaretti/waveshaper-demo
 
   ==============================================================================
+*/
+
+/*
+
+This file is part of Biztortion software.
+
+Biztortion is free software : you can redistribute it and /or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Biztortion is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
+
 */
 
 #pragma once
