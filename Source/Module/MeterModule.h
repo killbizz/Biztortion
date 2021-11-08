@@ -34,7 +34,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class BiztortionAudioProcessor;
 #include "../Module/GUIModule.h"
 #include "../Module/DSPModule.h"
-#include "../Component/GUIStuff.h"
+#include "../Shared/GUIStuff.h"
 
 //==============================================================================
 

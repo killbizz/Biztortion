@@ -28,14 +28,18 @@
       <FILE id="fpEDT4" name="male-head-hair-and-beard.svg" compile="0" resource="1"
             file="Resources/male-head-hair-and-beard.svg"/>
     </GROUP>
+    <GROUP id="{1EB1396D-205F-E8C7-A7A8-563F6CB61930}" name="Shared">
+      <FILE id="pwKpkP" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/Shared/FFTAnalyzer.cpp"/>
+      <FILE id="t6vFMt" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/Shared/FFTAnalyzer.h"/>
+      <FILE id="Mev1RA" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
+      <FILE id="JIHJUn" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
+    </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
       <GROUP id="{D0A202A6-9C7E-68CA-1A7B-EA022F0173D3}" name="Component">
         <FILE id="vB1U6r" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
               file="Source/Component/FFTAnalyzerComponent.cpp"/>
         <FILE id="MSXX8U" name="FFTAnalyzerComponent.h" compile="0" resource="0"
               file="Source/Component/FFTAnalyzerComponent.h"/>
-        <FILE id="PaLARG" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Component/GUIStuff.cpp"/>
-        <FILE id="vpgs5z" name="GUIStuff.h" compile="0" resource="0" file="Source/Component/GUIStuff.h"/>
         <FILE id="BQ82k4" name="ResponseCurveComponent.cpp" compile="1" resource="0"
               file="Source/Component/ResponseCurveComponent.cpp"/>
         <FILE id="SQvwHy" name="ResponseCurveComponent.h" compile="0" resource="0"
@@ -77,8 +81,6 @@
               file="Source/Module/WelcomeModule.cpp"/>
         <FILE id="RPIQV1" name="WelcomeModule.h" compile="0" resource="0" file="Source/Module/WelcomeModule.h"/>
       </GROUP>
-      <FILE id="Lcm8LE" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/FFTAnalyzer.cpp"/>
-      <FILE id="tEMxkJ" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/FFTAnalyzer.h"/>
       <FILE id="ZIXKn6" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="of0qUf" name="PluginProcessor.h" compile="0" resource="0"

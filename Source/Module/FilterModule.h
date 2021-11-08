@@ -45,7 +45,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "DSPModule.h"
 #include "../Component/ResponseCurveComponent.h"
 #include "../Component/FFTAnalyzerComponent.h"
-#include "../Component/GUIStuff.h"
+#include "../Shared/GUIStuff.h"
 
 //==============================================================================
 

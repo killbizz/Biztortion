@@ -40,7 +40,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
-#include "../FFTAnalyzer.h"
+#include "../Shared/FFTAnalyzer.h"
 
 class BiztortionAudioProcessor;
 

@@ -41,7 +41,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "PluginProcessor.h"
 #include "Component/FFTAnalyzerComponent.h"
 #include "Component/TransferFunctionGraphComponent.h"
-#include "Component/GUIStuff.h"
+#include "Shared/GUIStuff.h"
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
 #include "Module/NewModule.h"

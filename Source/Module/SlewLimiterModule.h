@@ -42,7 +42,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include <JuceHeader.h>
 #include "DSPModule.h"
 #include "GUIModule.h"
-#include "../Component/GUIStuff.h"
+#include "../Shared/GUIStuff.h"
 class BiztortionAudioProcessor;
 
 //==============================================================================
