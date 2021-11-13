@@ -28,13 +28,13 @@
       <FILE id="fpEDT4" name="male-head-hair-and-beard.svg" compile="0" resource="1"
             file="Resources/male-head-hair-and-beard.svg"/>
     </GROUP>
-    <GROUP id="{1EB1396D-205F-E8C7-A7A8-563F6CB61930}" name="Shared">
-      <FILE id="pwKpkP" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/Shared/FFTAnalyzer.cpp"/>
-      <FILE id="t6vFMt" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/Shared/FFTAnalyzer.h"/>
-      <FILE id="Mev1RA" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
-      <FILE id="JIHJUn" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
-    </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
+      <GROUP id="{3CE862F7-9551-DF55-4209-CE64AF968F62}" name="Shared">
+        <FILE id="A3PsK4" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/Shared/FFTAnalyzer.cpp"/>
+        <FILE id="mVJRiw" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/Shared/FFTAnalyzer.h"/>
+        <FILE id="szjAV1" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
+        <FILE id="wPGj1Y" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
+      </GROUP>
       <GROUP id="{D0A202A6-9C7E-68CA-1A7B-EA022F0173D3}" name="Component">
         <FILE id="vB1U6r" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
               file="Source/Component/FFTAnalyzerComponent.cpp"/>
