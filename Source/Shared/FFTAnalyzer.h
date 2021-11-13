@@ -331,7 +331,7 @@ private:
     Fifo<PathType> pathFifo;
 };
 
-// class for a single channel fft analyzer
+// class for a single channel fft analyzer path producer
 struct PathProducer
 {
     PathProducer(SingleChannelSampleFifo<juce::AudioBuffer<float>>& scsf);

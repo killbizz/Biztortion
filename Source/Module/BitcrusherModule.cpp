@@ -184,6 +184,16 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         // TODO : frequency-domain bitcrushing (and a way to switch between time/frequency-domain)
         // parameters: time/freq-domain switch; FFTorder selector; rate/bitRedux performs in the same way in each type of bitcrushing.
         // see FFTAnalyzerComponent for FFT-related stuff 
+        // https://forum.juce.com/t/issue-with-fft-plugin-inverse-transformation/16630/3
+        // https://forum.juce.com/t/fft-amplitude/28574
+        // tips:
+        // - gestisco analisi FFT come nel FilterModule (dando la possibiliyà di scelta all'utente tra diversi FFT-order)
+        // - faccio algoritmo che in base al bufferSize e al FFT-order effettui un delay iniziale della riproduzione in quanto non c'è abbastanza informazione per 
+        //   effettuare una corretta analisi FFT
+        // - delay del segnale = aggiunta di 0.f in tutti i sample del buffer in uscita
+        // - nel caso in cui il param mix > 0% devo ritardare la riproduzione anche del segnale dry !!
+        // - minore FFT-order => minor delay del segnale
+        // - per implementare questo algoritmo guardo FFTAnalyzerComponent + https://docs.juce.com/master/tutorial_simple_fft.html
 
 
         // Resampling
