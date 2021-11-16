@@ -114,7 +114,7 @@ MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
     levelSliderAttachment(audioProcessor.apvts, type + " Meter Level", levelSlider)
 {
     meterTitle.setText(type, juce::dontSendNotification);
-    meterTitle.setFont(14);
+    meterTitle.setFont(juce::Font("Prestige Elite Std", 14, 0));
     addAndMakeVisible(meterTitle);
 
     // custom colors

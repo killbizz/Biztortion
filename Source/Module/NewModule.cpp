@@ -44,7 +44,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
 
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
-    chainPositionLabel.setFont(10);
+    chainPositionLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     addAndMakeVisible(chainPositionLabel);
 
     // newModule

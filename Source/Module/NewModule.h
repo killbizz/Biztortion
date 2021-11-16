@@ -73,7 +73,7 @@ public:
 
     // deleteModule
     ModuleLookAndFeel deleteModuleLookAndFeel;
-    juce::TextButton deleteModule{ "x" };
+    juce::TextButton deleteModule{ "X" };
 
     // currentModuleActivator
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;

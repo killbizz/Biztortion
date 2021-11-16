@@ -53,6 +53,12 @@ using namespace juce;
 
 struct ModuleLookAndFeel : public LookAndFeel_V4
 {
+
+    Font getTextButtonFont(TextButton&, int buttonHeight) override
+    {
+        return juce::Font("Prestige Elite Std", buttonHeight*0.35f, 0);
+    }
+
     void drawRoundThumb(Graphics& g, float x, float y, float diameter, Colour colour, float outlineThickness)
     {
         auto halfThickness = outlineThickness * 0.5f;
