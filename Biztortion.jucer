@@ -24,7 +24,10 @@
       <FILE id="DvCLrn" name="AudioCableViola.png" compile="0" resource="1"
             file="Resources/AudioCableViola.png"/>
       <FILE id="RtnMV3" name="bigNose1.svg" compile="0" resource="1" file="Resources/bigNose1.svg"/>
-      <FILE id="VgvQ0L" name="bigNose2.svg" compile="0" resource="1" file="Resources/bigNose2.svg"/>
+      <FILE id="q2VoZL" name="biztortionLogo.png" compile="0" resource="1"
+            file="Resources/biztortionLogo.png"/>
+      <FILE id="WaH5M9" name="biztortionNoseAlpha.png" compile="0" resource="1"
+            file="Resources/biztortionNoseAlpha.png"/>
       <FILE id="fpEDT4" name="male-head-hair-and-beard.svg" compile="0" resource="1"
             file="Resources/male-head-hair-and-beard.svg"/>
     </GROUP>
@@ -92,7 +95,7 @@
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <VS2019 targetFolder="Builds/VisualStudio2019">
+    <VS2019 targetFolder="Builds/VisualStudio2019" smallIcon="q2VoZL" bigIcon="q2VoZL">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="Biztortion"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="Biztortion"/>
@@ -116,7 +119,7 @@
         <MODULEPATH id="ff_meters" path="../../../LIBRERIA/Coding"/>
       </MODULEPATHS>
     </VS2019>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="q2VoZL" bigIcon="q2VoZL">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>
