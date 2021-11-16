@@ -40,7 +40,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), githubLink("GitHub", {"https://github.com/killbizz"})
+    : AudioProcessorEditor (&p), audioProcessor (p), githubLink("About", {"https://github.com/killbizz"})
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
