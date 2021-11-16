@@ -187,13 +187,14 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         // https://forum.juce.com/t/issue-with-fft-plugin-inverse-transformation/16630/3
         // https://forum.juce.com/t/fft-amplitude/28574
         // tips:
-        // - gestisco analisi FFT come nel FilterModule (dando la possibiliyà di scelta all'utente tra diversi FFT-order)
+        // - gestisco analisi FFT come nel FilterModule (possibilità di scelta all'utente tra diversi FFT-order, inizialmente fisso 1024)
         // - faccio algoritmo che in base al bufferSize e al FFT-order effettui un delay iniziale della riproduzione in quanto non c'è abbastanza informazione per 
         //   effettuare una corretta analisi FFT
         // - delay del segnale = aggiunta di 0.f in tutti i sample del buffer in uscita
         // - nel caso in cui il param mix > 0% devo ritardare la riproduzione anche del segnale dry !!
-        // - minore FFT-order => minor delay del segnale
-        // - per implementare questo algoritmo guardo FFTAnalyzerComponent + https://docs.juce.com/master/tutorial_simple_fft.html
+        // - minore FFT-order - bufferSize => minor delay del segnale
+        // - outputBuffer[i+(2^fft-order / bufferSIze)] = modifiedBuffer[i] -> considerando outputBuffer e modifiedBuffer come array di buffer
+        // - risorse utili: FFTAnalyzerComponent + https://docs.juce.com/master/tutorial_simple_fft.html
 
 
         // Resampling

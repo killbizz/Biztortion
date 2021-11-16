@@ -12,7 +12,7 @@
   ==============================================================================
 
     Copyright (c) 2021 Charles Schiermeyer
-    Content: the original FFT Analyzer Algorithm
+    Content: Fifo, SingleChannelSampleFifo, FFTDataGenerator, AnalyzerPathGenerator; PathProducer
     Source: https://github.com/matkatmusic/SimpleEQ
 
   ==============================================================================
