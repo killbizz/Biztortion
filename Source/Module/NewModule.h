@@ -37,6 +37,22 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class BiztortionAudioProcessor;
 class BiztortionAudioProcessorEditor;
 
+class BizComboBox : public juce::ComboBox {
+public:
+    BizComboBox(juce::TextButton* nm) {
+        newModule = nm;
+    }
+
+    void focusLost(juce::Component::FocusChangeType ct) override {
+        hidePopup();
+        setVisible(false);
+        juce::ComboBox::focusLost(ct);
+        newModule->setToggleState(false, juce::NotificationType::dontSendNotification);
+    }
+private:
+    juce::TextButton* newModule;
+};
+
 //==============================================================================
 
 /* NewModule GUI */
@@ -66,10 +82,10 @@ public:
     void resetButtonsColors();
 
     // newModule
-    ModuleLookAndFeel newModuleSelectorLookAndFeel;
-    juce::ComboBox newModuleSelector;
     ModuleLookAndFeel newModuleLookAndFeel;
     juce::TextButton newModule{ "+" };
+    ModuleLookAndFeel newModuleSelectorLookAndFeel;
+    BizComboBox newModuleSelector{ &newModule };
 
     // deleteModule
     ModuleLookAndFeel deleteModuleLookAndFeel;

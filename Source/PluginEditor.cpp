@@ -45,9 +45,6 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
-    addAndMakeVisible(*currentGUIModule);
-
     githubLink.setFont(20, true);
     githubLink.setColour(juce::HyperlinkButton::textColourId, juce::Colours::white);
     addAndMakeVisible(githubLink);
@@ -58,17 +55,27 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
         newModules.push_back(std::unique_ptr<NewModuleGUI>(item));
     }
 
+    editorSetup();
+
+    currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
+    addAndMakeVisible(*currentGUIModule);
+    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
+    currentGUIModule->setWantsKeyboardFocus(true);
+
     inputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor, "Input"));
     addAndMakeVisible(*inputMeter);
+    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
+    inputMeter->setWantsKeyboardFocus(true);
+
     outputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor, "Output"));
     addAndMakeVisible(*outputMeter);
+    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
+    outputMeter->setWantsKeyboardFocus(true);
 
     for (auto it = newModules.rbegin(); it < newModules.rend(); ++it)
     {
         addAndMakeVisible(**it);
     }
-
-    editorSetup();
 
     setSize(900, 577);
     setResizable(false, false);

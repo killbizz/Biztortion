@@ -42,6 +42,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     // 2. NewModule con un modulo già istanziato => pulsante "x" per eliminare modulo dalla catena, 
     //                                              pulsante col nome per triggerare la visualizzazione a schermo della UI del modulo
 
+    //Desktop::getInstance().addFocusChangeListener(this);
 
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
     chainPositionLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
@@ -51,6 +52,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     addAndMakeVisible(newModule);
     newModule.setClickingTogglesState(true);
     newModule.setToggleState(false, juce::dontSendNotification);
+    newModule.setTooltip("Create a new module");
 
     setupNewModuleColours(newModuleLookAndFeel);
     newModule.setLookAndFeel(&newModuleLookAndFeel);
@@ -59,14 +61,14 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     addAndMakeVisible(deleteModule);
     deleteModule.setClickingTogglesState(true);
     deleteModule.setToggleState(true, juce::dontSendNotification);
+    deleteModule.setTooltip("Delete the current module");
 
     setupDeleteModuleColours(deleteModuleLookAndFeel);
     deleteModule.setLookAndFeel(&deleteModuleLookAndFeel);
 
     // currentModuleActivator
     addAndMakeVisible(currentModuleActivator);
-    deleteModule.setClickingTogglesState(true);
-    deleteModule.setToggleState(true, juce::dontSendNotification);
+    currentModuleActivator.setTooltip("Access the current module");
 
     setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
     currentModuleActivator.setLookAndFeel(&currentModuleActivatorLookAndFeel);
@@ -91,16 +93,14 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         editor.removeChildComponent(&newModuleSelector);
         editor.addAndMakeVisible(newModuleSelector);
         newModuleSelector.setVisible(newModule.getToggleState());
-        auto newModuleBounds = editor.currentGUIModule->getBounds();
-        newModuleBounds.reduce(230.f, 175.f);
-        newModuleBounds.setCentre(editor.currentGUIModule->getBounds().getCentre());
-        newModuleSelector.setBounds(newModuleBounds);
+        newModuleSelector.grabKeyboardFocus();
+        juce::Rectangle<int> rect{210, 50};
+        rect.setCentre(editor.currentGUIModule->getBounds().getCentre());
+        newModuleSelector.setBounds(rect);
         if (newModule.getToggleState()) {
             newModuleSelector.showPopup();
         }
     };
-
-    // TODO : close menu losing the focus
 
     newModuleSelector.onChange = [this] {
         ModuleType type = static_cast<ModuleType>(newModuleSelector.getSelectedId());
@@ -153,6 +153,8 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         moduleType = ModuleType::Uninstantiated;
         editor.currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
         editor.addAndMakeVisible(*editor.currentGUIModule);
+        // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
+        editor.currentGUIModule->setWantsKeyboardFocus(true);
         newModuleSetup(moduleType);
         // remove DSP module
         bool found = false;
@@ -187,6 +189,8 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
 NewModuleGUI::~NewModuleGUI()
 {
+    //Desktop::getInstance().removeFocusChangeListener(this);
+
     newModule.setLookAndFeel(nullptr);
     deleteModule.setLookAndFeel(nullptr);
     currentModuleActivator.setLookAndFeel(nullptr);
@@ -389,6 +393,8 @@ void NewModuleGUI::addModuleToGUI(GUIModule* module)
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
     editor.addAndMakeVisible(*editor.currentGUIModule);
+    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
+    editor.currentGUIModule->setWantsKeyboardFocus(true);
 }
 
 juce::AffineTransform NewModuleGUI::getTransform()
