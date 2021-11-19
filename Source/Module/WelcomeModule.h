@@ -83,7 +83,7 @@ private:
     std::unique_ptr<juce::Drawable> bigNose;
     // data fields for svg animation
     // SlowerBouncingNumber position, rotation;
-    juce::Label title, 
+    juce::Label author, title, version, 
         one, firstRow,
         two, secondRow,
         three, thirdRow;

@@ -35,27 +35,33 @@ WelcomeModuleGUI::WelcomeModuleGUI()
     bigNose->setAlpha(0.30);
     addAndMakeVisible(*bigNose);
 
-    title.setText("Welcome to Biztortion", juce::dontSendNotification);
-    title.setFont(juce::Font("Prestige Elite Std", 38, 0));
+    /*title.setText("Biztortion", juce::dontSendNotification);
+    title.setFont(juce::Font("Prestige Elite Std", 28, 0));*/
 
-    one.setFont(juce::Font("Marlett", 36, juce::Font::bold));
+    author.setText("(c) 2021 Gabriel Bizzo", juce::dontSendNotification);
+    author.setFont(juce::Font("Prestige Elite Std", 14, 0));
+
+    version.setText("v: 1.0", juce::dontSendNotification);
+    version.setFont(juce::Font("Prestige Elite Std", 14, 0));
+
+    one.setFont(juce::Font("Marlett", 26, juce::Font::bold));
     one.setText("a", juce::dontSendNotification);
 
-    firstRow.setText("Use the \"+\" button to create modules that distort the signal beyond your imagination", juce::dontSendNotification);
-    firstRow.setFont(juce::Font("Prestige Elite Std", 22, 0));
+    firstRow.setText("Biztortion is an open-source modular distortion plugin, click on the \"About\" button for more info", juce::dontSendNotification);
+    firstRow.setFont(juce::Font("Prestige Elite Std", 18, 0));
 
 
-    two.setFont(juce::Font("Marlett", 36, juce::Font::bold));
+    two.setFont(juce::Font("Marlett", 26, juce::Font::bold));
     two.setText("a", juce::dontSendNotification);
 
-    secondRow.setText("Chain modules together to achieve unique effects in your music", juce::dontSendNotification);
-    secondRow.setFont(juce::Font("Prestige Elite Std", 22, 0));
+    secondRow.setText("Use the slots below to link modules and create your own custom processing chain", juce::dontSendNotification);
+    secondRow.setFont(juce::Font("Prestige Elite Std", 18, 0));
 
-    three.setFont(juce::Font("Marlett", 36, juce::Font::bold));
+    three.setFont(juce::Font("Marlett", 26, juce::Font::bold));
     three.setText("a", juce::dontSendNotification);
 
-    thirdRow.setText("Use the \"x\" button to remove a module from the chain and the power button in the module section to bypass the current module", juce::dontSendNotification);
-    thirdRow.setFont(juce::Font("Prestige Elite Std", 22, 0));
+    thirdRow.setText("If you need help with some module functionalities click on the \"?\" button to enable tooltips", juce::dontSendNotification);
+    thirdRow.setFont(juce::Font("Prestige Elite Std", 18, 0));
 
     for (auto* comp : getComps())
     {
@@ -77,7 +83,7 @@ void WelcomeModuleGUI::resized()
     
     auto welcomeArea = getContentRenderArea();
 
-    auto titleArea = welcomeArea.removeFromTop(welcomeArea.getHeight() * (1.f / 5.f));
+    auto titleArea = welcomeArea.removeFromTop(welcomeArea.getHeight() * (1.f / 6.f));
     auto numbersArea = welcomeArea.removeFromLeft(welcomeArea.getWidth() * (1.f / 10.f));
 
     auto oneArea = numbersArea.removeFromTop(numbersArea.getHeight() * (1.f / 3.f));
@@ -90,6 +96,12 @@ void WelcomeModuleGUI::resized()
 
     title.setBounds(titleArea);
     title.setJustificationType(juce::Justification::centred);
+
+    author.setBounds(titleArea);
+    author.setJustificationType(juce::Justification::centredLeft);
+
+    version.setBounds(titleArea);
+    version.setJustificationType(juce::Justification::centredRight);
 
     one.setBounds(oneArea);
     one.setJustificationType(juce::Justification::centred);
@@ -114,7 +126,9 @@ std::vector<juce::Component*> WelcomeModuleGUI::getComps()
 {
     return {
         &*bigNose,
-        &title,
+        //&title,
+        &author,
+        &version,
         &one,
         &two,
         &three,
