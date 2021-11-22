@@ -28,8 +28,6 @@
             file="Resources/biztortionLogo.png"/>
       <FILE id="WaH5M9" name="biztortionNoseAlpha.png" compile="0" resource="1"
             file="Resources/biztortionNoseAlpha.png"/>
-      <FILE id="fpEDT4" name="male-head-hair-and-beard.svg" compile="0" resource="1"
-            file="Resources/male-head-hair-and-beard.svg"/>
     </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
       <GROUP id="{3CE862F7-9551-DF55-4209-CE64AF968F62}" name="Shared">
@@ -43,6 +41,9 @@
               file="Source/Component/FFTAnalyzerComponent.cpp"/>
         <FILE id="MSXX8U" name="FFTAnalyzerComponent.h" compile="0" resource="0"
               file="Source/Component/FFTAnalyzerComponent.h"/>
+        <FILE id="XyD2HS" name="HelpComponent.cpp" compile="1" resource="0"
+              file="Source/Component/HelpComponent.cpp"/>
+        <FILE id="cTK25w" name="HelpComponent.h" compile="0" resource="0" file="Source/Component/HelpComponent.h"/>
         <FILE id="BQ82k4" name="ResponseCurveComponent.cpp" compile="1" resource="0"
               file="Source/Component/ResponseCurveComponent.cpp"/>
         <FILE id="SQvwHy" name="ResponseCurveComponent.h" compile="0" resource="0"
