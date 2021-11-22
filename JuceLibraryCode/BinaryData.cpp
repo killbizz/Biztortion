@@ -8241,63 +8241,6 @@ static const unsigned char temp_binary_data_9[] =
 
 const char* biztortionNoseAlpha_png = (const char*) temp_binary_data_9;
 
-//================== male-head-hair-and-beard.svg ==================
-static const unsigned char temp_binary_data_10[] =
-"<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\r\n"
-"<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->\r\n"
-"<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\r\n"
-"<svg version=\"1.1\" id=\"Capa_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\r\n"
-"\t width=\"30.5px\" height=\"30.5px\" viewBox=\"0 0 30.5 30.5\" style=\"enable-background:new 0 0 30.5 30.5;\" xml:space=\"preserve\">\r\n"
-"<g>\r\n"
-"\t<g>\r\n"
-"\t\t<path d=\"M22.186,2.426c0,0,0.041-0.475,0.908-0.729c-0.849-0.396-1.561,0.533-1.561,0.533L20.27,1.913\r\n"
-"\t\t\tc0,0-0.418-0.971,0.652-1.244c-0.75-0.453-1.52,0.83-1.52,0.83s-1.48-1.994-1.936-1.383c0.869,0.376,0.553,1.185,0.553,1.185\r\n"
-"\t\t\tS7.381-1.938,4.795,7.617c0.691-1.104,0.869-0.869,0.869-0.869S4.749,12.69,6.039,16.52c0.284,0.307,0.513,0.553,0.513,0.553\r\n"
-"\t\t\ts-0.531-2.246-0.056-4.19c0.332-1.357,1.673-2.402,1.833-3.14c0.263-1.615-0.317-3.184,1.526-4.369\r\n"
-"\t\t\tc1.842-1.184,4.692,0.346,5.764,0.29c1.072-0.057,3.516-1.694,5.343-0.711c1.957,1.053,1.288,4.196,1.343,4.659\r\n"
-"\t\t\tc0.105,0.578,0.908,1.157,1.441,2.104c0.533,0.948-0.198,5.831-0.198,5.831s0.257,0.118,0.494-0.197s1.244-8.766,1.146-9.062\r\n"
-"\t\t\tc-0.1-0.296,0.078-0.711,0.494-0.217C26.035,4.952,22.186,2.426,22.186,2.426z\"/>\r\n"
-"\t\t<path d=\"M22.482,19.936c-0.217,0.947-1.541,3.89-1.994,4.205c-0.455,0.314-3.533-1.5-4.541-1.54\r\n"
-"\t\t\tc-1.006-0.039-3.79,1.025-4.401,0.77s-4.836-6.573-5.093-5.822c-0.257,0.75,1.449,3.292,1.5,3.85\r\n"
-"\t\t\tc0.051,0.558,0.018,1.271,0.573,1.974s1.638,2.054,2.329,2.941c0-0.71,0.276-0.671,0.276-0.671s2.211,2.961,2.803,2.547\r\n"
-"\t\t\tc-0.691-0.436-0.415-0.85-0.415-0.85s1.639,3.039,2.171,3.158c0.533,0.118,2.408-3.258,2.408-3.258s0.475,0.73,0,1.165\r\n"
-"\t\t\tc0.672,0.06,3.316-2.566,4.264-4.579c0.947-2.014,1.383-5.725,1.383-5.725S22.699,18.987,22.482,19.936z\"/>\r\n"
-"\t</g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"<g>\r\n"
-"</g>\r\n"
-"</svg>\r\n";
-
-const char* maleheadhairandbeard_svg = (const char*) temp_binary_data_10;
-
 
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes);
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
@@ -8320,7 +8263,6 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
         case 0xf77cec43:  numBytes = 3366; return bigNose1_svg;
         case 0x5e3d0e2d:  numBytes = 23486; return biztortionLogo_png;
         case 0xeee12b9d:  numBytes = 16177; return biztortionNoseAlpha_png;
-        case 0xca48692d:  numBytes = 2004; return maleheadhairandbeard_svg;
         default: break;
     }
 
@@ -8339,8 +8281,7 @@ const char* namedResourceList[] =
     "AudioCableViola_png",
     "bigNose1_svg",
     "biztortionLogo_png",
-    "biztortionNoseAlpha_png",
-    "maleheadhairandbeard_svg"
+    "biztortionNoseAlpha_png"
 };
 
 const char* originalFilenames[] =
@@ -8354,8 +8295,7 @@ const char* originalFilenames[] =
     "AudioCableViola.png",
     "bigNose1.svg",
     "biztortionLogo.png",
-    "biztortionNoseAlpha.png",
-    "male-head-hair-and-beard.svg"
+    "biztortionNoseAlpha.png"
 };
 
 const char* getNamedResourceOriginalFilename (const char* resourceNameUTF8);
