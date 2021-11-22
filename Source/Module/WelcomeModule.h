@@ -68,10 +68,11 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 
-class WelcomeModuleGUI : public GUIModule {
+class WelcomeModuleGUI : public GUIModule, juce::Timer {
 public:
     WelcomeModuleGUI();
 
+    void timerCallback() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
     std::vector<juce::Component*> getComps() override;
@@ -81,10 +82,11 @@ public:
 private:
 
     std::unique_ptr<juce::Drawable> bigNose;
+    juce::Image bigNoseImg;
+
     // data fields for svg animation
     // SlowerBouncingNumber position, rotation;
-    juce::Label author, title, version, 
-        one, firstRow,
-        two, secondRow,
-        three, thirdRow;
+    juce::Label author, title, version;
+
+    unsigned int hueCounter = 0;
 };
