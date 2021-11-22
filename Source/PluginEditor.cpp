@@ -45,7 +45,29 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    githubLink.setFont(20, true);
+    helpButton.setFont(juce::Font("Prestige Elite Std", 20, 0), true);
+    helpButton.setButtonText("Help");
+    helpButton.setTooltip("Show some useful informations about this software");
+    helpButton.setColour(juce::HyperlinkButton::textColourId, juce::Colours::white);
+    addAndMakeVisible(helpButton);
+
+    helpButton.onClick = [this] {
+        helpComponent.setBounds(0, 0, 450, 250);
+        asyncAlertWindow = std::make_unique<AlertWindow>("Welcome to Biztortion!",
+            "",
+            MessageBoxIconType::NoIcon);
+        asyncAlertWindow->addButton("Got it!", 1, KeyPress(KeyPress::returnKey, 0, 0));
+        asyncAlertWindow->addCustomComponent(&helpComponent);
+
+        // setting colors
+        asyncAlertWindow->setColour(juce::AlertWindow::backgroundColourId, juce::Colours::darkgrey.withAlpha(0.75f));
+        asyncAlertWindow->setColour(juce::AlertWindow::textColourId, juce::Colours::white);
+        asyncAlertWindow->setColour(juce::AlertWindow::outlineColourId, juce::Colours::black);
+
+        asyncAlertWindow->enterModalState(true, ModalCallbackFunction::create(AsyncAlertBoxResult{ *this }));
+    };
+
+    githubLink.setFont(juce::Font("Prestige Elite Std", 20, 0), true);
     githubLink.setColour(juce::HyperlinkButton::textColourId, juce::Colours::white);
     addAndMakeVisible(githubLink);
 
@@ -54,8 +76,6 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
         NewModuleGUI* item = new NewModuleGUI(audioProcessor, *this, i + 1);
         newModules.push_back(std::unique_ptr<NewModuleGUI>(item));
     }
-
-    editorSetup();
 
     currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
     addAndMakeVisible(*currentGUIModule);
@@ -71,6 +91,8 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     addAndMakeVisible(*outputMeter);
     // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
     outputMeter->setWantsKeyboardFocus(true);
+
+    editorSetup();
 
     for (auto it = newModules.rbegin(); it < newModules.rend(); ++it)
     {
@@ -141,6 +163,7 @@ void BiztortionAudioProcessorEditor::resized()
 
     auto bounds = getLocalBounds();
 
+    helpButton.setBoundsRelative(0.15f, 0.01f, 0.1f, 0.05);
     githubLink.setBoundsRelative(0.75f, 0.01f, 0.1f, 0.05);
 
     auto chainArea = bounds.removeFromBottom(bounds.getHeight() * (1.f / 4.f));

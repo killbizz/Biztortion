@@ -41,6 +41,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "PluginProcessor.h"
 #include "Component/FFTAnalyzerComponent.h"
 #include "Component/TransferFunctionGraphComponent.h"
+#include "Component/HelpComponent.h"
 #include "Shared/GUIStuff.h"
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
@@ -71,13 +72,30 @@ private:
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
 
+    struct AsyncAlertBoxResult
+    {
+        void operator() (int result) const noexcept
+        {
+            auto& aw = *editor.asyncAlertWindow;
+
+            aw.exitModalState(result);
+            aw.setVisible(false);
+        }
+
+        BiztortionAudioProcessorEditor& editor;
+    };
+
     juce::TooltipWindow tooltipWindow;
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BiztortionAudioProcessor& audioProcessor;
 
+    juce::HyperlinkButton helpButton;
     juce::HyperlinkButton githubLink;
+
+    std::unique_ptr<AlertWindow> asyncAlertWindow;
+    HelpComponent helpComponent;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };
