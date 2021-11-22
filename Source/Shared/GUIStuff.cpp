@@ -88,7 +88,7 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
 
         // drawing slider value label
         if (rswl->userIsDragging) {
-            g.setFont(rswl->getTextHeight());
+            g.setFont(juce::Font("Prestige Elite Std", rswl->getTextHeight(), 0));
             auto text = rswl->getDisplayString();
             auto strWidth = g.getCurrentFont().getStringWidth(text);
 
@@ -203,10 +203,10 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
 
     // drawing min/max range value labels
     auto center = sliderBounds.toFloat().getCentre();
-    auto radius = sliderBounds.getWidth() * 0.5f;
+    auto radius = sliderBounds.getWidth() * 0.525f;
 
     g.setColour(Colours::black);
-    g.setFont(getTextHeight());
+    g.setFont(juce::Font("Prestige Elite Std", getTextHeight(), 0));
 
     auto numChoices = labels.size();
     for (int i = 0; i < numChoices; ++i)
