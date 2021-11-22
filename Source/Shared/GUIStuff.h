@@ -323,11 +323,15 @@ struct RotarySliderWithLabels : juce::Slider
     ~RotarySliderWithLabels();
 
     juce::Array<LabelWithPosition> labels;
+    bool userIsDragging = false;
 
     void paint(juce::Graphics& g) override;
     juce::Rectangle<int> getSliderBounds() const;
     int getTextHeight() const { return 10; }
     juce::String getDisplayString() const;
+
+    void startedDragging() override;
+    void stoppedDragging() override;
 private:
 
     SliderLookAndFeel lnf;

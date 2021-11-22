@@ -87,18 +87,20 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
         g.fillPath(p);
 
         // drawing slider value label
-        g.setFont(rswl->getTextHeight());
-        auto text = rswl->getDisplayString();
-        auto strWidth = g.getCurrentFont().getStringWidth(text);
+        if (rswl->userIsDragging) {
+            g.setFont(rswl->getTextHeight());
+            auto text = rswl->getDisplayString();
+            auto strWidth = g.getCurrentFont().getStringWidth(text);
 
-        r.setSize(strWidth + 2, rswl->getTextHeight() + 2);
-        r.setCentre(bounds.getCentre());
+            r.setSize(strWidth + 2, rswl->getTextHeight() + 2);
+            r.setCentre(bounds.getCentre());
 
-        g.setColour(enabled ? Colours::black.withAlpha(0.45f) : Colours::darkgrey);
-        g.fillRect(r);
+            g.setColour(enabled ? Colours::black.withAlpha(0.45f) : Colours::darkgrey);
+            g.fillRect(r);
 
-        g.setColour(enabled ? Colours::white : Colours::lightgrey);
-        g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
+            g.setColour(enabled ? Colours::white : Colours::lightgrey);
+            g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
+        }
     }
 }
 
@@ -281,6 +283,16 @@ juce::String RotarySliderWithLabels::getDisplayString() const
     }
 
     return str;
+}
+
+void RotarySliderWithLabels::startedDragging()
+{
+    userIsDragging = true;
+}
+
+void RotarySliderWithLabels::stoppedDragging()
+{
+    userIsDragging = false;
 }
 
 void AnalyzerButton::resized()
