@@ -81,7 +81,8 @@ public:
     OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int chainPosition);
     ~OscilloscopeModuleGUI();
 
-    std::vector<juce::Component*> getComps() override;
+    std::vector<juce::Component*> getAllComps() override;
+    virtual std::vector<juce::Component*> getParamComps() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
 
@@ -104,7 +105,7 @@ private:
     RotarySliderWithLabels hZoomSlider, vZoomSlider;
     Attachment hZoomSliderAttachment, vZoomSliderAttachment;
     
-    juce::LookAndFeel_V4 freezeLnf;
+    ModuleLookAndFeel freezeLnf;
     juce::TextButton freezeButton{ "Freeze" };
     PowerButton bypassButton;
     ButtonAttachment bypassButtonAttachment;

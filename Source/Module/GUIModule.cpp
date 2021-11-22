@@ -42,19 +42,6 @@ void GUIModule::drawContainer(juce::Graphics& g)
     g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
 }
 
-juce::Rectangle<int> GUIModule::getContainerArea()
-{
-    // returns a dimesion reduced rectangle as bounds in order to avoid margin collisions
-    auto bounds = getLocalBounds();
-
-    /*bounds.reduce(JUCE_LIVE_CONSTANT(5), 
-        JUCE_LIVE_CONSTANT(5)
-        );*/
-    bounds.reduce(10, 10);
-
-    return bounds;
-}
-
 juce::Rectangle<int> GUIModule::getContentRenderArea()
 {
     auto bounds = getContainerArea();
@@ -67,3 +54,23 @@ juce::Rectangle<int> GUIModule::getContentRenderArea()
     return bounds;
 }
 
+void GUIModule::handleParamCompsEnablement(bool bypass)
+{
+    for (auto* comp : getParamComps())
+    {
+        comp->setEnabled(!bypass);
+    }
+}
+
+juce::Rectangle<int> GUIModule::getContainerArea()
+{
+    // returns a dimesion reduced rectangle as bounds in order to avoid margin collisions
+    auto bounds = getLocalBounds();
+
+    /*bounds.reduce(JUCE_LIVE_CONSTANT(5), 
+        JUCE_LIVE_CONSTANT(5)
+        );*/
+    bounds.reduce(10, 10);
+
+    return bounds;
+}

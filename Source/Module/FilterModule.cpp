@@ -267,7 +267,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
 {
     // title setup
     title.setText("Filter", juce::dontSendNotification);
-    title.setFont(24);
+    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
 
     // labels
 
@@ -297,14 +297,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
         if (auto* comp = safePtr.getComponent())
         {
             auto bypassed = comp->bypassButton.getToggleState();
-
-            comp->peakFreqSlider.setEnabled(!bypassed);
-            comp->peakGainSlider.setEnabled(!bypassed);
-            comp->peakQualitySlider.setEnabled(!bypassed);
-            comp->lowCutFreqSlider.setEnabled(!bypassed);
-            comp->lowCutSlopeSlider.setEnabled(!bypassed);
-            comp->highCutFreqSlider.setEnabled(!bypassed);
-            comp->highCutSlopeSlider.setEnabled(!bypassed);
+            comp->handleParamCompsEnablement(bypassed);
         }
     };
 
@@ -319,10 +312,23 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
 
     filterFftAnalyzerComponent.toggleFFTanaysis(analyzerButton.getToggleState());
 
-    for (auto* comp : getComps())
+    // tooltips
+    bypassButton.setTooltip("Bypass this module");
+    analyzerButton.setTooltip("Enable the spectrum analyzer");
+    lowCutFreqSlider.setTooltip("Set the lowcut filter frequency");
+    lowCutSlopeSlider.setTooltip("Set the lowcut filter slope");
+    peakFreqSlider.setTooltip("Set the peak filter frequency");
+    peakGainSlider.setTooltip("Set the peak filter gain");
+    peakQualitySlider.setTooltip("Set the peak filter quality");
+    highCutFreqSlider.setTooltip("Set the highcut filter frequency");
+    highCutSlopeSlider.setTooltip("Set the highcut filter slope");
+
+    for (auto* comp : getAllComps())
     {
         addAndMakeVisible(comp);
     }
+
+    handleParamCompsEnablement(bypassButton.getToggleState());
 }
 
 FilterModuleGUI::~FilterModuleGUI()
@@ -336,10 +342,10 @@ void FilterModuleGUI::paint(juce::Graphics& g)
     drawContainer(g);
 
     g.setColour(juce::Colours::white);
-    g.setFont(10);
-    g.drawFittedText("LowCut", lowCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
-    g.drawFittedText("Peak", peakQualitySlider.getBounds(), juce::Justification::centredBottom, 1);
-    g.drawFittedText("HighCut", highCutSlopeSlider.getBounds(), juce::Justification::centredBottom, 1);
+    g.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -8), juce::Justification::centredTop, 1);
+    g.drawFittedText("Peak", peakFreqSlider.getBounds().translated(0, -8), juce::Justification::centredTop, 1);
+    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -8), juce::Justification::centredTop, 1);
 }
 
 void FilterModuleGUI::resized()
@@ -367,6 +373,7 @@ void FilterModuleGUI::resized()
     analyzerButton.setBounds(analyzerButtonArea);
 
     auto titleAndBypassArea = filtersArea.removeFromTop(30);
+    titleAndBypassArea.translate(0, 4);
 
     auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     responseCurveArea.reduce(10, 10);
@@ -374,7 +381,7 @@ void FilterModuleGUI::resized()
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
 
     title.setBounds(titleAndBypassArea);
-    title.setJustificationType(juce::Justification::centred);
+    title.setJustificationType(juce::Justification::centredBottom);
 
     filterFftAnalyzerComponent.setBounds(responseCurveArea);
     responseCurveComponent.setBounds(responseCurveArea);
@@ -387,7 +394,7 @@ void FilterModuleGUI::resized()
     highCutSlopeSlider.setBounds(highCutArea);
 }
 
-std::vector<juce::Component*> FilterModuleGUI::getComps()
+std::vector<juce::Component*> FilterModuleGUI::getAllComps()
 {
     return {
         &title,
@@ -405,5 +412,18 @@ std::vector<juce::Component*> FilterModuleGUI::getComps()
         // bypass
         &bypassButton,
         &analyzerButton
+    };
+}
+
+std::vector<juce::Component*> FilterModuleGUI::getParamComps()
+{
+    return {
+        &peakFreqSlider,
+        &peakGainSlider,
+        &peakQualitySlider,
+        &lowCutFreqSlider,
+        &highCutFreqSlider,
+        &lowCutSlopeSlider,
+        &highCutSlopeSlider
     };
 }

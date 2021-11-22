@@ -238,23 +238,23 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned
 {
     // title setup
     title.setText("Slew Limiter", juce::dontSendNotification);
-    title.setFont(24);
+    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
-    driveLabel.setFont(10);
+    driveLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     mixLabel.setText("Mix", juce::dontSendNotification);
-    mixLabel.setFont(10);
+    mixLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
-    symmetryLabel.setFont(10);
+    symmetryLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     biasLabel.setText("Bias", juce::dontSendNotification);
-    biasLabel.setFont(10);
+    biasLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     slewLimiterRiseLabel.setText("Rise", juce::dontSendNotification);
-    slewLimiterRiseLabel.setFont(10);
+    slewLimiterRiseLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     slewLimiterFallLabel.setText("Fall", juce::dontSendNotification);
-    slewLimiterFallLabel.setFont(10);
+    slewLimiterFallLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     DCoffsetEnabledButtonLabel.setText("DC Filter", juce::dontSendNotification);
-    DCoffsetEnabledButtonLabel.setFont(10);
+    DCoffsetEnabledButtonLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -277,21 +277,26 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned
         if (auto* comp = safePtr.getComponent())
         {
             auto bypassed = comp->bypassButton.getToggleState();
-
-            comp->driveSlider.setEnabled(!bypassed);
-            comp->mixSlider.setEnabled(!bypassed);
-            comp->symmetrySlider.setEnabled(!bypassed);
-            comp->biasSlider.setEnabled(!bypassed);
-            comp->slewLimiterRiseSlider.setEnabled(!bypassed);
-            comp->slewLimiterFallSlider.setEnabled(!bypassed);
-            comp->DCoffsetEnabledButton.setEnabled(!bypassed);
+            comp->handleParamCompsEnablement(bypassed);
         }
     };
 
-    for (auto* comp : getComps())
+    // tooltips
+    bypassButton.setTooltip("Bypass this module");
+    driveSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
+    mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
+    symmetrySlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
+    biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
+    slewLimiterRiseSlider.setTooltip("Set the maximum speed threshold above which the signal waveform change is limited in time during the phase in which the wave moves towards the positive waveform area");
+    slewLimiterFallSlider.setTooltip("Set the maximum speed threshold above which the signal waveform change is limited in time during the phase in which the wave moves towards the negative waveform area");
+    DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
+
+    for (auto* comp : getAllComps())
     {
         addAndMakeVisible(comp);
     }
+
+    handleParamCompsEnablement(bypassButton.getToggleState());
 }
 
 SlewLimiterModuleGUI::~SlewLimiterModuleGUI()
@@ -319,6 +324,9 @@ void SlewLimiterModuleGUI::resized()
     bypassButton.setBounds(bypassButtonArea);
 
     auto titleAndBypassArea = slewLimiterArea.removeFromTop(30);
+    titleAndBypassArea.translate(0, 4);
+
+    slewLimiterArea.translate(0, 8);
 
     auto topArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 2.f));
     auto bottomArea = slewLimiterArea;
@@ -347,7 +355,7 @@ void SlewLimiterModuleGUI::resized()
     auto DCoffsetRemoveArea = bottomArea;
 
     title.setBounds(titleAndBypassArea);
-    title.setJustificationType(juce::Justification::centred);
+    title.setJustificationType(juce::Justification::centredBottom);
 
     driveSlider.setBounds(driveArea);
     driveLabel.setBounds(driveLabelArea);
@@ -375,14 +383,14 @@ void SlewLimiterModuleGUI::resized()
 
     DCoffsetRemoveArea.reduce(85.f, 65.f);
     DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-618.6f, -371.8f));
+    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-618.6f, -388.f));
     DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
-    DCoffsetEnabledButtonLabel.setCentreRelative(0.804f, 0.68f);
+    DCoffsetEnabledButtonLabel.setCentreRelative(0.805f, 0.68f);
 
 }
 
-std::vector<juce::Component*> SlewLimiterModuleGUI::getComps()
+std::vector<juce::Component*> SlewLimiterModuleGUI::getAllComps()
 {
     return {
         &title,
@@ -403,5 +411,18 @@ std::vector<juce::Component*> SlewLimiterModuleGUI::getComps()
         &DCoffsetEnabledButtonLabel,
         // bypass
         &bypassButton
+    };
+}
+
+std::vector<juce::Component*> SlewLimiterModuleGUI::getParamComps()
+{
+    return {
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &slewLimiterRiseSlider,
+        &slewLimiterFallSlider,
+        &DCoffsetEnabledButton
     };
 }

@@ -42,7 +42,7 @@ WelcomeModuleGUI::WelcomeModuleGUI()
     version.setText("version: 1.0", juce::dontSendNotification);
     version.setFont(juce::Font("Prestige Elite Std", 14, 0));
 
-    for (auto* comp : getComps())
+    for (auto* comp : getAllComps())
     {
         addAndMakeVisible(comp);
     }
@@ -82,13 +82,18 @@ void WelcomeModuleGUI::resized()
     version.setJustificationType(juce::Justification::centredRight);
 }
 
-std::vector<juce::Component*> WelcomeModuleGUI::getComps()
+std::vector<juce::Component*> WelcomeModuleGUI::getAllComps()
 {
     return {
         //&title,
         &author,
         &version
     };
+}
+
+std::vector<juce::Component*> WelcomeModuleGUI::getParamComps()
+{
+    return std::vector<juce::Component*>();
 }
 
 juce::AffineTransform WelcomeModuleGUI::getTransform()

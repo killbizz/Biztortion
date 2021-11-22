@@ -81,7 +81,8 @@ public:
 
     juce::String getType();
     foleys::LevelMeterSource* getMeterSource();
-    std::vector<juce::Component*> getComps() override;
+    std::vector<juce::Component*> getAllComps() override;
+    std::vector<juce::Component*> getParamComps() override;
 
     void paint(juce::Graphics& g) override;
     void resized() override;

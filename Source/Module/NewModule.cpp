@@ -243,12 +243,17 @@ void NewModuleGUI::resized()
     }
 }
 
-std::vector<juce::Component*> NewModuleGUI::getComps()
+std::vector<juce::Component*> NewModuleGUI::getAllComps()
 {
     return {
         &newModule,
         &newModuleSelector
     };
+}
+
+std::vector<juce::Component*> NewModuleGUI::getParamComps()
+{
+    return std::vector<juce::Component*>();
 }
 
 void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)

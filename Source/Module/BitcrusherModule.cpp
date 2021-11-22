@@ -290,23 +290,23 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
 {
     // title setup
     title.setText("Bitcrusher", juce::dontSendNotification);
-    title.setFont(24);
+    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
-    driveLabel.setFont(10);
+    driveLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     mixLabel.setText("Mix", juce::dontSendNotification);
-    mixLabel.setFont(10);
+    mixLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
-    symmetryLabel.setFont(10);
+    symmetryLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     biasLabel.setText("Bias", juce::dontSendNotification);
-    biasLabel.setFont(10);
+    biasLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     bitcrusherDitherLabel.setText("Dither", juce::dontSendNotification);
-    bitcrusherDitherLabel.setFont(10);
-    bitcrusherRateReduxLabel.setText("SampleRate Redux", juce::dontSendNotification);
-    bitcrusherRateReduxLabel.setFont(10);
+    bitcrusherDitherLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    bitcrusherRateReduxLabel.setText("Sampling Rate Redux", juce::dontSendNotification);
+    bitcrusherRateReduxLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
-    bitcrusherBitReduxLabel.setFont(10);
+    bitcrusherBitReduxLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -331,21 +331,26 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
         if (auto* comp = safePtr.getComponent())
         {
             auto bypassed = comp->bypassButton.getToggleState();
-
-            comp->driveSlider.setEnabled(!bypassed);
-            comp->mixSlider.setEnabled(!bypassed);
-            comp->symmetrySlider.setEnabled(!bypassed);
-            comp->biasSlider.setEnabled(!bypassed);
-            comp->bitcrusherDitherSlider.setEnabled(!bypassed);
-            comp->bitcrusherRateReduxSlider.setEnabled(!bypassed);
-            comp->bitcrusherBitReduxSlider.setEnabled(!bypassed);
+            comp->handleParamCompsEnablement(bypassed);
         }
     };
 
-    for (auto* comp : getComps())
+    // tooltips
+    bypassButton.setTooltip("Bypass this module");
+    driveSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
+    mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
+    symmetrySlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
+    biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
+    bitcrusherDitherSlider.setTooltip("Set the amount of white noise applied to the processed signal to add dithering or further noisy distortion");
+    bitcrusherRateReduxSlider.setTooltip("Set the sampling rate for the reduction of signal resolution");
+    bitcrusherBitReduxSlider.setTooltip("Set the bit depth for the reduction of signal resolution");
+
+    for (auto* comp : getAllComps())
     {
         addAndMakeVisible(comp);
     }
+
+    handleParamCompsEnablement(bypassButton.getToggleState());
 }
 
 BitcrusherModuleGUI::~BitcrusherModuleGUI()
@@ -373,6 +378,9 @@ void BitcrusherModuleGUI::resized()
     bypassButton.setBounds(bypassButtonArea);
 
     auto titleAndBypassArea = bitcrusherArea.removeFromTop(30);
+    titleAndBypassArea.translate(0, 4);
+
+    bitcrusherArea.translate(0, 8);
 
     auto topArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
     auto bottomArea = bitcrusherArea;
@@ -401,7 +409,7 @@ void BitcrusherModuleGUI::resized()
     auto ditherArea = bottomArea;
 
     title.setBounds(titleAndBypassArea);
-    title.setJustificationType(juce::Justification::centred);
+    title.setJustificationType(juce::Justification::centredBottom);
 
     driveSlider.setBounds(driveArea);
     driveLabel.setBounds(driveLabelArea);
@@ -432,7 +440,7 @@ void BitcrusherModuleGUI::resized()
     bitcrusherDitherLabel.setJustificationType(juce::Justification::centred);
 }
 
-std::vector<juce::Component*> BitcrusherModuleGUI::getComps()
+std::vector<juce::Component*> BitcrusherModuleGUI::getAllComps()
 {
     return {
         &title,
@@ -453,5 +461,18 @@ std::vector<juce::Component*> BitcrusherModuleGUI::getComps()
         &bitcrusherBitReduxLabel,
         // bypass
         &bypassButton
+    };
+}
+
+std::vector<juce::Component*> BitcrusherModuleGUI::getParamComps()
+{
+    return {
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &bitcrusherDitherSlider,
+        &bitcrusherRateReduxSlider,
+        &bitcrusherBitReduxSlider
     };
 }

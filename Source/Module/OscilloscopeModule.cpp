@@ -125,14 +125,13 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
 {
     // title setup
     title.setText("Oscilloscope", juce::dontSendNotification);
-    title.setFont(24);
+    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
 
     // labels
-
     hZoomLabel.setText("H Zoom", juce::dontSendNotification);
-    hZoomLabel.setFont(10);
+    hZoomLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     vZoomLabel.setText("V Zoom", juce::dontSendNotification);
-    vZoomLabel.setFont(10);
+    vZoomLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
 
     hZoomSlider.labels.add({ 0.f, "0" });
     hZoomSlider.labels.add({ 1.f, "1" });
@@ -148,10 +147,7 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
         if (auto* comp = safePtr.getComponent())
         {
             auto bypassed = comp->bypassButton.getToggleState();
-
-            comp->hZoomSlider.setEnabled(!bypassed);
-            comp->vZoomSlider.setEnabled(!bypassed);
-            comp->freezeButton.setEnabled(!bypassed);
+            comp->handleParamCompsEnablement(bypassed);
         }
     };
 
@@ -183,13 +179,21 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
         }
     };
 
-    for (auto* comp : getComps())
+    // tooltips
+    bypassButton.setTooltip("Bypass this module");
+    hZoomSlider.setTooltip("Adjust the horizontal zoom of the oscilloscope");
+    vZoomSlider.setTooltip("Adjust the vertical zoom of the oscilloscope");
+    freezeButton.setTooltip("Take a snapshot of the oscilloscope");
+
+    leftOscilloscope->startTimerHz(59);
+    rightOscilloscope->startTimerHz(59);
+
+    for (auto* comp : getAllComps())
     {
         addAndMakeVisible(comp);
     }
 
-    leftOscilloscope->startTimerHz(59);
-    rightOscilloscope->startTimerHz(59);
+    handleParamCompsEnablement(bypassButton.getToggleState());
 }
 
 OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
@@ -202,7 +206,7 @@ OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
     bypassButton.setLookAndFeel(nullptr);
 }
 
-std::vector<juce::Component*> OscilloscopeModuleGUI::getComps()
+std::vector<juce::Component*> OscilloscopeModuleGUI::getAllComps()
 {
     return {
         leftOscilloscope,
@@ -214,6 +218,15 @@ std::vector<juce::Component*> OscilloscopeModuleGUI::getComps()
         &vZoomSlider,
         &freezeButton,
         &bypassButton
+    };
+}
+
+std::vector<juce::Component*> OscilloscopeModuleGUI::getParamComps()
+{
+    return {
+        &hZoomSlider,
+        &vZoomSlider,
+        &freezeButton
     };
 }
 
@@ -237,6 +250,7 @@ void OscilloscopeModuleGUI::resized()
     bypassButton.setBounds(bypassButtonArea);
 
     auto titleAndBypassArea = oscilloscopeArea.removeFromTop(30);
+    titleAndBypassArea.translate(0, 4);
 
     auto graphArea = oscilloscopeArea.removeFromTop(oscilloscopeArea.getHeight() * (2.f / 3.f));
     graphArea.reduce(10, 10);
@@ -253,7 +267,7 @@ void OscilloscopeModuleGUI::resized()
     auto vZoomLabelArea = vZoomArea.removeFromTop(12);
 
     title.setBounds(titleAndBypassArea);
-    title.setJustificationType(juce::Justification::centred);
+    title.setJustificationType(juce::Justification::centredBottom);
 
     hZoomLabel.setBounds(hZoomLabelArea);
     hZoomLabel.setJustificationType(juce::Justification::centred);

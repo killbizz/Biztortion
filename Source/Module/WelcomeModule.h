@@ -32,36 +32,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include <JuceHeader.h>
 #include "GUIModule.h"
 
-// FOR SVG ANIMATION
-// 
-// This is basically a sawtooth wave generator - maps a value that bounces between
-// 0.0 and 1.0 at a random speed
-//struct BouncingNumber
-//{
-//    BouncingNumber()
-//        : speed(0.0004 + 0.0007 * juce::Random::getSystemRandom().nextDouble()),
-//        phase(juce::Random::getSystemRandom().nextDouble())
-//    {
-//    }
-//
-//    float getValue() const
-//    {
-//        double v = fmod(phase + speed * juce::Time::getMillisecondCounterHiRes(), 2.0);
-//        return (float)(v >= 1.0 ? (2.0 - v) : v);
-//    }
-//
-//protected:
-//    double speed, phase;
-//};
-//
-//struct SlowerBouncingNumber : public BouncingNumber
-//{
-//    SlowerBouncingNumber()
-//    {
-//        speed *= 0.3;
-//    }
-//};
-
 //==============================================================================
 
 /* WelcomeModule GUI */
@@ -75,7 +45,8 @@ public:
     void timerCallback() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
-    std::vector<juce::Component*> getComps() override;
+    std::vector<juce::Component*> getAllComps() override;
+    std::vector<juce::Component*> getParamComps() override;
 
     juce::AffineTransform getTransform();
 
@@ -84,8 +55,6 @@ private:
     std::unique_ptr<juce::Drawable> bigNose;
     juce::Image bigNoseImg;
 
-    // data fields for svg animation
-    // SlowerBouncingNumber position, rotation;
     juce::Label author, title, version;
 
     unsigned int hueCounter = 0;

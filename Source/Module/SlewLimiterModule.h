@@ -104,7 +104,8 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
 
-    std::vector<juce::Component*> getComps() override;
+    std::vector<juce::Component*> getAllComps() override;
+    std::vector<juce::Component*> getParamComps() override;
 
 private:
 

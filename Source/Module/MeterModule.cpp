@@ -115,20 +115,25 @@ MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
 {
     meterTitle.setText(type, juce::dontSendNotification);
     meterTitle.setFont(juce::Font("Prestige Elite Std", 14, 0));
-    addAndMakeVisible(meterTitle);
 
-    // custom colors
+    // meter custom colors
     lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::black);
     lnf.setColour(foleys::LevelMeter::lmTicksColour, juce::Colours::white);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, juce::Colours::darkorange);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colour(0, 240, 48));
     meter.setLookAndFeel(&lnf);
     meter.setMeterSource(getMeterSource());
-    addAndMakeVisible(meter);
 
-    addAndMakeVisible(levelSlider);
     levelSlider.labels.add({ 0.f, "-60dB" });
     levelSlider.labels.add({ 1.f, "+10dB" });
+
+    // tooltips
+    levelSlider.setTooltip("Select the amount of gain to be applied to the signal");
+
+    for (auto* comp : getAllComps())
+    {
+        addAndMakeVisible(comp);
+    }
 }
 
 MeterModuleGUI::~MeterModuleGUI()
@@ -153,7 +158,16 @@ foleys::LevelMeterSource* MeterModuleGUI::getMeterSource()
     return source;
 }
 
-std::vector<juce::Component*> MeterModuleGUI::getComps()
+std::vector<juce::Component*> MeterModuleGUI::getAllComps()
+{
+    return {
+        &meterTitle,
+        &meter,
+        &levelSlider
+    };
+}
+
+std::vector<juce::Component*> MeterModuleGUI::getParamComps()
 {
     return std::vector<juce::Component*>();
 }
