@@ -47,7 +47,7 @@ HelpComponent::HelpComponent()
 	three.setFont(juce::Font("Marlett", 20, juce::Font::bold));
 	three.setText("a", juce::dontSendNotification);
 
-	thirdRow.setText("If you need help with some module features go over the parameter to display a tooltip", juce::dontSendNotification);
+	thirdRow.setText("If you need help with some module features go over the parameter in order to see a tooltip", juce::dontSendNotification);
 	thirdRow.setFont(juce::Font("Prestige Elite Std", 18, 0));
 
 	for (auto* comp : getComps())
