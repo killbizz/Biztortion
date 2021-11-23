@@ -32,14 +32,17 @@ namespace BinaryData
     extern const char*   bigNose1_svg;
     const int            bigNose1_svgSize = 3366;
 
-    extern const char*   biztortionLogo_png;
-    const int            biztortionLogo_pngSize = 23486;
+    extern const char*   BiztortionLogoBlack_png;
+    const int            BiztortionLogoBlack_pngSize = 43377;
+
+    extern const char*   BiztortionLogoWhite_png;
+    const int            BiztortionLogoWhite_pngSize = 42537;
 
     extern const char*   biztortionNoseAlpha_png;
     const int            biztortionNoseAlpha_pngSize = 16177;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 10;
+    const int namedResourceListSize = 11;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
