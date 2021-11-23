@@ -235,6 +235,25 @@ void OscilloscopeModuleGUI::paint(juce::Graphics& g)
     drawContainer(g);
 }
 
+void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
+{
+    auto leftOscArea = leftOscilloscope->getBounds();
+    auto rightOscArea = rightOscilloscope->getBounds();
+
+    g.setColour(juce::Colours::white);
+    g.drawLine(juce::Line<float>(leftOscArea.getBottomLeft().toFloat(), leftOscArea.getBottomRight().toFloat()), 1.5f);
+
+    g.setColour(juce::Colours::darkgrey);
+
+    auto left = juce::Point<float>((float)leftOscArea.getTopLeft().getX(), leftOscArea.getCentreY());
+    auto right = juce::Point<float>((float)leftOscArea.getTopRight().getX(), leftOscArea.getCentreY());
+    g.drawLine(juce::Line<float>(left, right), 1.f);
+
+    left = juce::Point<float>((float)rightOscArea.getTopLeft().getX(), rightOscArea.getCentreY());
+    right = juce::Point<float>((float)rightOscArea.getTopRight().getX(), rightOscArea.getCentreY());
+    g.drawLine(juce::Line<float>(left, right), 1.f);
+}
+
 void OscilloscopeModuleGUI::resized()
 {
     auto oscilloscopeArea = getContentRenderArea();
