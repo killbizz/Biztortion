@@ -171,15 +171,11 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         // ADD the noise
         FloatVectorOperations::add(noiseBuffer.getWritePointer(0), noise.getRawDataPointer(), numSamples);
         FloatVectorOperations::add(noiseBuffer.getWritePointer(1), noise.getRawDataPointer(), numSamples);
-        // Applying gain to the noiseBuffer
-        dither.applyGain(noiseBuffer, numSamples);
         // Multiply the noise by the signal ... so 0 signal -> 0 noise
         FloatVectorOperations::multiply(noiseBuffer.getWritePointer(0), wetBuffer.getWritePointer(0), numSamples);
         FloatVectorOperations::multiply(noiseBuffer.getWritePointer(1), wetBuffer.getWritePointer(1), numSamples);
-        // Add noise to the incoming audio
-        wetBuffer.addFrom(0, 0, noiseBuffer.getReadPointer(0), numSamples);
-        wetBuffer.addFrom(1, 0, noiseBuffer.getReadPointer(1), numSamples);
-
+        // Applying gain to the noiseBuffer
+        dither.applyGain(noiseBuffer, numSamples);
 
         // TODO : frequency-domain bitcrushing (and a way to switch between time/frequency-domain)
         // parameters: time/freq-domain switch; FFTorder selector; rate/bitRedux performs in the same way in each type of bitcrushing.
@@ -220,6 +216,10 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
                 }
             }
         }
+
+        // Add noise to the processed audio (dithering/further distortion)
+        wetBuffer.addFrom(0, 0, noiseBuffer.getReadPointer(0), numSamples);
+        wetBuffer.addFrom(1, 0, noiseBuffer.getReadPointer(1), numSamples);
 
         applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
 
