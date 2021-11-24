@@ -81,7 +81,6 @@ public:
 
     void addModuleToGUI(GUIModule* module);
     void newModuleSetup(ModuleType type);
-    void resetButtonsColors();
 
     // newModule
     ModuleLookAndFeel newModuleLookAndFeel;

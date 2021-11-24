@@ -180,10 +180,11 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     };
 
     // Audio Cables
-    setPaintingIsUnclipped(true);
+    //setPaintingIsUnclipped(true);
     if (chainPosition != 8) {
         rightCable = getRightCable(chainPosition);
-        addAndMakeVisible(*rightCable);
+        editor.addAndMakeVisible(*rightCable);
+        rightCable->setAlwaysOnTop(true);
     }
 }
 
@@ -345,11 +346,6 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
     editor.resized();
 }
 
-void NewModuleGUI::resetButtonsColors()
-{
-
-}
-
 GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
 {
     GUIModule* newModule = nullptr;
@@ -404,10 +400,12 @@ void NewModuleGUI::addModuleToGUI(GUIModule* module)
 
 juce::AffineTransform NewModuleGUI::getTransform()
 {
-    return juce::AffineTransform::scale(0.07, 0.08).translated(40.f, -7.f);
-        //JUCE_LIVE_CONSTANT(10),
-        //JUCE_LIVE_CONSTANT(40)
-    //);
+    //return juce::AffineTransform::scale(0.07, 0.08).translated(40.f, -7.f);
+    return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);
+    /*return juce::AffineTransform::scale(JUCE_LIVE_CONSTANT(0.07),
+        JUCE_LIVE_CONSTANT(0.08))
+        .translated(JUCE_LIVE_CONSTANT(39.f), 
+            JUCE_LIVE_CONSTANT(-7.f));*/
 }
 
 std::unique_ptr<juce::Drawable> NewModuleGUI::getRightCable(unsigned int chainPosition)
