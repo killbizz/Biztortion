@@ -82,8 +82,20 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	auto width = static_cast<float> (getWidth());
 	auto height = static_cast<float> (getHeight());
 
-	//g.fillAll(juce::Colours::darkslategrey.withMultipliedBrightness(.4f));
 	g.fillAll(juce::Colours::black);
+
+	auto bounds = getBounds();
+	auto left = bounds.getX();
+	auto right = bounds.getRight();
+	auto top = bounds.getY();
+	auto bottom = bounds.getBottom();
+
+	auto leftPoint = juce::Point<float>(left, bounds.getCentreY());
+	auto rightPoint = juce::Point<float>(right, bounds.getCentreY());
+	auto topPoint = juce::Point<float>(bounds.getCentreX(), top);
+	auto bottomPoint = juce::Point<float>(bounds.getCentreX(), bottom);
+	auto hline = juce::Line<float>(leftPoint, rightPoint);
+	auto vline = juce::Line<float>(topPoint, bottomPoint);
 
 	// X
 	juce::Array<float> x;
@@ -125,12 +137,19 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	for (int i = 1; i < resolution; i++)
 		t.lineTo(x[i], y[i]);
 
-	t.applyTransform(juce::AffineTransform::scale(48, 138.0f));
+	t.applyTransform(juce::AffineTransform::scale(48, 158.f));
 	t.applyTransform(juce::AffineTransform::translation(width / 2.f, height / 2.f));
 	t.applyTransform(juce::AffineTransform::verticalFlip(height));
 
+	hline.applyTransform(juce::AffineTransform::translation(-25.0468f, -55.1f));
+	vline.applyTransform(juce::AffineTransform::translation(-25.1407f, -55.1f));
+
+	g.setColour(juce::Colours::darkgrey);
+	g.drawLine(hline, 1.f);
+	g.drawLine(vline, 1.f);
 	g.setColour(juce::Colours::white);
 	g.strokePath(t, juce::PathStrokeType(1.0f));
+	
 }
 
 void TransferFunctionGraphComponent::updateParams()

@@ -203,6 +203,26 @@ void FFTAnalyzerComponent::resized()
         g.setColour(Colours::lightgrey);
         g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
+
+    // --- CHANNEL LABELS ---
+    String str;
+    str << "L";
+    g.setFont(fontHeight);
+    auto textWidth = g.getCurrentFont().getStringWidth(str);
+    Rectangle<int> r;
+    r.setSize(textWidth, fontHeight);
+    r.setCentre(left + 6,  top + 8);
+    // L
+    g.setColour(juce::Colours::lightyellow);
+    g.drawFittedText(str, r, juce::Justification::centred, 1);
+    // R
+    str.clear();
+    str << "R";
+    textWidth = g.getCurrentFont().getStringWidth(str);
+    r.setSize(textWidth, fontHeight);
+    r.setCentre(left + 14, top + 8);
+    g.setColour(juce::Colours::skyblue);
+    g.drawFittedText(str, r, juce::Justification::centred, 1);
 }
 
 PathProducer& FFTAnalyzerComponent::getLeftPathProducer()

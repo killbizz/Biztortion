@@ -240,18 +240,49 @@ void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
     auto leftOscArea = leftOscilloscope->getBounds();
     auto rightOscArea = rightOscilloscope->getBounds();
 
+    // drawing a separation line
     g.setColour(juce::Colours::white);
     g.drawLine(juce::Line<float>(leftOscArea.getBottomLeft().toFloat(), leftOscArea.getBottomRight().toFloat()), 1.5f);
 
+    // L channel
     g.setColour(juce::Colours::darkgrey);
-
     auto left = juce::Point<float>((float)leftOscArea.getTopLeft().getX(), leftOscArea.getCentreY());
     auto right = juce::Point<float>((float)leftOscArea.getTopRight().getX(), leftOscArea.getCentreY());
     g.drawLine(juce::Line<float>(left, right), 1.f);
+    g.setColour(juce::Colours::white);
+    // +1
+    juce::Rectangle<int> labelArea;
+    labelArea.setBounds(right.getX() - 14, leftOscArea.getTopRight().getY(), 14, 12);
+    g.drawFittedText("+1", labelArea, juce::Justification::centred, 1);
+    // 0
+    labelArea.setBounds(right.getX() - 14, leftOscArea.getCentreY() - 14, 14, 12);
+    g.drawFittedText("0", labelArea, juce::Justification::centred, 1);
+    // -1
+    labelArea.setBounds(right.getX() - 14, leftOscArea.getBottomRight().getY() - 13, 14, 12);
+    g.drawFittedText("-1", labelArea, juce::Justification::centred, 1);
+    // channel label
+    labelArea.setBounds(left.getX() + 1, leftOscArea.getTopLeft().getY() + 1, 18, 16);
+    g.drawFittedText("L", labelArea, juce::Justification::centred, 1);
 
+    // R channel
+    g.setColour(juce::Colours::darkgrey);
     left = juce::Point<float>((float)rightOscArea.getTopLeft().getX(), rightOscArea.getCentreY());
     right = juce::Point<float>((float)rightOscArea.getTopRight().getX(), rightOscArea.getCentreY());
     g.drawLine(juce::Line<float>(left, right), 1.f);
+    g.setColour(juce::Colours::white);
+    // +1
+    labelArea.setBounds(right.getX() - 14, rightOscArea.getTopRight().getY(), 14, 12);
+    g.drawFittedText("+1", labelArea, juce::Justification::centred, 1);
+    // 0
+    labelArea.setBounds(right.getX() - 14, rightOscArea.getCentreY() - 14, 14, 12);
+    g.drawFittedText("0", labelArea, juce::Justification::centred, 1);
+    // -1
+    labelArea.setBounds(right.getX() - 14, rightOscArea.getBottomRight().getY() - 13, 14, 12);
+    g.drawFittedText("-1", labelArea, juce::Justification::centred, 1);
+    // channel label
+    labelArea.setBounds(left.getX() + 1, rightOscArea.getTopLeft().getY() + 2, 18, 16);
+    g.drawFittedText("R", labelArea, juce::Justification::centred, 1);
+
 }
 
 void OscilloscopeModuleGUI::resized()
