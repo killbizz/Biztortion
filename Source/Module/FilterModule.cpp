@@ -340,7 +340,7 @@ FilterModuleGUI::~FilterModuleGUI()
 void FilterModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
-
+    // filter types
     g.setColour(juce::Colours::white);
     g.setFont(juce::Font("Prestige Elite Std", 10, 0));
     g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -8), juce::Justification::centredTop, 1);

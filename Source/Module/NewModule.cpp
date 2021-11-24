@@ -42,8 +42,6 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     // 2. NewModule con un modulo già istanziato => pulsante "x" per eliminare modulo dalla catena, 
     //                                              pulsante col nome per triggerare la visualizzazione a schermo della UI del modulo
 
-    //Desktop::getInstance().addFocusChangeListener(this);
-
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
     chainPositionLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
     addAndMakeVisible(chainPositionLabel);
@@ -190,8 +188,6 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
 NewModuleGUI::~NewModuleGUI()
 {
-    //Desktop::getInstance().removeFocusChangeListener(this);
-
     newModule.setLookAndFeel(nullptr);
     deleteModule.setLookAndFeel(nullptr);
     currentModuleActivator.setLookAndFeel(nullptr);
@@ -400,12 +396,7 @@ void NewModuleGUI::addModuleToGUI(GUIModule* module)
 
 juce::AffineTransform NewModuleGUI::getTransform()
 {
-    //return juce::AffineTransform::scale(0.07, 0.08).translated(40.f, -7.f);
     return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);
-    /*return juce::AffineTransform::scale(JUCE_LIVE_CONSTANT(0.07),
-        JUCE_LIVE_CONSTANT(0.08))
-        .translated(JUCE_LIVE_CONSTANT(39.f), 
-            JUCE_LIVE_CONSTANT(-7.f));*/
 }
 
 std::unique_ptr<juce::Drawable> NewModuleGUI::getRightCable(unsigned int chainPosition)
