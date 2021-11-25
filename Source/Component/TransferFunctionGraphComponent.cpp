@@ -144,12 +144,105 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	hline.applyTransform(juce::AffineTransform::translation(-25.0468f, -55.1f));
 	vline.applyTransform(juce::AffineTransform::translation(-25.1407f, -55.1f));
 
+	// grid lines
 	g.setColour(juce::Colours::darkgrey);
 	g.drawLine(hline, 1.f);
 	g.drawLine(vline, 1.f);
+
+	// transfer function
 	g.setColour(juce::Colours::white);
 	g.strokePath(t, juce::PathStrokeType(1.0f));
-	
+
+	// labels
+	const int fontHeight = 10;
+	String str;
+	g.setFont(fontHeight);
+	Rectangle<int> r;
+
+
+	/*str.clear();
+	str << "+1";
+	textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	point = rightPoint;
+	point.setXY(point.getX() + JUCE_LIVE_CONSTANT(-33), point.getY() - fontHeight -
+		JUCE_LIVE_CONSTANT(38));
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);*/
+
+	// --- INPUT ---
+	g.setColour(juce::Colours::darkgrey);
+	// -1
+	str << "-1";
+	auto textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	auto point = leftPoint;
+	point.setXY(point.getX() - 18, point.getY() - fontHeight - 38);
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);
+	// 0
+	str.clear();
+	str << "0";
+	textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	point = bounds.getCentre().toFloat();
+	point.setXY(point.getX() - 18, point.getY() - fontHeight - 38);
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);
+	// +1
+	str.clear();
+	str << "+1";
+	textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	point = rightPoint;
+	point.setXY(point.getX() - 33, point.getY() - fontHeight - 38);
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);
+	// input label
+	g.setFont(juce::Font("Prestige Elite Std", fontHeight, 0));
+	str.clear();
+	str << "input";
+	textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	point = rightPoint;
+	point.setXY(point.getX() - textWidth - 18, point.getY() - fontHeight - 52);
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);
+
+	// --- OUTPUT ---
+	// -1
+	str.clear();
+	str << "-1";
+	textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	point = bottomPoint;
+	point.setXY(point.getX() - 18, point.getY() - fontHeight - 52);
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);
+	// 0 (already drown)
+	// +1
+	str.clear();
+	str << "+1";
+	textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	point = topPoint;
+	point.setXY(point.getX() - 16, point.getY() - fontHeight - 38);
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);
+	// output label
+	g.setFont(juce::Font("Prestige Elite Std", fontHeight, 0));
+	str.clear();
+	str << "output";
+	textWidth = g.getCurrentFont().getStringWidth(str);
+	r.setSize(textWidth, fontHeight);
+	point = topPoint;
+	juce::AffineTransform transform;
+	g.addTransform(transform.rotated(-1.f * juce::MathConstants<float>::pi / 2.0f));
+	point.setXY(point.getX() - textWidth - 122, 
+		point.getY() - fontHeight + 58);
+	r.setCentre(point.getX(), point.getY());
+	g.drawFittedText(str, r, juce::Justification::centred, 1);
+
 }
 
 void TransferFunctionGraphComponent::updateParams()
