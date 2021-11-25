@@ -159,17 +159,6 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	g.setFont(fontHeight);
 	Rectangle<int> r;
 
-
-	/*str.clear();
-	str << "+1";
-	textWidth = g.getCurrentFont().getStringWidth(str);
-	r.setSize(textWidth, fontHeight);
-	point = rightPoint;
-	point.setXY(point.getX() + JUCE_LIVE_CONSTANT(-33), point.getY() - fontHeight -
-		JUCE_LIVE_CONSTANT(38));
-	r.setCentre(point.getX(), point.getY());
-	g.drawFittedText(str, r, juce::Justification::centred, 1);*/
-
 	// --- INPUT ---
 	g.setColour(juce::Colours::darkgrey);
 	// -1
