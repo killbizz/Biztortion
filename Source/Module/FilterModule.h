@@ -82,38 +82,38 @@ void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
 template<typename ChainType, typename CoefficientType>
 void updateCutFilter(ChainType& monoChain, const CoefficientType& cutCoefficients, const FilterSlope& slope) {
-    monoChain.setBypassed<0>(true);
-    monoChain.setBypassed<1>(true);
-    monoChain.setBypassed<2>(true);
-    monoChain.setBypassed<3>(true);
+    monoChain. template setBypassed<0>(true);
+    monoChain. template setBypassed<1>(true);
+    monoChain. template setBypassed<2>(true);
+    monoChain. template setBypassed<3>(true);
     switch (slope) {
     case Slope_12:
-        *monoChain.get<0>().coefficients = *cutCoefficients[0];
-        monoChain.setBypassed<0>(false);
+        *monoChain. template get<0>().coefficients = *cutCoefficients[0];
+        monoChain. template setBypassed<0>(false);
         break;
     case Slope_24:
-        *monoChain.get<0>().coefficients = *cutCoefficients[0];
-        monoChain.setBypassed<0>(false);
-        *monoChain.get<1>().coefficients = *cutCoefficients[1];
-        monoChain.setBypassed<1>(false);
+        *monoChain. template get<0>().coefficients = *cutCoefficients[0];
+        monoChain. template setBypassed<0>(false);
+        *monoChain. template get<1>().coefficients = *cutCoefficients[1];
+        monoChain. template setBypassed<1>(false);
         break;
     case Slope_36:
-        *monoChain.get<0>().coefficients = *cutCoefficients[0];
-        monoChain.setBypassed<0>(false);
-        *monoChain.get<1>().coefficients = *cutCoefficients[1];
-        monoChain.setBypassed<1>(false);
-        *monoChain.get<2>().coefficients = *cutCoefficients[2];
-        monoChain.setBypassed<2>(false);
+        *monoChain. template get<0>().coefficients = *cutCoefficients[0];
+        monoChain. template setBypassed<0>(false);
+        *monoChain. template get<1>().coefficients = *cutCoefficients[1];
+        monoChain. template setBypassed<1>(false);
+        *monoChain. template get<2>().coefficients = *cutCoefficients[2];
+        monoChain. template setBypassed<2>(false);
         break;
     case Slope_48:
-        *monoChain.get<0>().coefficients = *cutCoefficients[0];
-        monoChain.setBypassed<0>(false);
-        *monoChain.get<1>().coefficients = *cutCoefficients[1];
-        monoChain.setBypassed<1>(false);
-        *monoChain.get<2>().coefficients = *cutCoefficients[2];
-        monoChain.setBypassed<2>(false);
-        *monoChain.get<3>().coefficients = *cutCoefficients[3];
-        monoChain.setBypassed<3>(false);
+        *monoChain. template get<0>().coefficients = *cutCoefficients[0];
+        monoChain. template setBypassed<0>(false);
+        *monoChain. template get<1>().coefficients = *cutCoefficients[1];
+        monoChain. template setBypassed<1>(false);
+        *monoChain. template get<2>().coefficients = *cutCoefficients[2];
+        monoChain. template setBypassed<2>(false);
+        *monoChain. template get<3>().coefficients = *cutCoefficients[3];
+        monoChain. template setBypassed<3>(false);
         break;
     }
 }
