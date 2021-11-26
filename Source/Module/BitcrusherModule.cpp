@@ -290,23 +290,23 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
 {
     // title setup
     title.setText("Bitcrusher", juce::dontSendNotification);
-    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
+    title.setFont(juce::Font("Courier New", 24, 0));
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
-    driveLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    driveLabel.setFont(juce::Font("Courier New", 12, 0));
     mixLabel.setText("Mix", juce::dontSendNotification);
-    mixLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    mixLabel.setFont(juce::Font("Courier New", 12, 0));
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
-    symmetryLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    symmetryLabel.setFont(juce::Font("Courier New", 12, 0));
     biasLabel.setText("Bias", juce::dontSendNotification);
-    biasLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    biasLabel.setFont(juce::Font("Courier New", 12, 0));
     bitcrusherDitherLabel.setText("Dither", juce::dontSendNotification);
-    bitcrusherDitherLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    bitcrusherDitherLabel.setFont(juce::Font("Courier New", 12, 0));
     bitcrusherRateReduxLabel.setText("Sampling Rate Redux", juce::dontSendNotification);
-    bitcrusherRateReduxLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    bitcrusherRateReduxLabel.setFont(juce::Font("Courier New", 12, 0));
     bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
-    bitcrusherBitReduxLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    bitcrusherBitReduxLabel.setFont(juce::Font("Courier New", 12, 0));
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });

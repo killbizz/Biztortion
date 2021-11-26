@@ -267,7 +267,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
 {
     // title setup
     title.setText("Filter", juce::dontSendNotification);
-    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
+    title.setFont(juce::Font("Courier New", 24, 0));
 
     // labels
 
@@ -342,10 +342,10 @@ void FilterModuleGUI::paint(juce::Graphics& g)
     drawContainer(g);
     // filter types
     g.setColour(juce::Colours::white);
-    g.setFont(juce::Font("Prestige Elite Std", 10, 0));
-    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -8), juce::Justification::centredTop, 1);
-    g.drawFittedText("Peak", peakFreqSlider.getBounds().translated(0, -8), juce::Justification::centredTop, 1);
-    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -8), juce::Justification::centredTop, 1);
+    g.setFont(juce::Font("Courier New", 12, 0));
+    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -10), juce::Justification::centredTop, 1);
+    g.drawFittedText("Peak", peakFreqSlider.getBounds().translated(0, -10), juce::Justification::centredTop, 1);
+    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -10), juce::Justification::centredTop, 1);
 }
 
 void FilterModuleGUI::resized()

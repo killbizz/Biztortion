@@ -223,25 +223,25 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned i
 {
     // title setup
     title.setText("Waveshaper", juce::dontSendNotification);
-    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
+    title.setFont(juce::Font("Courier New", 24, 0));
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
-    driveLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    driveLabel.setFont(juce::Font("Courier New", 12, 0));
     mixLabel.setText("Mix", juce::dontSendNotification);
-    mixLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    mixLabel.setFont(juce::Font("Courier New", 12, 0));
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
-    symmetryLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    symmetryLabel.setFont(juce::Font("Courier New", 12, 0));
     biasLabel.setText("Bias", juce::dontSendNotification);
-    biasLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    biasLabel.setFont(juce::Font("Courier New", 12, 0));
     tanhAmpLabel.setText("Tanh Amp", juce::dontSendNotification);
-    tanhAmpLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    tanhAmpLabel.setFont(juce::Font("Courier New", 12, 0));
     tanhSlopeLabel.setText("Tanh Slope", juce::dontSendNotification);
-    tanhSlopeLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    tanhSlopeLabel.setFont(juce::Font("Courier New", 12, 0));
     sineAmpLabel.setText("Sin Amp", juce::dontSendNotification);
-    sineAmpLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    sineAmpLabel.setFont(juce::Font("Courier New", 12, 0));
     sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);
-    sineFreqLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    sineFreqLabel.setFont(juce::Font("Courier New", 12, 0));
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });

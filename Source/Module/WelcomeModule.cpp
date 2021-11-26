@@ -37,10 +37,10 @@ WelcomeModuleGUI::WelcomeModuleGUI()
     title.setFont(juce::Font("Prestige Elite Std", 28, 0));*/
 
     author.setText("(c) 2021 Gabriel Bizzo", juce::dontSendNotification);
-    author.setFont(juce::Font("Prestige Elite Std", 14, 0));
+    author.setFont(juce::Font("Courier New", 14, 0));
 
     version.setText("version: 1.0", juce::dontSendNotification);
-    version.setFont(juce::Font("Prestige Elite Std", 14, 0));
+    version.setFont(juce::Font("Courier New", 14, 0));
 
     for (auto* comp : getAllComps())
     {

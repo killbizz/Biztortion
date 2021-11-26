@@ -188,7 +188,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	r.setCentre(point.getX(), point.getY());
 	g.drawFittedText(str, r, juce::Justification::centred, 1);
 	// input label
-	g.setFont(juce::Font("Prestige Elite Std", fontHeight, 0));
+	g.setFont(juce::Font("Courier New", fontHeight+2, 0));
 	str.clear();
 	str << "input";
 	textWidth = g.getCurrentFont().getStringWidth(str);
@@ -219,7 +219,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	r.setCentre(point.getX(), point.getY());
 	g.drawFittedText(str, r, juce::Justification::centred, 1);
 	// output label
-	g.setFont(juce::Font("Prestige Elite Std", fontHeight, 0));
+	g.setFont(juce::Font("Courier New", fontHeight+2, 0));
 	str.clear();
 	str << "output";
 	textWidth = g.getCurrentFont().getStringWidth(str);

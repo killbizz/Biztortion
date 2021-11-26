@@ -125,13 +125,13 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
 {
     // title setup
     title.setText("Oscilloscope", juce::dontSendNotification);
-    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
+    title.setFont(juce::Font("Courier New", 24, 0));
 
     // labels
     hZoomLabel.setText("H Zoom", juce::dontSendNotification);
-    hZoomLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    hZoomLabel.setFont(juce::Font("Courier New", 12, 0));
     vZoomLabel.setText("V Zoom", juce::dontSendNotification);
-    vZoomLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    vZoomLabel.setFont(juce::Font("Courier New", 12, 0));
 
     hZoomSlider.labels.add({ 0.f, "0" });
     hZoomSlider.labels.add({ 1.f, "1" });

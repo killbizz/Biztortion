@@ -31,24 +31,24 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 HelpComponent::HelpComponent()
 {
-	one.setFont(juce::Font("Marlett", 20, juce::Font::bold));
-	one.setText("a", juce::dontSendNotification);
+	one.setFont(juce::Font("Courier New", 22, 0));
+	one.setText("1)", juce::dontSendNotification);
 
 	firstRow.setText("Biztortion is an open-source modular distortion plugin, click on the \"About\" button for more info", juce::dontSendNotification);
-	firstRow.setFont(juce::Font("Prestige Elite Std", 18, 0));
+	firstRow.setFont(juce::Font("Courier New", 18, 0));
 
 
-	two.setFont(juce::Font("Marlett", 20, juce::Font::bold));
-	two.setText("a", juce::dontSendNotification);
+	two.setFont(juce::Font("Courier New", 22, 0));
+	two.setText("2)", juce::dontSendNotification);
 
 	secondRow.setText("Use the slots below to link modules in series and create your own custom processing chain", juce::dontSendNotification);
-	secondRow.setFont(juce::Font("Prestige Elite Std", 18, 0));
+	secondRow.setFont(juce::Font("Courier New", 18, 0));
 
-	three.setFont(juce::Font("Marlett", 20, juce::Font::bold));
-	three.setText("a", juce::dontSendNotification);
+	three.setFont(juce::Font("Courier New", 22, 0));
+	three.setText("3)", juce::dontSendNotification);
 
 	thirdRow.setText("If you need help with some module features go over the parameter in order to see a tooltip", juce::dontSendNotification);
-	thirdRow.setFont(juce::Font("Prestige Elite Std", 18, 0));
+	thirdRow.setFont(juce::Font("Courier New", 18, 0));
 
 	for (auto* comp : getComps())
 	{

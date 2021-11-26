@@ -238,23 +238,23 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned
 {
     // title setup
     title.setText("Slew Limiter", juce::dontSendNotification);
-    title.setFont(juce::Font("Prestige Elite Std", 24, 0));
+    title.setFont(juce::Font("Courier New", 24, 0));
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
-    driveLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    driveLabel.setFont(juce::Font("Courier New", 12, 0));
     mixLabel.setText("Mix", juce::dontSendNotification);
-    mixLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    mixLabel.setFont(juce::Font("Courier New", 12, 0));
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
-    symmetryLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    symmetryLabel.setFont(juce::Font("Courier New", 12, 0));
     biasLabel.setText("Bias", juce::dontSendNotification);
-    biasLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    biasLabel.setFont(juce::Font("Courier New", 12, 0));
     slewLimiterRiseLabel.setText("Rise", juce::dontSendNotification);
-    slewLimiterRiseLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    slewLimiterRiseLabel.setFont(juce::Font("Courier New", 12, 0));
     slewLimiterFallLabel.setText("Fall", juce::dontSendNotification);
-    slewLimiterFallLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    slewLimiterFallLabel.setFont(juce::Font("Courier New", 12, 0));
     DCoffsetEnabledButtonLabel.setText("DC Filter", juce::dontSendNotification);
-    DCoffsetEnabledButtonLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    DCoffsetEnabledButtonLabel.setFont(juce::Font("Courier New", 12, 0));
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -287,8 +287,8 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
     symmetrySlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
     biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
-    slewLimiterRiseSlider.setTooltip("Set the maximum speed threshold above which the signal waveform change is limited in time during the phase in which the wave moves towards the positive waveform area");
-    slewLimiterFallSlider.setTooltip("Set the maximum speed threshold above which the signal waveform change is limited in time during the phase in which the wave moves towards the negative waveform area");
+    slewLimiterRiseSlider.setTooltip("Set the maximum change speed of the waveform during the rising phase");
+    slewLimiterFallSlider.setTooltip("Set the maximum change speed of the waveform during the falling phase");
     DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())

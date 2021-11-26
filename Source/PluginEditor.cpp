@@ -45,7 +45,9 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    helpButton.setFont(juce::Font("Prestige Elite Std", 20, 0), true);
+    tooltipWindow.setLookAndFeel(&laf);
+
+    helpButton.setFont(juce::Font("Courier New", 20, 0), true);
     helpButton.setButtonText("Help");
     helpButton.setTooltip("Show some useful informations about this software");
     helpButton.setColour(juce::HyperlinkButton::textColourId, juce::Colours::white);
@@ -56,6 +58,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
         asyncAlertWindow = std::make_unique<AlertWindow>("Welcome to Biztortion!",
             "",
             MessageBoxIconType::NoIcon);
+        asyncAlertWindow->setLookAndFeel(&laf);
         asyncAlertWindow->addButton("Got it!", 1, KeyPress(KeyPress::returnKey, 0, 0));
         asyncAlertWindow->addCustomComponent(&helpComponent);
 
@@ -67,7 +70,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
         asyncAlertWindow->enterModalState(true, ModalCallbackFunction::create(AsyncAlertBoxResult{ *this }));
     };
 
-    githubLink.setFont(juce::Font("Prestige Elite Std", 20, 0), true);
+    githubLink.setFont(juce::Font("Courier New", 20, 0), true);
     githubLink.setColour(juce::HyperlinkButton::textColourId, juce::Colours::white);
     addAndMakeVisible(githubLink);
 
@@ -106,6 +109,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
 {
+    tooltipWindow.setLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -121,7 +125,7 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     auto bounds = getLocalBounds();
     auto center = bounds.getCentre();
 
-    g.setFont(Font("Prestige Elite Std", 30, 0));
+    g.setFont(Font("Courier New", 30, 0));
 
     String title{ "Biztortion" };
     g.setFont(30);
