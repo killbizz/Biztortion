@@ -94,6 +94,8 @@ private:
     juce::HyperlinkButton helpButton;
     juce::HyperlinkButton githubLink;
 
+    ModuleLookAndFeel laf;
+
     std::unique_ptr<AlertWindow> asyncAlertWindow;
     HelpComponent helpComponent;
 

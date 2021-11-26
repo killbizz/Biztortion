@@ -56,7 +56,103 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
 
     Font getTextButtonFont(TextButton&, int buttonHeight) override
     {
-        return juce::Font("Prestige Elite Std", buttonHeight*0.35f, 0);
+        return juce::Font("Courier New", buttonHeight*0.39f, 0);
+    }
+
+    Font getAlertWindowTitleFont() override {
+        return juce::Font("Courier New", 22, 0);
+    }
+
+    Font getComboBoxFont(ComboBox&) override {
+        return juce::Font("Courier New", 18, 0);
+    }
+
+    Font getPopupMenuFont() override {
+        return juce::Font("Courier New", 16, 0);
+    }
+
+    void drawPopupMenuItem(Graphics& g, const Rectangle< int >& area, bool isSeparator, bool isActive, bool isHighlighted, bool isTicked, bool hasSubMenu,
+        const String& text, const String& shortcutKeyText, const Drawable* icon, const Colour* textColourToUse) override {
+        if (isSeparator)
+        {
+            auto r = area.reduced(5, 0);
+            r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
+
+            g.setColour(findColour(PopupMenu::textColourId).withAlpha(0.3f));
+            g.fillRect(r.removeFromTop(1));
+        }
+        else
+        {
+            auto textColour = (textColourToUse == nullptr ? findColour(PopupMenu::textColourId)
+                : *textColourToUse);
+
+            auto r = area.reduced(1);
+            auto r_copy = r;
+
+            if (isHighlighted && isActive)
+            {
+                g.setColour(findColour(PopupMenu::highlightedBackgroundColourId));
+                g.fillRect(r);
+
+                g.setColour(findColour(PopupMenu::highlightedTextColourId));
+            }
+            else
+            {
+                g.setColour(textColour.withMultipliedAlpha(isActive ? 1.0f : 0.5f));
+            }
+
+            r.reduce(jmin(5, area.getWidth() / 20), 0);
+
+            auto font = getPopupMenuFont();
+
+            auto maxFontHeight = (float)r.getHeight() / 1.3f;
+
+            if (font.getHeight() > maxFontHeight)
+                font.setHeight(maxFontHeight);
+
+            g.setFont(font);
+
+            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
+
+            if (icon != nullptr)
+            {
+                icon->drawWithin(g, iconArea, RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
+                r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
+            }
+            else if (isTicked)
+            {
+                auto tick = getTickShape(1.0f);
+                g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.reduced(iconArea.getWidth() / 5, 0).toFloat(), true));
+            }
+
+            if (hasSubMenu)
+            {
+                auto arrowH = 0.6f * getPopupMenuFont().getAscent();
+
+                auto x = static_cast<float> (r.removeFromRight((int)arrowH).getX());
+                auto halfH = static_cast<float> (r.getCentreY());
+
+                Path path;
+                path.startNewSubPath(x, halfH - arrowH * 0.5f);
+                path.lineTo(x + arrowH * 0.6f, halfH);
+                path.lineTo(x, halfH + arrowH * 0.5f);
+
+                g.strokePath(path, PathStrokeType(2.0f));
+            }
+
+            r.removeFromRight(3);
+            g.drawFittedText(text, r_copy, Justification::centred, 1);
+
+            if (shortcutKeyText.isNotEmpty())
+            {
+                auto f2 = font;
+                f2.setHeight(f2.getHeight() * 0.75f);
+                f2.setHorizontalScale(0.95f);
+                g.setFont(f2);
+
+                g.drawText(shortcutKeyText, r, Justification::centredRight, true);
+            }
+        }
     }
 
     void drawRoundThumb(Graphics& g, float x, float y, float diameter, Colour colour, float outlineThickness)
@@ -103,11 +199,6 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
 
             Path outline;
             outline.addRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness);
-                /*cornerSize, cornerSize,
-                !(flatOnLeft || flatOnTop),
-                !(flatOnRight || flatOnTop),
-                !(flatOnLeft || flatOnBottom),
-                !(flatOnRight || flatOnBottom));*/
 
             auto outlineColour = button.findColour(button.getToggleState() ? TextButton::textColourOnId
                 : TextButton::textColourOffId);
@@ -122,175 +213,6 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
             }
         }
     }
-
-    //void drawTickBox(Graphics& g, Component& component,
-    //    float x, float y, float w, float h,
-    //    bool ticked,
-    //    bool isEnabled,
-    //    bool isMouseOverButton,
-    //    bool isButtonDown) override
-    //{
-    //    auto boxSize = w * 0.7f;
-
-    //    auto isDownOrDragging = component.isEnabled() && (component.isMouseOverOrDragging() || component.isMouseButtonDown());
-
-    //    auto colour = component.findColour(TextButton::buttonColourId)
-    //        .withMultipliedSaturation((component.hasKeyboardFocus(false) || isDownOrDragging) ? 1.3f : 0.9f)
-    //        .withMultipliedAlpha(component.isEnabled() ? 1.0f : 0.7f);
-
-    //    drawRoundThumb(g, x, y + (h - boxSize) * 0.5f, boxSize, colour,
-    //        isEnabled ? ((isButtonDown || isMouseOverButton) ? 1.1f : 0.5f) : 0.3f);
-
-    //    if (ticked)
-    //    {
-    //        g.setColour(isEnabled ? findColour(TextButton::buttonOnColourId) : Colours::grey);
-
-    //        auto scale = 9.0f;
-    //        auto trans = AffineTransform::scale(w / scale, h / scale).translated(x - 2.5f, y + 1.0f);
-
-    //        g.fillPath(LookAndFeel_V4::getTickShape(6.0f), trans);
-    //    }
-    //}
-
-    //void drawLinearSliderThumb(Graphics& g, int x, int y, int width, int height,
-    //    float sliderPos, float minSliderPos, float maxSliderPos,
-    //    const Slider::SliderStyle style, Slider& slider) override
-    //{
-    //    auto sliderRadius = (float)(getSliderThumbRadius(slider) - 2);
-
-    //    auto isDownOrDragging = slider.isEnabled() && (slider.isMouseOverOrDragging() || slider.isMouseButtonDown());
-
-    //    auto knobColour = slider.findColour(Slider::thumbColourId)
-    //        .withMultipliedSaturation((slider.hasKeyboardFocus(false) || isDownOrDragging) ? 1.3f : 0.9f)
-    //        .withMultipliedAlpha(slider.isEnabled() ? 1.0f : 0.7f);
-
-    //    if (style == Slider::LinearHorizontal || style == Slider::LinearVertical)
-    //    {
-    //        float kx, ky;
-
-    //        if (style == Slider::LinearVertical)
-    //        {
-    //            kx = (float)x + (float)width * 0.5f;
-    //            ky = sliderPos;
-    //        }
-    //        else
-    //        {
-    //            kx = sliderPos;
-    //            ky = (float)y + (float)height * 0.5f;
-    //        }
-
-    //        auto outlineThickness = slider.isEnabled() ? 0.8f : 0.3f;
-
-    //        drawRoundThumb(g,
-    //            kx - sliderRadius,
-    //            ky - sliderRadius,
-    //            sliderRadius * 2.0f,
-    //            knobColour, outlineThickness);
-    //    }
-    //    else
-    //    {
-    //        // Just call the base class for the demo
-    //        LookAndFeel_V2::drawLinearSliderThumb(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-    //    }
-    //}
-
-    //void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
-    //    float sliderPos, float minSliderPos, float maxSliderPos,
-    //    const Slider::SliderStyle style, Slider& slider) override
-    //{
-    //    g.fillAll(slider.findColour(Slider::backgroundColourId));
-
-    //    if (style == Slider::LinearBar || style == Slider::LinearBarVertical)
-    //    {
-    //        Path p;
-
-    //        if (style == Slider::LinearBarVertical)
-    //            p.addRectangle((float)x, sliderPos, (float)width, 1.0f + (float)height - sliderPos);
-    //        else
-    //            p.addRectangle((float)x, (float)y, sliderPos - (float)x, (float)height);
-
-    //        auto baseColour = slider.findColour(Slider::rotarySliderFillColourId)
-    //            .withMultipliedSaturation(slider.isEnabled() ? 1.0f : 0.5f)
-    //            .withMultipliedAlpha(0.8f);
-
-    //        g.setColour(baseColour);
-    //        g.fillPath(p);
-
-    //        auto lineThickness = jmin(15.0f, (float)jmin(width, height) * 0.45f) * 0.1f;
-    //        g.drawRect(slider.getLocalBounds().toFloat(), lineThickness);
-    //    }
-    //    else
-    //    {
-    //        drawLinearSliderBackground(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-    //        drawLinearSliderThumb(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-    //    }
-    //}
-
-    //void drawLinearSliderBackground(Graphics& g, int x, int y, int width, int height,
-    //    float /*sliderPos*/,
-    //    float /*minSliderPos*/,
-    //    float /*maxSliderPos*/,
-    //    const Slider::SliderStyle /*style*/, Slider& slider) override
-    //{
-    //    auto sliderRadius = (float)getSliderThumbRadius(slider) - 5.0f;
-    //    Path on, off;
-
-    //    if (slider.isHorizontal())
-    //    {
-    //        auto iy = (float)y + (float)height * 0.5f - sliderRadius * 0.5f;
-    //        Rectangle<float> r((float)x - sliderRadius * 0.5f, iy, (float)width + sliderRadius, sliderRadius);
-    //        auto onW = r.getWidth() * ((float)slider.valueToProportionOfLength(slider.getValue()));
-
-    //        on.addRectangle(r.removeFromLeft(onW));
-    //        off.addRectangle(r);
-    //    }
-    //    else
-    //    {
-    //        auto ix = (float)x + (float)width * 0.5f - sliderRadius * 0.5f;
-    //        Rectangle<float> r(ix, (float)y - sliderRadius * 0.5f, sliderRadius, (float)height + sliderRadius);
-    //        auto onH = r.getHeight() * ((float)slider.valueToProportionOfLength(slider.getValue()));
-
-    //        on.addRectangle(r.removeFromBottom(onH));
-    //        off.addRectangle(r);
-    //    }
-
-    //    g.setColour(slider.findColour(Slider::rotarySliderFillColourId));
-    //    g.fillPath(on);
-
-    //    g.setColour(slider.findColour(Slider::trackColourId));
-    //    g.fillPath(off);
-    //}
-
-    //void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
-    //    float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
-    //{
-    //    auto radius = (float)jmin(width / 2, height / 2) - 2.0f;
-    //    auto centreX = (float)x + (float)width * 0.5f;
-    //    auto centreY = (float)y + (float)height * 0.5f;
-    //    auto rx = centreX - radius;
-    //    auto ry = centreY - radius;
-    //    auto rw = radius * 2.0f;
-    //    auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    //    auto isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
-
-    //    if (slider.isEnabled())
-    //        g.setColour(slider.findColour(Slider::rotarySliderFillColourId).withAlpha(isMouseOver ? 1.0f : 0.7f));
-    //    else
-    //        g.setColour(Colour(0x80808080));
-
-    //    {
-    //        Path filledArc;
-    //        filledArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.0);
-    //        g.fillPath(filledArc);
-    //    }
-
-    //    {
-    //        auto lineThickness = jmin(15.0f, (float)jmin(width, height) * 0.45f) * 0.1f;
-    //        Path outlineArc;
-    //        outlineArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
-    //        g.strokePath(outlineArc, PathStrokeType(lineThickness));
-    //    }
-    //}
 };
 
 struct SliderLookAndFeel : juce::LookAndFeel_V4

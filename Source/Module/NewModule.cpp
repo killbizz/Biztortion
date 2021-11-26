@@ -43,7 +43,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     //                                              pulsante col nome per triggerare la visualizzazione a schermo della UI del modulo
 
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
-    chainPositionLabel.setFont(juce::Font("Prestige Elite Std", 10, 0));
+    chainPositionLabel.setFont(juce::Font("Courier New", 12, 0));
     addAndMakeVisible(chainPositionLabel);
 
     // newModule
@@ -72,10 +72,12 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     currentModuleActivator.setLookAndFeel(&currentModuleActivatorLookAndFeel);
 
     // newModuleSelector
+    newModuleSelector.setJustificationType(juce::Justification::centred);
     // 999 id for the default text entry
     newModuleSelector.addItem("Select one module here", 999);
     newModuleSelector.addItem("Oscilloscope", ModuleType::Oscilloscope);
     newModuleSelector.addItem("Filter", ModuleType::IIRFilter);
+    newModuleSelector.addSeparator();
     newModuleSelector.addItem("Waveshaper", ModuleType::Waveshaper);
     newModuleSelector.addItem("Bitcrusher", ModuleType::Bitcrusher);
     newModuleSelector.addItem("Slew Limiter", ModuleType::SlewLimiter);
@@ -85,6 +87,8 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     setupNewModuleSelectorColours(newModuleSelectorLookAndFeel);
     newModuleSelector.setLookAndFeel(&newModuleSelectorLookAndFeel);
 
+    newModuleSelector.getRootMenu()->setLookAndFeel(&newModuleSelectorLookAndFeel);
+
     // lambdas
 
     newModule.onClick = [this] {
@@ -92,7 +96,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
         editor.addAndMakeVisible(newModuleSelector);
         newModuleSelector.setVisible(newModule.getToggleState());
         newModuleSelector.grabKeyboardFocus();
-        juce::Rectangle<int> rect{210, 50};
+        juce::Rectangle<int> rect{310, 50};
         rect.setCentre(editor.currentGUIModule->getBounds().getCentre());
         newModuleSelector.setBounds(rect);
         if (newModule.getToggleState()) {
