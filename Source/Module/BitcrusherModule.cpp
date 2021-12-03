@@ -358,6 +358,77 @@ BitcrusherModuleGUI::~BitcrusherModuleGUI()
     bypassButton.setLookAndFeel(nullptr);
 }
 
+std::vector<juce::Component*> BitcrusherModuleGUI::getAllComps()
+{
+    return {
+        &title,
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &bitcrusherDitherSlider,
+        &bitcrusherRateReduxSlider,
+        &bitcrusherBitReduxSlider,
+        // labels
+        &driveLabel,
+        &mixLabel,
+        &symmetryLabel,
+        &biasLabel,
+        &bitcrusherDitherLabel,
+        &bitcrusherRateReduxLabel,
+        &bitcrusherBitReduxLabel,
+        // bypass
+        &bypassButton
+    };
+}
+
+std::vector<juce::Component*> BitcrusherModuleGUI::getParamComps()
+{
+    return {
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &bitcrusherDitherSlider,
+        &bitcrusherRateReduxSlider,
+        &bitcrusherBitReduxSlider
+    };
+}
+
+void BitcrusherModuleGUI::updateParameters(GUIModule* moduleToCopy)
+{
+    auto m = dynamic_cast<BitcrusherModuleGUI*>(moduleToCopy);
+    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    driveSlider.setValue(m->driveSlider.getValue());
+    mixSlider.setValue(m->mixSlider.getValue());
+    symmetrySlider.setValue(m->symmetrySlider.getValue());
+    biasSlider.setValue(m->biasSlider.getValue());
+    bitcrusherDitherSlider.setValue(m->bitcrusherDitherSlider.getValue());
+    bitcrusherRateReduxSlider.setValue(m->bitcrusherRateReduxSlider.getValue());
+    bitcrusherBitReduxSlider.setValue(m->bitcrusherBitReduxSlider.getValue());
+}
+
+void BitcrusherModuleGUI::resetParameters(unsigned int chainPosition)
+{
+    auto drive = audioProcessor.apvts.getParameter("Bitcrusher Drive " + std::to_string(chainPosition));
+    auto mix = audioProcessor.apvts.getParameter("Bitcrusher Mix " + std::to_string(chainPosition));
+    auto symmetry = audioProcessor.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(chainPosition));
+    auto bias = audioProcessor.apvts.getParameter("Bitcrusher Bias " + std::to_string(chainPosition));
+    auto rateRedux = audioProcessor.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(chainPosition));
+    auto bitRedux = audioProcessor.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(chainPosition));
+    auto dither = audioProcessor.apvts.getParameter("Bitcrusher Dither " + std::to_string(chainPosition));
+    auto bypassed = audioProcessor.apvts.getParameter("Bitcrusher Bypassed " + std::to_string(chainPosition));
+
+    drive->setValueNotifyingHost(drive->getDefaultValue());
+    mix->setValueNotifyingHost(mix->getDefaultValue());
+    symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
+    bias->setValueNotifyingHost(bias->getDefaultValue());
+    rateRedux->setValueNotifyingHost(rateRedux->getDefaultValue());
+    bitRedux->setValueNotifyingHost(bitRedux->getDefaultValue());
+    dither->setValueNotifyingHost(dither->getDefaultValue());
+    bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+}
+
 void BitcrusherModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
@@ -438,41 +509,4 @@ void BitcrusherModuleGUI::resized()
     bitcrusherDitherSlider.setBounds(ditherArea);
     bitcrusherDitherLabel.setBounds(ditherLabelArea);
     bitcrusherDitherLabel.setJustificationType(juce::Justification::centred);
-}
-
-std::vector<juce::Component*> BitcrusherModuleGUI::getAllComps()
-{
-    return {
-        &title,
-        &driveSlider,
-        &mixSlider,
-        &symmetrySlider,
-        &biasSlider,
-        &bitcrusherDitherSlider,
-        &bitcrusherRateReduxSlider,
-        &bitcrusherBitReduxSlider,
-        // labels
-        &driveLabel,
-        &mixLabel,
-        &symmetryLabel,
-        &biasLabel,
-        &bitcrusherDitherLabel,
-        &bitcrusherRateReduxLabel,
-        &bitcrusherBitReduxLabel,
-        // bypass
-        &bypassButton
-    };
-}
-
-std::vector<juce::Component*> BitcrusherModuleGUI::getParamComps()
-{
-    return {
-        &driveSlider,
-        &mixSlider,
-        &symmetrySlider,
-        &biasSlider,
-        &bitcrusherDitherSlider,
-        &bitcrusherRateReduxSlider,
-        &bitcrusherBitReduxSlider
-    };
 }

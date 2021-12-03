@@ -337,6 +337,77 @@ FilterModuleGUI::~FilterModuleGUI()
     analyzerButton.setLookAndFeel(nullptr);
 }
 
+std::vector<juce::Component*> FilterModuleGUI::getAllComps()
+{
+    return {
+        &title,
+        // filter
+        &peakFreqSlider,
+        &peakGainSlider,
+        &peakQualitySlider,
+        &lowCutFreqSlider,
+        &highCutFreqSlider,
+        &lowCutSlopeSlider,
+        &highCutSlopeSlider,
+        // responseCurve
+        &filterFftAnalyzerComponent,
+        &responseCurveComponent,
+        // bypass
+        &bypassButton,
+        &analyzerButton
+    };
+}
+
+std::vector<juce::Component*> FilterModuleGUI::getParamComps()
+{
+    return {
+        &peakFreqSlider,
+        &peakGainSlider,
+        &peakQualitySlider,
+        &lowCutFreqSlider,
+        &highCutFreqSlider,
+        &lowCutSlopeSlider,
+        &highCutSlopeSlider
+    };
+}
+
+void FilterModuleGUI::updateParameters(GUIModule* moduleToCopy)
+{
+    auto m = dynamic_cast<FilterModuleGUI*>(moduleToCopy);
+    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    peakFreqSlider.setValue(m->peakFreqSlider.getValue());
+    peakGainSlider.setValue(m->peakGainSlider.getValue());
+    peakQualitySlider.setValue(m->peakQualitySlider.getValue());
+    lowCutFreqSlider.setValue(m->lowCutFreqSlider.getValue());
+    highCutFreqSlider.setValue(m->highCutFreqSlider.getValue());
+    lowCutSlopeSlider.setValue(m->lowCutSlopeSlider.getValue());
+    highCutSlopeSlider.setValue(m->highCutSlopeSlider.getValue());
+    analyzerButton.setToggleState(m->analyzerButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+}
+
+void FilterModuleGUI::resetParameters(unsigned int chainPosition)
+{
+    auto peakFreq = audioProcessor.apvts.getParameter("Peak Freq " + std::to_string(chainPosition));
+    auto peakGain = audioProcessor.apvts.getParameter("Peak Gain " + std::to_string(chainPosition));
+    auto peakQuality = audioProcessor.apvts.getParameter("Peak Quality " + std::to_string(chainPosition));
+    auto lowcutFreq = audioProcessor.apvts.getParameter("LowCut Freq " + std::to_string(chainPosition));
+    auto highcutFreq = audioProcessor.apvts.getParameter("HighCut Freq " + std::to_string(chainPosition));
+    auto lowcutSlope = audioProcessor.apvts.getParameter("LowCut Slope " + std::to_string(chainPosition));
+    auto highcutSlope = audioProcessor.apvts.getParameter("HighCut Slope " + std::to_string(chainPosition));
+    auto bypassed = audioProcessor.apvts.getParameter("Filter Bypassed " + std::to_string(chainPosition));
+    auto analyzerEnabled = audioProcessor.apvts.getParameter("Filter Analyzer Enabled " + std::to_string(chainPosition));
+
+    peakFreq->setValueNotifyingHost(peakFreq->getDefaultValue());
+    peakGain->setValueNotifyingHost(peakGain->getDefaultValue());
+    peakQuality->setValueNotifyingHost(peakQuality->getDefaultValue());
+    lowcutFreq->setValueNotifyingHost(lowcutFreq->getDefaultValue());
+    highcutFreq->setValueNotifyingHost(highcutFreq->getDefaultValue());
+    lowcutSlope->setValueNotifyingHost(lowcutSlope->getDefaultValue());
+    highcutSlope->setValueNotifyingHost(highcutSlope->getDefaultValue());
+    bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+    analyzerEnabled->setValueNotifyingHost(analyzerEnabled->getDefaultValue());
+}
+
 void FilterModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
@@ -392,38 +463,4 @@ void FilterModuleGUI::resized()
     peakQualitySlider.setBounds(filtersArea);
     lowCutSlopeSlider.setBounds(lowCutArea);
     highCutSlopeSlider.setBounds(highCutArea);
-}
-
-std::vector<juce::Component*> FilterModuleGUI::getAllComps()
-{
-    return {
-        &title,
-        // filter
-        &peakFreqSlider,
-        &peakGainSlider,
-        &peakQualitySlider,
-        &lowCutFreqSlider,
-        &highCutFreqSlider,
-        &lowCutSlopeSlider,
-        &highCutSlopeSlider,
-        // responseCurve
-        &filterFftAnalyzerComponent,
-        &responseCurveComponent,
-        // bypass
-        &bypassButton,
-        &analyzerButton
-    };
-}
-
-std::vector<juce::Component*> FilterModuleGUI::getParamComps()
-{
-    return {
-        &peakFreqSlider,
-        &peakGainSlider,
-        &peakQualitySlider,
-        &lowCutFreqSlider,
-        &highCutFreqSlider,
-        &lowCutSlopeSlider,
-        &highCutSlopeSlider
-    };
 }

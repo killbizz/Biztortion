@@ -81,8 +81,12 @@ public:
 
     juce::String getType();
     foleys::LevelMeterSource* getMeterSource();
+
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
+    // useless methods because (at this moment) this is not a module usable in the processing chain
+    virtual void updateParameters(GUIModule* moduleToCopy) override {};
+    virtual void resetParameters(unsigned int chainPosition) override {};
 
     void paint(juce::Graphics& g) override;
     void resized() override;

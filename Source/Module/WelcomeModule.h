@@ -47,6 +47,9 @@ public:
     void resized() override;
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
+    // useless methods because (at this moment) this is not a module usable in the processing chain
+    virtual void updateParameters(GUIModule* moduleToCopy) override {};
+    virtual void resetParameters(unsigned int chainPosition) override {};
 
     juce::AffineTransform getTransform();
 

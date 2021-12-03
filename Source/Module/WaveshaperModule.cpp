@@ -296,6 +296,84 @@ WaveshaperModuleGUI::~WaveshaperModuleGUI()
     bypassButton.setLookAndFeel(nullptr);
 }
 
+std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()
+{
+    return {
+        &title,
+        &transferFunctionGraph,
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &tanhAmpSlider,
+        &tanhSlopeSlider,
+        &sineAmpSlider,
+        &sineFreqSlider,
+        // labels
+        &driveLabel,
+        &mixLabel,
+        &symmetryLabel,
+        &biasLabel,
+        &tanhAmpLabel,
+        &tanhSlopeLabel,
+        &sineAmpLabel,
+        &sineFreqLabel,
+        // bypass
+        &bypassButton
+    };
+}
+
+std::vector<juce::Component*> WaveshaperModuleGUI::getParamComps()
+{
+    return {
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &tanhAmpSlider,
+        &tanhSlopeSlider,
+        &sineAmpSlider,
+        &sineFreqSlider
+    };
+}
+
+void WaveshaperModuleGUI::updateParameters(GUIModule* moduleToCopy)
+{
+    auto m = dynamic_cast<WaveshaperModuleGUI*>(moduleToCopy);
+    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    driveSlider.setValue(m->driveSlider.getValue());
+    mixSlider.setValue(m->mixSlider.getValue());
+    symmetrySlider.setValue(m->symmetrySlider.getValue());
+    biasSlider.setValue(m->biasSlider.getValue());
+    tanhAmpSlider.setValue(m->tanhAmpSlider.getValue());
+    tanhSlopeSlider.setValue(m->tanhSlopeSlider.getValue());
+    sineAmpSlider.setValue(m->sineAmpSlider.getValue());
+    sineFreqSlider.setValue(m->sineFreqSlider.getValue());
+}
+
+void WaveshaperModuleGUI::resetParameters(unsigned int chainPosition)
+{
+    auto drive = audioProcessor.apvts.getParameter("Waveshaper Drive " + std::to_string(chainPosition));
+    auto mix = audioProcessor.apvts.getParameter("Waveshaper Mix " + std::to_string(chainPosition));
+    auto symmetry = audioProcessor.apvts.getParameter("Waveshaper Symmetry " + std::to_string(chainPosition));
+    auto bias = audioProcessor.apvts.getParameter("Waveshaper Bias " + std::to_string(chainPosition));
+    auto tanhAmp = audioProcessor.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(chainPosition));
+    auto tanhSlope = audioProcessor.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(chainPosition));
+    auto sineAmp = audioProcessor.apvts.getParameter("Waveshaper Sine Amp " + std::to_string(chainPosition));
+    auto sineFreq = audioProcessor.apvts.getParameter("Waveshaper Sine Freq " + std::to_string(chainPosition));
+    auto bypassed = audioProcessor.apvts.getParameter("Waveshaper Bypassed " + std::to_string(chainPosition));
+
+    drive->setValueNotifyingHost(drive->getDefaultValue());
+    mix->setValueNotifyingHost(mix->getDefaultValue());
+    symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
+    bias->setValueNotifyingHost(bias->getDefaultValue());
+    tanhAmp->setValueNotifyingHost(tanhAmp->getDefaultValue());
+    tanhSlope->setValueNotifyingHost(tanhSlope->getDefaultValue());
+    sineAmp->setValueNotifyingHost(sineAmp->getDefaultValue());
+    sineFreq->setValueNotifyingHost(sineFreq->getDefaultValue());
+    bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+}
+
 void WaveshaperModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
@@ -398,45 +476,4 @@ void WaveshaperModuleGUI::resized()
     sineFreqSlider.setBounds(sineFreqArea);
     sineFreqLabel.setBounds(sineFreqLabelArea);
     sineFreqLabel.setJustificationType(juce::Justification::centred);
-}
-
-std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()
-{
-    return {
-        &title,
-        &transferFunctionGraph,
-        & driveSlider,
-        & mixSlider,
-        & symmetrySlider,
-        & biasSlider,
-        &tanhAmpSlider,
-        &tanhSlopeSlider,
-        &sineAmpSlider,
-        &sineFreqSlider,
-        // labels
-        & driveLabel,
-        & mixLabel,
-        & symmetryLabel,
-        & biasLabel,
-        &tanhAmpLabel,
-        &tanhSlopeLabel,
-        &sineAmpLabel,
-        &sineFreqLabel,
-        // bypass
-        &bypassButton
-    };
-}
-
-std::vector<juce::Component*> WaveshaperModuleGUI::getParamComps()
-{
-    return {
-        &driveSlider,
-        &mixSlider,
-        &symmetrySlider,
-        &biasSlider,
-        &tanhAmpSlider,
-        &tanhSlopeSlider,
-        &sineAmpSlider,
-        &sineFreqSlider
-    };
 }

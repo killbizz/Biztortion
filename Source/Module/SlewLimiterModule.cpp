@@ -304,6 +304,77 @@ SlewLimiterModuleGUI::~SlewLimiterModuleGUI()
     bypassButton.setLookAndFeel(nullptr);
 }
 
+std::vector<juce::Component*> SlewLimiterModuleGUI::getAllComps()
+{
+    return {
+        &title,
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &slewLimiterRiseSlider,
+        &slewLimiterFallSlider,
+        &DCoffsetEnabledButton,
+        // labels
+        &driveLabel,
+        &mixLabel,
+        &symmetryLabel,
+        &biasLabel,
+        &slewLimiterRiseLabel,
+        &slewLimiterFallLabel,
+        &DCoffsetEnabledButtonLabel,
+        // bypass
+        &bypassButton
+    };
+}
+
+std::vector<juce::Component*> SlewLimiterModuleGUI::getParamComps()
+{
+    return {
+        &driveSlider,
+        &mixSlider,
+        &symmetrySlider,
+        &biasSlider,
+        &slewLimiterRiseSlider,
+        &slewLimiterFallSlider,
+        &DCoffsetEnabledButton
+    };
+}
+
+void SlewLimiterModuleGUI::updateParameters(GUIModule* moduleToCopy)
+{
+    auto m = dynamic_cast<SlewLimiterModuleGUI*>(moduleToCopy);
+    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    driveSlider.setValue(m->driveSlider.getValue());
+    mixSlider.setValue(m->mixSlider.getValue());
+    symmetrySlider.setValue(m->symmetrySlider.getValue());
+    biasSlider.setValue(m->biasSlider.getValue());
+    slewLimiterRiseSlider.setValue(m->slewLimiterRiseSlider.getValue());
+    slewLimiterFallSlider.setValue(m->slewLimiterFallSlider.getValue());
+    DCoffsetEnabledButton.setToggleState(m->DCoffsetEnabledButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+}
+
+void SlewLimiterModuleGUI::resetParameters(unsigned int chainPosition)
+{
+    auto drive = audioProcessor.apvts.getParameter("SlewLimiter Drive " + std::to_string(chainPosition));
+    auto mix = audioProcessor.apvts.getParameter("SlewLimiter Mix " + std::to_string(chainPosition));
+    auto symmetry = audioProcessor.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(chainPosition));
+    auto bias = audioProcessor.apvts.getParameter("SlewLimiter Bias " + std::to_string(chainPosition));
+    auto rise = audioProcessor.apvts.getParameter("SlewLimiter Rise " + std::to_string(chainPosition));
+    auto fall = audioProcessor.apvts.getParameter("SlewLimiter Fall " + std::to_string(chainPosition));
+    auto dcOffset = audioProcessor.apvts.getParameter("SlewLimiter DCoffset Enabled " + std::to_string(chainPosition));
+    auto bypassed = audioProcessor.apvts.getParameter("SlewLimiter Bypassed " + std::to_string(chainPosition));
+
+    drive->setValueNotifyingHost(drive->getDefaultValue());
+    mix->setValueNotifyingHost(mix->getDefaultValue());
+    symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
+    bias->setValueNotifyingHost(bias->getDefaultValue());
+    rise->setValueNotifyingHost(rise->getDefaultValue());
+    fall->setValueNotifyingHost(fall->getDefaultValue());
+    dcOffset->setValueNotifyingHost(dcOffset->getDefaultValue());
+    bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+}
+
 void SlewLimiterModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
@@ -388,41 +459,4 @@ void SlewLimiterModuleGUI::resized()
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
     DCoffsetEnabledButtonLabel.setCentreRelative(0.805f, 0.68f);
 
-}
-
-std::vector<juce::Component*> SlewLimiterModuleGUI::getAllComps()
-{
-    return {
-        &title,
-        & driveSlider,
-        & mixSlider,
-        & symmetrySlider,
-        & biasSlider,
-        &slewLimiterRiseSlider,
-        &slewLimiterFallSlider,
-        &DCoffsetEnabledButton,
-        // labels
-        & driveLabel,
-        & mixLabel,
-        & symmetryLabel,
-        & biasLabel,
-        &slewLimiterRiseLabel,
-        &slewLimiterFallLabel,
-        &DCoffsetEnabledButtonLabel,
-        // bypass
-        &bypassButton
-    };
-}
-
-std::vector<juce::Component*> SlewLimiterModuleGUI::getParamComps()
-{
-    return {
-        &driveSlider,
-        &mixSlider,
-        &symmetrySlider,
-        &biasSlider,
-        &slewLimiterRiseSlider,
-        &slewLimiterFallSlider,
-        &DCoffsetEnabledButton
-    };
 }

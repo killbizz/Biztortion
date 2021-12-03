@@ -101,11 +101,13 @@ public:
     SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
     ~SlewLimiterModuleGUI();
 
-    void paint(juce::Graphics& g) override;
-    void resized() override;
-
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
+    virtual void updateParameters(GUIModule* moduleToCopy) override;
+    virtual void resetParameters(unsigned int chainPosition) override;
+
+    void paint(juce::Graphics& g) override;
+    void resized() override;
 
 private:
 

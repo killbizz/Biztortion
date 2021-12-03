@@ -230,6 +230,27 @@ std::vector<juce::Component*> OscilloscopeModuleGUI::getParamComps()
     };
 }
 
+void OscilloscopeModuleGUI::updateParameters(GUIModule* moduleToCopy)
+{
+    auto m = dynamic_cast<OscilloscopeModuleGUI*>(moduleToCopy);
+    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    hZoomSlider.setValue(m->hZoomSlider.getValue());
+    vZoomSlider.setValue(m->vZoomSlider.getValue());
+    freezeButton.setToggleState(m->freezeButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+}
+
+void OscilloscopeModuleGUI::resetParameters(unsigned int chainPosition)
+{
+    auto hZoom = audioProcessor.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(chainPosition));
+    auto vZoom = audioProcessor.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(chainPosition));
+    auto bypassed = audioProcessor.apvts.getParameter("Oscilloscope Bypassed " + std::to_string(chainPosition));
+
+    hZoom->setValueNotifyingHost(hZoom->getDefaultValue());
+    vZoom->setValueNotifyingHost(vZoom->getDefaultValue());
+    bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+    freezeButton.setToggleState(false, juce::NotificationType::dontSendNotification);
+}
+
 void OscilloscopeModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
