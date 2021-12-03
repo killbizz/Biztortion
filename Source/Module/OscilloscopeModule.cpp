@@ -71,7 +71,7 @@ void OscilloscopeModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Pa
             juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 0.f, "Oscilloscope " + std::to_string(i))));
         layout.add(std::move(std::make_unique<juce::AudioParameterFloat>("Oscilloscope V Zoom " + std::to_string(i), 
             "Oscilloscope V Zoom " + std::to_string(i), 
-            juce::NormalisableRange<float>(0.f, 1.f, 0.01f), 1.f, "Oscilloscope " + std::to_string(i))));
+            juce::NormalisableRange<float>(0.f, 2.f, 0.01f), 1.f, "Oscilloscope " + std::to_string(i))));
         // bypass button
         layout.add(std::make_unique<AudioParameterBool>("Oscilloscope Bypassed " + std::to_string(i), "Oscilloscope Bypassed " + std::to_string(i), 
             false, "Oscilloscope " + std::to_string(i)));
@@ -136,7 +136,7 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
     hZoomSlider.labels.add({ 0.f, "0" });
     hZoomSlider.labels.add({ 1.f, "1" });
     vZoomSlider.labels.add({ 0.f, "0" });
-    vZoomSlider.labels.add({ 1.f, "1" });
+    vZoomSlider.labels.add({ 1.f, "2" });
 
     // bypass button
     bypassButton.setLookAndFeel(&lnf);
