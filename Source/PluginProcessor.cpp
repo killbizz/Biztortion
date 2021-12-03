@@ -358,9 +358,6 @@ DSPModule* BiztortionAudioProcessor::createDSPModule(ModuleType mt)
 
 void BiztortionAudioProcessor::addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition)
 {
-
-    // TODO: capisco perchè ricrendo lo stato del plugin non mi ricrea correttamente un Filtro (non sembra allocare il modulo e la relativa analyzerFIFO
-
     // DSP module setup
     module->setChainPosition(chainPosition);
     module->setModuleType();
