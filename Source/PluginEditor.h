@@ -51,7 +51,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 //==============================================================================
 /** EDITOR
 */
-class BiztortionAudioProcessorEditor  : public juce::AudioProcessorEditor
+class BiztortionAudioProcessorEditor  : public juce::AudioProcessorEditor, public DragAndDropContainer
 {
 public:
     BiztortionAudioProcessorEditor (BiztortionAudioProcessor&);

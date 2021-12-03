@@ -53,13 +53,17 @@ private:
     juce::TextButton* newModule;
 };
 
+class DragTextButton : public juce::TextButton {
+    void mouseDrag(const MouseEvent& event) override;
+};
+
 //==============================================================================
 
 /* NewModule GUI */
 
 //==============================================================================
 
-class NewModuleGUI : public GUIModule {
+class NewModuleGUI : public GUIModule, public DragAndDropTarget {
 public:
 
     NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition);
@@ -67,12 +71,20 @@ public:
 
     unsigned int getChainPosition();
     void setChainPosition(unsigned int cp);
+    ModuleType getModuleType();
+    void setModuleType(ModuleType mt);
+
+    void addNewModule(ModuleType type);
+    void deleteTheCurrentNewModule();
 
     void paint(juce::Graphics& g) override;
     void resized() override;
 
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
+    // useless methods because (at this moment) this is not a module usable in the processing chain
+    virtual void updateParameters(GUIModule* moduleToCopy) override {};
+    virtual void resetParameters(unsigned int chainPosition) override {};
 
     void setupNewModuleColours(juce::LookAndFeel& laf);
     void setupNewModuleSelectorColours(juce::LookAndFeel& laf);
@@ -94,7 +106,15 @@ public:
 
     // currentModuleActivator
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
-    juce::TextButton currentModuleActivator;
+    DragTextButton currentModuleActivator;
+
+    // These methods implement the DragAndDropTarget interface, and allow our component
+    // to accept drag-and-drop of objects from other JUCE components..
+    bool isInterestedInDragSource(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDragEnter(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDragMove(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDragExit(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDropped(const SourceDetails& dragSourceDetails) override;
 
 private:
 
@@ -110,7 +130,9 @@ private:
     // UNUSED only by the 8° module
     std::unique_ptr<juce::Drawable> rightCable;
 
-    GUIModule* createGUIModule(ModuleType type);
+    GUIModule* createGUIModule(ModuleType type, unsigned int chainPosition);
     juce::AffineTransform getTransform();
     std::unique_ptr<juce::Drawable> getRightCable(unsigned int chainPosition);
+
+    bool somethingIsBeingDraggedOver = false;
 };

@@ -74,7 +74,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     // newModuleSelector
     newModuleSelector.setJustificationType(juce::Justification::centred);
     // 999 id for the default text entry
-    newModuleSelector.addItem("Select one module here", 999);
+    newModuleSelector.addItem("Select the module to create", 999);
     newModuleSelector.addItem("Oscilloscope", ModuleType::Oscilloscope);
     newModuleSelector.addItem("Filter", ModuleType::IIRFilter);
     newModuleSelector.addSeparator();
@@ -83,6 +83,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     newModuleSelector.addItem("Slew Limiter", ModuleType::SlewLimiter);
 
     newModuleSelector.setSelectedId(999);
+    //newModuleSelector.setTooltip("Select the module to create");
     
     setupNewModuleSelectorColours(newModuleSelectorLookAndFeel);
     newModuleSelector.setLookAndFeel(&newModuleSelectorLookAndFeel);
@@ -106,83 +107,19 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
 
     newModuleSelector.onChange = [this] {
         ModuleType type = static_cast<ModuleType>(newModuleSelector.getSelectedId());
-
-        switch (type) {
-        case ModuleType::Oscilloscope: {
-            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
-            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
-            addModuleToGUI(createGUIModule(type));
-            newModuleSetup(type);
-            break;
-        }
-        case ModuleType::IIRFilter: {
-            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
-            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
-            addModuleToGUI(createGUIModule(type));
-            newModuleSetup(type);
-            break;
-        }
-
-        case ModuleType::Waveshaper: {
-            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
-            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
-            addModuleToGUI(createGUIModule(type));
-            newModuleSetup(type);
-            break;
-        }
-        case ModuleType::Bitcrusher: {
-            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
-            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
-            addModuleToGUI(createGUIModule(type));
-            newModuleSetup(type);
-            break;
-        }
-        case ModuleType::SlewLimiter: {
-            audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
-            audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
-            addModuleToGUI(createGUIModule(type));
-            newModuleSetup(type);
-            break;
-        }
-        default: {
-            break;
-        }
-        }
+        if(type != 999)
+            addNewModule(type);
     };
 
     deleteModule.onClick = [this] {
-        // remove GUI module
-        moduleType = ModuleType::Uninstantiated;
-        editor.currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
-        editor.addAndMakeVisible(*editor.currentGUIModule);
-        // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
-        editor.currentGUIModule->setWantsKeyboardFocus(true);
-        newModuleSetup(moduleType);
-        // remove DSP module
-        bool found = false;
-        for (auto it = audioProcessor.DSPmodules.begin(); !found && it < audioProcessor.DSPmodules.end(); ++it) {
-            if ((**it).getChainPosition() == getChainPosition()) {
-                found = true;
-                audioProcessor.suspendProcessing(true);
-                // remove fft analyzer FIFO associated with **it filter
-                auto filter = dynamic_cast<FilterModuleDSP*>(&**it);
-                if (filter) {
-                    audioProcessor.deleteOldAnalyzerFIFO(getChainPosition());
-                }
-                it = audioProcessor.DSPmodules.erase(it);
-                audioProcessor.suspendProcessing(false);
-            }
-        }
-        audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
+        deleteTheCurrentNewModule();
     };
 
     currentModuleActivator.onClick = [this] {
-        addModuleToGUI(createGUIModule(moduleType));
-        editor.resized();
+        addModuleToGUI(createGUIModule(moduleType, getChainPosition()));
     };
 
     // Audio Cables
-    //setPaintingIsUnclipped(true);
     if (chainPosition != 8) {
         rightCable = getRightCable(chainPosition);
         editor.addAndMakeVisible(*rightCable);
@@ -207,9 +144,62 @@ void NewModuleGUI::setChainPosition(unsigned int cp)
     chainPosition = cp;
 }
 
+ModuleType NewModuleGUI::getModuleType()
+{
+    return moduleType;
+}
+
+void NewModuleGUI::setModuleType(ModuleType mt)
+{
+    moduleType = mt;
+}
+
+void NewModuleGUI::addNewModule(ModuleType type)
+{
+    audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
+    audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
+    addModuleToGUI(createGUIModule(type, getChainPosition()));
+    newModuleSetup(type);
+}
+
+void NewModuleGUI::deleteTheCurrentNewModule()
+{
+    // remove GUI module
+    moduleType = ModuleType::Uninstantiated;
+    editor.currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
+    editor.addAndMakeVisible(*editor.currentGUIModule);
+    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
+    editor.currentGUIModule->setWantsKeyboardFocus(true);
+    newModuleSetup(moduleType);
+    // remove DSP module
+    bool found = false;
+    for (auto it = audioProcessor.DSPmodules.begin(); !found && it < audioProcessor.DSPmodules.end(); ++it) {
+        if ((**it).getChainPosition() == getChainPosition()) {
+            found = true;
+            audioProcessor.suspendProcessing(true);
+            // remove fft analyzer FIFO associated with **it filter
+            auto filter = dynamic_cast<FilterModuleDSP*>(&**it);
+            if (filter) {
+                audioProcessor.deleteOldAnalyzerFIFO(getChainPosition());
+            }
+            it = audioProcessor.DSPmodules.erase(it);
+            //resetParameters(getChainPosition());
+            audioProcessor.suspendProcessing(false);
+        }
+    }
+    audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
+    editor.resized();
+}
+
 void NewModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
+    // draw a red line around the comp if the user's currently dragging something over it..
+    if (somethingIsBeingDraggedOver)
+    {
+        g.setColour(Colours::red);
+        g.drawRect(getLocalBounds(), 3);
+    }
 }
 
 void NewModuleGUI::resized()
@@ -343,39 +333,87 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
         currentModuleActivator.setVisible(false);
     }
     resized();
-    editor.resized();
+    //editor.resized();
 }
 
-GUIModule* NewModuleGUI::createGUIModule(ModuleType type)
+// These methods implement the DragAndDropTarget interface, and allow our component
+// to accept drag-and-drop of objects from other JUCE components..
+
+bool NewModuleGUI::isInterestedInDragSource(const SourceDetails& dragSourceDetails)
+{
+    // normally you'd check the sourceDescription value to see if it's the
+    // sort of object that you're interested in before returning true, but for
+    // the demo, we'll say yes to anything..
+    auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
+    if (component && component->getChainPosition() == getChainPosition()) {
+        return false;
+    }
+    return true;
+}
+
+void NewModuleGUI::itemDragEnter(const SourceDetails& /*dragSourceDetails*/)
+{
+    somethingIsBeingDraggedOver = true;
+    repaint();
+}
+
+void NewModuleGUI::itemDragMove(const SourceDetails& /*dragSourceDetails*/)
+{
+}
+
+void NewModuleGUI::itemDragExit(const SourceDetails& /*dragSourceDetails*/)
+{
+    somethingIsBeingDraggedOver = false;
+    repaint();
+}
+
+void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
+{
+    auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
+    // add NewModule to this chain position
+    addNewModule(component->getModuleType());
+    // copy all the parameter values and reset the old ones
+    GUIModule* oldModule = createGUIModule(component->getModuleType(), component->getChainPosition());
+    GUIModule* newModule = createGUIModule(getModuleType(), getChainPosition());
+    newModule->updateParameters(oldModule);
+    // delete the old GUImodule from the previous chain position and reset it's parameters
+    component->deleteTheCurrentNewModule();
+    // add the new GUImodule to the editor
+    addModuleToGUI(newModule);
+    somethingIsBeingDraggedOver = false;
+    repaint();
+}
+
+GUIModule* NewModuleGUI::createGUIModule(ModuleType type, unsigned int chainPosition)
 {
     GUIModule* newModule = nullptr;
     switch (type) {
         case ModuleType::IIRFilter: {
-            newModule = new FilterModuleGUI(audioProcessor, getChainPosition());
+            newModule = new FilterModuleGUI(audioProcessor, chainPosition);
             break;
         }
         case ModuleType::Oscilloscope: {
             OscilloscopeModuleDSP* oscilloscopeDSPModule = nullptr;
             bool found = false;
             for (auto it = audioProcessor.DSPmodules.cbegin(); !found && it < audioProcessor.DSPmodules.cend(); ++it) {
-                if ((**it).getChainPosition() == getChainPosition()) {
+                if ((**it).getChainPosition() == chainPosition) {
                     oscilloscopeDSPModule = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
                     found = true;
                 }
             }
-            newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), getChainPosition());
+            newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), chainPosition);
             break;
         }
         case ModuleType::Waveshaper: {
-            newModule = new WaveshaperModuleGUI(audioProcessor, getChainPosition());
+            newModule = new WaveshaperModuleGUI(audioProcessor, chainPosition);
             break;
         }
         case ModuleType::Bitcrusher: {
-            newModule = new BitcrusherModuleGUI(audioProcessor, getChainPosition());
+            newModule = new BitcrusherModuleGUI(audioProcessor, chainPosition);
             break;
         }
         case ModuleType::SlewLimiter: {
-            newModule = new SlewLimiterModuleGUI(audioProcessor, getChainPosition());
+            newModule = new SlewLimiterModuleGUI(audioProcessor, chainPosition);
             break;
         }
         default :
@@ -396,6 +434,7 @@ void NewModuleGUI::addModuleToGUI(GUIModule* module)
     editor.addAndMakeVisible(*editor.currentGUIModule);
     // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
     editor.currentGUIModule->setWantsKeyboardFocus(true);
+    editor.resized();
 }
 
 juce::AffineTransform NewModuleGUI::getTransform()
@@ -418,4 +457,15 @@ std::unique_ptr<juce::Drawable> NewModuleGUI::getRightCable(unsigned int chainPo
         default: break;
     }
     
+}
+
+void DragTextButton::mouseDrag(const MouseEvent& event)
+{
+    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
+    // array { chainPosition, moduleType }
+    /*juce::var sourceDescription = juce::var(juce::Array<juce::var>());
+    sourceDescription.append((int) newModule->getChainPosition());
+    sourceDescription.append((int) newModule->getModuleType());*/
+    editor->startDragging("", newModule);
 }
