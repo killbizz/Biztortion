@@ -33,6 +33,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 class GUIModule : public juce::Component {
 public:
+    virtual ~GUIModule() = default;
     void drawContainer(juce::Graphics& g);
     juce::Rectangle<int> getContentRenderArea();
     void handleParamCompsEnablement(bool bypass);
@@ -41,6 +42,8 @@ public:
     virtual std::vector<juce::Component*> getAllComps() = 0;
     // facility for handleParamCompsEnablement function (enablement or disablement of parameters based on bypass param)
     virtual std::vector<juce::Component*> getParamComps() = 0;
+    virtual void updateParameters(GUIModule* moduleToCopy) = 0;
+    virtual void resetParameters(unsigned int chainPosition) = 0;
 
 private:
     juce::Rectangle<int> getContainerArea();
