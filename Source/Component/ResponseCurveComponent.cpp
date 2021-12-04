@@ -168,9 +168,11 @@ void ResponseCurveComponent::updateResponseCurve()
         return jmap(input, -24.0, 24.0, outputMin, outputMax);
     };
     // creation of the line path
-    responseCurve.startNewSubPath(responseArea.getX(), map(magnitudes.front()));
-    for (size_t i = 1; i < magnitudes.size(); ++i) {
-        responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
+    if (magnitudes.size() > 0) {
+        responseCurve.startNewSubPath(responseArea.getX(), map(magnitudes.front()));
+        for (size_t i = 1; i < magnitudes.size(); ++i) {
+            responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
+        }
     }
 }
 
