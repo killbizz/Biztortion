@@ -42,7 +42,9 @@ public:
     virtual std::vector<juce::Component*> getAllComps() = 0;
     // facility for handleParamCompsEnablement function (enablement or disablement of parameters based on bypass param)
     virtual std::vector<juce::Component*> getParamComps() = 0;
+    // update the parameters of this GUIModule using the parameter values from moduleToCopy
     virtual void updateParameters(GUIModule* moduleToCopy) = 0;
+    // reset the parameters of this GUIModule to default values
     virtual void resetParameters(unsigned int chainPosition) = 0;
 
 private:
