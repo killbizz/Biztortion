@@ -35,13 +35,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition)
     : GUIModule(), audioProcessor(p), editor(e), chainPosition(_chainPosition)
 {
-
-    // POSSIBILITA'
-    // 1. NewModule per istanziare un nuovo modulo => pulsante "+",
-    //                                                elenco triggerabile per aggiungere un nuovo modulo
-    // 2. NewModule con un modulo già istanziato => pulsante "x" per eliminare modulo dalla catena, 
-    //                                              pulsante col nome per triggerare la visualizzazione a schermo della UI del modulo
-
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
     chainPositionLabel.setFont(juce::Font("Courier New", 12, 0));
     addAndMakeVisible(chainPositionLabel);
@@ -166,6 +159,8 @@ void NewModuleGUI::deleteTheCurrentNewModule()
 {
     // remove GUI module
     moduleType = ModuleType::Uninstantiated;
+    // reset the parameter values to default
+    editor.currentGUIModule->resetParameters(getChainPosition());
     editor.currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
     editor.addAndMakeVisible(*editor.currentGUIModule);
     // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
@@ -183,7 +178,6 @@ void NewModuleGUI::deleteTheCurrentNewModule()
                 audioProcessor.deleteOldAnalyzerFIFO(getChainPosition());
             }
             it = audioProcessor.DSPmodules.erase(it);
-            //resetParameters(getChainPosition());
             audioProcessor.suspendProcessing(false);
         }
     }
@@ -345,10 +339,17 @@ bool NewModuleGUI::isInterestedInDragSource(const SourceDetails& dragSourceDetai
     // sort of object that you're interested in before returning true, but for
     // the demo, we'll say yes to anything..
     auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
-    if (component && component->getChainPosition() == getChainPosition()) {
+    if (component) {
+        if ((component->getChainPosition() == getChainPosition()) || (getModuleType() != ModuleType::Uninstantiated)) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    else {
         return false;
     }
-    return true;
 }
 
 void NewModuleGUI::itemDragEnter(const SourceDetails& /*dragSourceDetails*/)
@@ -371,7 +372,11 @@ void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
 {
     auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
     // add NewModule to this chain position
-    addNewModule(component->getModuleType());
+    //addNewModule(component->getModuleType());
+    auto type = component->getModuleType();
+    audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
+    audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
+    newModuleSetup(type);
     // copy all the parameter values and reset the old ones
     GUIModule* oldModule = createGUIModule(component->getModuleType(), component->getChainPosition());
     GUIModule* newModule = createGUIModule(getModuleType(), getChainPosition());
