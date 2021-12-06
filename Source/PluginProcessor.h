@@ -109,6 +109,7 @@ public:
     void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
     void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
     void addDSPmoduleTypeAndPositionToAPVTS(ModuleType mt, unsigned int chainPosition);
+    void removeModuleFromDSPmodules(unsigned int chainPosition);
     void removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition);
     unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
     void insertNewAnalyzerFIFO(unsigned int chainPosition);

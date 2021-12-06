@@ -255,10 +255,6 @@ void BiztortionAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 
     juce::MemoryOutputStream mos(destData, true);
     apvts.state.writeToStream(mos);
-
-    /*auto state = apvts.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, destData);*/
 }
 
 void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
@@ -298,11 +294,6 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
             addAndSetupModuleForDSP(createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
             ++chainPosition;
         }
-
-        // updateDSPState for all the modules int the chain
-        /*for (auto it = DSPmodules.cbegin(); it < DSPmodules.cend(); ++it) {
-            (**it).updateDSPState(getSampleRate());
-        }*/
 
         if (getActiveEditor() != nullptr) {
             static_cast<BiztortionAudioProcessorEditor*>(getActiveEditor())->editorSetup();
@@ -373,7 +364,7 @@ void BiztortionAudioProcessor::addModuleToDSPmodules(DSPModule* module, unsigned
         // there is at least one module in the vector
         auto next = it;
         ++next;
-        if ((**it).getChainPosition() < chainPosition && chainPosition < (**next).getChainPosition()) {
+        if ((**it).getChainPosition() <= chainPosition && chainPosition < (**next).getChainPosition()) {
             inserted = true;
             it = DSPmodules.insert(next, std::unique_ptr<DSPModule>(module));
         }
@@ -414,6 +405,24 @@ void BiztortionAudioProcessor::addDSPmoduleTypeAndPositionToAPVTS(ModuleType mt,
     moduleChainPositions.setValue(*mcpArray);
 }
 
+void BiztortionAudioProcessor::removeModuleFromDSPmodules(unsigned int chainPosition)
+{
+    bool found = false;
+    for (auto it = DSPmodules.begin(); !found && it < DSPmodules.end(); ++it) {
+        if ((**it).getChainPosition() == chainPosition) {
+            found = true;
+            suspendProcessing(true);
+            // remove fft analyzer FIFO associated with **it filter
+            auto filter = dynamic_cast<FilterModuleDSP*>(&**it);
+            if (filter) {
+                deleteOldAnalyzerFIFO(chainPosition);
+            }
+            it = DSPmodules.erase(it);
+            suspendProcessing(false);
+        }
+    }
+}
+
 void BiztortionAudioProcessor::removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition)
 {
     auto mt = moduleTypes.getValue().getArray();
@@ -426,8 +435,10 @@ void BiztortionAudioProcessor::removeDSPmoduleTypeAndPositionFromAPVTS(unsigned 
     }
 
     auto cp = mcp->begin();
-    for (auto type = mt->begin(); type < mt->end(); ++type) {
+    bool found = false;
+    for (auto type = mt->begin(); !found && type < mt->end(); ++type) {
         if (chainPosition == int(*cp)) {
+            found = true;
             mt->remove(type);
             mcp->remove(cp);
             break;
