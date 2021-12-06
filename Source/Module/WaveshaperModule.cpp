@@ -341,14 +341,14 @@ void WaveshaperModuleGUI::updateParameters(GUIModule* moduleToCopy)
 {
     auto m = dynamic_cast<WaveshaperModuleGUI*>(moduleToCopy);
     bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    driveSlider.setValue(m->driveSlider.getValue());
-    mixSlider.setValue(m->mixSlider.getValue());
-    symmetrySlider.setValue(m->symmetrySlider.getValue());
-    biasSlider.setValue(m->biasSlider.getValue());
-    tanhAmpSlider.setValue(m->tanhAmpSlider.getValue());
-    tanhSlopeSlider.setValue(m->tanhSlopeSlider.getValue());
-    sineAmpSlider.setValue(m->sineAmpSlider.getValue());
-    sineFreqSlider.setValue(m->sineFreqSlider.getValue());
+    driveSlider.setValue(m->driveSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    mixSlider.setValue(m->mixSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    symmetrySlider.setValue(m->symmetrySlider.getValue(), juce::NotificationType::sendNotificationSync);
+    biasSlider.setValue(m->biasSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    tanhAmpSlider.setValue(m->tanhAmpSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    tanhSlopeSlider.setValue(m->tanhSlopeSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    sineAmpSlider.setValue(m->sineAmpSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    sineFreqSlider.setValue(m->sineFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
 }
 
 void WaveshaperModuleGUI::resetParameters(unsigned int chainPosition)

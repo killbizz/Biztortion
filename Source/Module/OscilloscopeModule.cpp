@@ -198,8 +198,12 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
 
 OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
 {
-    leftOscilloscope->stopTimer();
-    rightOscilloscope->stopTimer();
+    if (leftOscilloscope) {
+        leftOscilloscope->stopTimer();
+    }
+    if (rightOscilloscope) {
+        rightOscilloscope->stopTimer();
+    }
     leftOscilloscope = nullptr;
     rightOscilloscope = nullptr;
     freezeButton.setLookAndFeel(nullptr);
@@ -234,8 +238,8 @@ void OscilloscopeModuleGUI::updateParameters(GUIModule* moduleToCopy)
 {
     auto m = dynamic_cast<OscilloscopeModuleGUI*>(moduleToCopy);
     bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    hZoomSlider.setValue(m->hZoomSlider.getValue());
-    vZoomSlider.setValue(m->vZoomSlider.getValue());
+    hZoomSlider.setValue(m->hZoomSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    vZoomSlider.setValue(m->vZoomSlider.getValue(), juce::NotificationType::sendNotificationSync);
     freezeButton.setToggleState(m->freezeButton.getToggleState(), juce::NotificationType::sendNotificationSync);
 }
 

@@ -399,13 +399,13 @@ void BitcrusherModuleGUI::updateParameters(GUIModule* moduleToCopy)
 {
     auto m = dynamic_cast<BitcrusherModuleGUI*>(moduleToCopy);
     bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    driveSlider.setValue(m->driveSlider.getValue());
-    mixSlider.setValue(m->mixSlider.getValue());
-    symmetrySlider.setValue(m->symmetrySlider.getValue());
-    biasSlider.setValue(m->biasSlider.getValue());
-    bitcrusherDitherSlider.setValue(m->bitcrusherDitherSlider.getValue());
-    bitcrusherRateReduxSlider.setValue(m->bitcrusherRateReduxSlider.getValue());
-    bitcrusherBitReduxSlider.setValue(m->bitcrusherBitReduxSlider.getValue());
+    driveSlider.setValue(m->driveSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    mixSlider.setValue(m->mixSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    symmetrySlider.setValue(m->symmetrySlider.getValue(), juce::NotificationType::sendNotificationSync);
+    biasSlider.setValue(m->biasSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    bitcrusherDitherSlider.setValue(m->bitcrusherDitherSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    bitcrusherRateReduxSlider.setValue(m->bitcrusherRateReduxSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    bitcrusherBitReduxSlider.setValue(m->bitcrusherBitReduxSlider.getValue(), juce::NotificationType::sendNotificationSync);
 }
 
 void BitcrusherModuleGUI::resetParameters(unsigned int chainPosition)

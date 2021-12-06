@@ -345,12 +345,12 @@ void SlewLimiterModuleGUI::updateParameters(GUIModule* moduleToCopy)
 {
     auto m = dynamic_cast<SlewLimiterModuleGUI*>(moduleToCopy);
     bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    driveSlider.setValue(m->driveSlider.getValue());
-    mixSlider.setValue(m->mixSlider.getValue());
-    symmetrySlider.setValue(m->symmetrySlider.getValue());
-    biasSlider.setValue(m->biasSlider.getValue());
-    slewLimiterRiseSlider.setValue(m->slewLimiterRiseSlider.getValue());
-    slewLimiterFallSlider.setValue(m->slewLimiterFallSlider.getValue());
+    driveSlider.setValue(m->driveSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    mixSlider.setValue(m->mixSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    symmetrySlider.setValue(m->symmetrySlider.getValue(), juce::NotificationType::sendNotificationSync);
+    biasSlider.setValue(m->biasSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    slewLimiterRiseSlider.setValue(m->slewLimiterRiseSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    slewLimiterFallSlider.setValue(m->slewLimiterFallSlider.getValue(), juce::NotificationType::sendNotificationSync);
     DCoffsetEnabledButton.setToggleState(m->DCoffsetEnabledButton.getToggleState(), juce::NotificationType::sendNotificationSync);
 }
 

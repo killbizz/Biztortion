@@ -375,13 +375,13 @@ void FilterModuleGUI::updateParameters(GUIModule* moduleToCopy)
 {
     auto m = dynamic_cast<FilterModuleGUI*>(moduleToCopy);
     bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    peakFreqSlider.setValue(m->peakFreqSlider.getValue());
-    peakGainSlider.setValue(m->peakGainSlider.getValue());
-    peakQualitySlider.setValue(m->peakQualitySlider.getValue());
-    lowCutFreqSlider.setValue(m->lowCutFreqSlider.getValue());
-    highCutFreqSlider.setValue(m->highCutFreqSlider.getValue());
-    lowCutSlopeSlider.setValue(m->lowCutSlopeSlider.getValue());
-    highCutSlopeSlider.setValue(m->highCutSlopeSlider.getValue());
+    peakFreqSlider.setValue(m->peakFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    peakGainSlider.setValue(m->peakGainSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    peakQualitySlider.setValue(m->peakQualitySlider.getValue(), juce::NotificationType::sendNotificationSync);
+    lowCutFreqSlider.setValue(m->lowCutFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    highCutFreqSlider.setValue(m->highCutFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    lowCutSlopeSlider.setValue(m->lowCutSlopeSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    highCutSlopeSlider.setValue(m->highCutSlopeSlider.getValue(), juce::NotificationType::sendNotificationSync);
     analyzerButton.setToggleState(m->analyzerButton.getToggleState(), juce::NotificationType::sendNotificationSync);
 }
 
