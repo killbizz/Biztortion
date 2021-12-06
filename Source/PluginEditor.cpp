@@ -222,3 +222,64 @@ void BiztortionAudioProcessorEditor::editorSetup()
         ++it;
     }
 }
+
+GUIModule* BiztortionAudioProcessorEditor::createGUIModule(ModuleType type, unsigned int chainPosition)
+{
+    GUIModule* newModule = nullptr;
+    switch (type) {
+    case ModuleType::IIRFilter: {
+        newModule = new FilterModuleGUI(audioProcessor, chainPosition);
+        break;
+    }
+    case ModuleType::Oscilloscope: {
+        // [A] check : if there are 2 OscilloscopeModuleDSP in the same chainPosition i need the second one (the first is gonna be deleted, used only for changing chain order)
+        OscilloscopeModuleDSP* oscilloscopeDSPModule = nullptr;
+        bool found = false;
+        for (auto it = audioProcessor.DSPmodules.cbegin(); !found && it < audioProcessor.DSPmodules.cend(); ++it) {
+            auto temp = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
+            if ((**it).getChainPosition() == chainPosition && temp) {
+                auto next = it;
+                ++next;
+                // [A]
+                if (next != audioProcessor.DSPmodules.cend() && (**next).getChainPosition() == chainPosition && dynamic_cast<OscilloscopeModuleDSP*>(&**next)) {
+                    oscilloscopeDSPModule = dynamic_cast<OscilloscopeModuleDSP*>(&**next);
+                }
+                else {
+                    oscilloscopeDSPModule = temp;
+                }
+                found = true;
+            }
+        }
+        newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), chainPosition);
+        break;
+    }
+    case ModuleType::Waveshaper: {
+        newModule = new WaveshaperModuleGUI(audioProcessor, chainPosition);
+        break;
+    }
+    case ModuleType::Bitcrusher: {
+        newModule = new BitcrusherModuleGUI(audioProcessor, chainPosition);
+        break;
+    }
+    case ModuleType::SlewLimiter: {
+        newModule = new SlewLimiterModuleGUI(audioProcessor, chainPosition);
+        break;
+    }
+    default:
+        break;
+    }
+    return newModule;
+}
+
+void BiztortionAudioProcessorEditor::updateCurrentGUIModule(GUIModule* module)
+{
+    for (auto it = newModules.begin(); it < newModules.end(); ++it) {
+        (**it).currentModuleActivator.setToggleState(false, juce::NotificationType::dontSendNotification);
+        (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+    }
+    currentGUIModule = std::unique_ptr<GUIModule>(module);
+    addAndMakeVisible(*currentGUIModule);
+    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
+    currentGUIModule->setWantsKeyboardFocus(true);
+    resized();
+}

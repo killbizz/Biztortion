@@ -58,6 +58,8 @@ public:
     ~BiztortionAudioProcessorEditor() override;
 
     void editorSetup();
+    GUIModule* createGUIModule(ModuleType type, unsigned int chainPosition);
+    void updateCurrentGUIModule(GUIModule* module);
 
     void paint (juce::Graphics&) override;
     void resized() override;
