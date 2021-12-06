@@ -104,8 +104,6 @@ private:
     juce::Label hZoomLabel,
         vZoomLabel;
 
-    // TODO : add a Freeze button
-
     RotarySliderWithLabels hZoomSlider, vZoomSlider;
     Attachment hZoomSliderAttachment, vZoomSliderAttachment;
     
