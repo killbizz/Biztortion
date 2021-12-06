@@ -109,7 +109,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     };
 
     currentModuleActivator.onClick = [this] {
-        addModuleToGUI(createGUIModule(moduleType, getChainPosition()));
+        addModuleToGUI(editor.createGUIModule(moduleType, getChainPosition()));
     };
 
     // Audio Cables
@@ -151,7 +151,7 @@ void NewModuleGUI::addNewModule(ModuleType type)
 {
     audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
     audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
-    addModuleToGUI(createGUIModule(type, getChainPosition()));
+    addModuleToGUI(editor.createGUIModule(type, getChainPosition()));
     newModuleSetup(type);
 }
 
@@ -167,20 +167,7 @@ void NewModuleGUI::deleteTheCurrentNewModule()
     editor.currentGUIModule->setWantsKeyboardFocus(true);
     newModuleSetup(moduleType);
     // remove DSP module
-    bool found = false;
-    for (auto it = audioProcessor.DSPmodules.begin(); !found && it < audioProcessor.DSPmodules.end(); ++it) {
-        if ((**it).getChainPosition() == getChainPosition()) {
-            found = true;
-            audioProcessor.suspendProcessing(true);
-            // remove fft analyzer FIFO associated with **it filter
-            auto filter = dynamic_cast<FilterModuleDSP*>(&**it);
-            if (filter) {
-                audioProcessor.deleteOldAnalyzerFIFO(getChainPosition());
-            }
-            it = audioProcessor.DSPmodules.erase(it);
-            audioProcessor.suspendProcessing(false);
-        }
-    }
+    audioProcessor.removeModuleFromDSPmodules(getChainPosition());
     audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
     editor.resized();
 }
@@ -340,7 +327,7 @@ bool NewModuleGUI::isInterestedInDragSource(const SourceDetails& dragSourceDetai
     // the demo, we'll say yes to anything..
     auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
     if (component) {
-        if ((component->getChainPosition() == getChainPosition()) || (getModuleType() != ModuleType::Uninstantiated)) {
+        if (component->getChainPosition() == getChainPosition()) {
             return false;
         }
         else {
@@ -368,78 +355,103 @@ void NewModuleGUI::itemDragExit(const SourceDetails& /*dragSourceDetails*/)
     repaint();
 }
 
+// drag-and-drop logic : changes one module position or swap two modules
 void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
 {
     auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
-    // add NewModule to this chain position
-    //addNewModule(component->getModuleType());
     auto type = component->getModuleType();
+    auto cp = component->getChainPosition();
+    auto thisModuleType = moduleType;
+    bool oneModuleIsAllocatedHere = getModuleType() != ModuleType::Uninstantiated;
+    // add newPosition DSPModule
     audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
     audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
+    if (oneModuleIsAllocatedHere) {
+        // add oldPosition DSPModule
+        audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(getModuleType()), cp);
+        audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(getModuleType(), cp);
+    }
+    // setup NewModuleGUIs
     newModuleSetup(type);
-    // copy all the parameter values and reset the old ones
-    GUIModule* oldModule = createGUIModule(component->getModuleType(), component->getChainPosition());
-    GUIModule* newModule = createGUIModule(getModuleType(), getChainPosition());
-    newModule->updateParameters(oldModule);
-    // delete the old GUImodule from the previous chain position and reset it's parameters
-    component->deleteTheCurrentNewModule();
+    if (oneModuleIsAllocatedHere) {
+        component->newModuleSetup(thisModuleType);
+    } else {
+        component->newModuleSetup(ModuleType::Uninstantiated);
+    }
+    // TOFIX : se i due moduli da scambiare sono uguali i moduli pre/post puntano agli stessi parametri e aggiornandone uno si aggiorna anche l'altro
+    // possibile soluzione : creare funzione per eliminare/creare gli attachment in modo da interrompere collegamento tra slider e parametri
+    // create necessary GUIModules
+    GUIModule* preModuleInOldPosition = editor.createGUIModule(type, cp);
+    GUIModule* postModuleInOldPosition = editor.createGUIModule(thisModuleType, cp);
+    GUIModule* preModuleInNewPosition = editor.createGUIModule(thisModuleType, getChainPosition());
+    GUIModule* postModuleInNewPosition = editor.createGUIModule(type, getChainPosition());
+    // update parameters
+    postModuleInNewPosition->updateParameters(&*preModuleInOldPosition);
+    if (oneModuleIsAllocatedHere) {
+        postModuleInOldPosition->updateParameters(&*preModuleInNewPosition);
+    }
+    // reset the parameters to default
+    if (type != thisModuleType) {
+        preModuleInOldPosition->resetParameters(cp);
+        if (oneModuleIsAllocatedHere) {
+            preModuleInNewPosition->resetParameters(getChainPosition());
+        }
+    }
+    // delete GUIModules
+    delete preModuleInOldPosition;
+    delete postModuleInOldPosition;
+    delete preModuleInNewPosition;
     // add the new GUImodule to the editor
-    addModuleToGUI(newModule);
+    addModuleToGUI(postModuleInNewPosition);
+    if (oneModuleIsAllocatedHere) {
+        // delete preNewPositionDSPModule
+        audioProcessor.removeModuleFromDSPmodules(getChainPosition());
+        audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
+    }
+    // delete preOldPositionDSPModule
+    audioProcessor.removeModuleFromDSPmodules(cp);
+    audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(cp);
+
     somethingIsBeingDraggedOver = false;
     repaint();
 }
 
-GUIModule* NewModuleGUI::createGUIModule(ModuleType type, unsigned int chainPosition)
+void NewModuleGUI::mouseDrag(const MouseEvent& event)
 {
-    GUIModule* newModule = nullptr;
-    switch (type) {
-        case ModuleType::IIRFilter: {
-            newModule = new FilterModuleGUI(audioProcessor, chainPosition);
-            break;
-        }
-        case ModuleType::Oscilloscope: {
-            OscilloscopeModuleDSP* oscilloscopeDSPModule = nullptr;
-            bool found = false;
-            for (auto it = audioProcessor.DSPmodules.cbegin(); !found && it < audioProcessor.DSPmodules.cend(); ++it) {
-                if ((**it).getChainPosition() == chainPosition) {
-                    oscilloscopeDSPModule = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
-                    found = true;
-                }
-            }
-            newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), chainPosition);
-            break;
-        }
-        case ModuleType::Waveshaper: {
-            newModule = new WaveshaperModuleGUI(audioProcessor, chainPosition);
-            break;
-        }
-        case ModuleType::Bitcrusher: {
-            newModule = new BitcrusherModuleGUI(audioProcessor, chainPosition);
-            break;
-        }
-        case ModuleType::SlewLimiter: {
-            newModule = new SlewLimiterModuleGUI(audioProcessor, chainPosition);
-            break;
-        }
-        default :
-            break;
-    }
-    return newModule;
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent());
+    if(getModuleType() != ModuleType::Uninstantiated)
+        editor->startDragging("", this);
+}
+
+void BizDrawable::mouseDrag(const MouseEvent& event)
+{
+    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent());
+    if (newModule->getModuleType() != ModuleType::Uninstantiated)
+        editor->startDragging("", newModule);
+}
+
+void BizTextButton::mouseDrag(const MouseEvent& event)
+{
+    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
+    if (newModule->getModuleType() != ModuleType::Uninstantiated)
+        editor->startDragging("", newModule);
+}
+
+void BizLabel::mouseDrag(const MouseEvent& event)
+{
+    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
+    if (newModule->getModuleType() != ModuleType::Uninstantiated)
+        editor->startDragging("", newModule);
 }
 
 void NewModuleGUI::addModuleToGUI(GUIModule* module)
 {
-    for (auto it = editor.newModules.begin(); it < editor.newModules.end(); ++it) {
-        (**it).currentModuleActivator.setToggleState(false, juce::NotificationType::dontSendNotification);
-        (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
-    }
-    editor.currentGUIModule = std::unique_ptr<GUIModule>(module);
+    editor.updateCurrentGUIModule(module);
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
-    editor.addAndMakeVisible(*editor.currentGUIModule);
-    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
-    editor.currentGUIModule->setWantsKeyboardFocus(true);
-    editor.resized();
 }
 
 juce::AffineTransform NewModuleGUI::getTransform()
@@ -447,30 +459,26 @@ juce::AffineTransform NewModuleGUI::getTransform()
     return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);
 }
 
-std::unique_ptr<juce::Drawable> NewModuleGUI::getRightCable(unsigned int chainPosition)
+std::unique_ptr<BizDrawable> NewModuleGUI::getRightCable(unsigned int chainPosition)
 {
     switch (chainPosition) {
 
-        case 1: return juce::Drawable::createFromImageData(BinaryData::AudioCableRosa_png, BinaryData::AudioCableRosa_pngSize);
-        case 2: return juce::Drawable::createFromImageData(BinaryData::AudioCableVerdeAcqua_png, BinaryData::AudioCableVerdeAcqua_pngSize);
-        case 3: return juce::Drawable::createFromImageData(BinaryData::AudioCableGiallo_png, BinaryData::AudioCableGiallo_pngSize);
-        case 4: return juce::Drawable::createFromImageData(BinaryData::AudioCableViola_png, BinaryData::AudioCableViola_pngSize);
-        case 5: return juce::Drawable::createFromImageData(BinaryData::AudioCableArancione_png, BinaryData::AudioCableArancione_pngSize);
-        case 6: return juce::Drawable::createFromImageData(BinaryData::AudioCableBlu_png, BinaryData::AudioCableBlu_pngSize);
-        case 7: return juce::Drawable::createFromImageData(BinaryData::AudioCableRosso_png, BinaryData::AudioCableRosso_pngSize);
+    case 1: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+            &*juce::Drawable::createFromImageData(BinaryData::AudioCableRosa_png, BinaryData::AudioCableRosa_pngSize))));
+        case 2: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+            &*juce::Drawable::createFromImageData(BinaryData::AudioCableVerdeAcqua_png, BinaryData::AudioCableVerdeAcqua_pngSize))));
+        case 3: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+            &*juce::Drawable::createFromImageData(BinaryData::AudioCableGiallo_png, BinaryData::AudioCableGiallo_pngSize))));
+        case 4: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+            &*juce::Drawable::createFromImageData(BinaryData::AudioCableViola_png, BinaryData::AudioCableViola_pngSize))));
+        case 5: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+            &*juce::Drawable::createFromImageData(BinaryData::AudioCableArancione_png, BinaryData::AudioCableArancione_pngSize))));
+        case 6: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+            &*juce::Drawable::createFromImageData(BinaryData::AudioCableBlu_png, BinaryData::AudioCableBlu_pngSize))));
+        case 7: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+            &*juce::Drawable::createFromImageData(BinaryData::AudioCableRosso_png, BinaryData::AudioCableRosso_pngSize))));
 
         default: break;
     }
     
-}
-
-void DragTextButton::mouseDrag(const MouseEvent& event)
-{
-    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
-    // array { chainPosition, moduleType }
-    /*juce::var sourceDescription = juce::var(juce::Array<juce::var>());
-    sourceDescription.append((int) newModule->getChainPosition());
-    sourceDescription.append((int) newModule->getModuleType());*/
-    editor->startDragging("", newModule);
 }

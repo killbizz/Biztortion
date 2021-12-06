@@ -53,10 +53,25 @@ private:
     juce::TextButton* newModule;
 };
 
-class DragTextButton : public juce::TextButton {
+// classes for drag-and-drop logic
+
+class BizDrawable : public juce::DrawableImage {
+public:
+    BizDrawable() = default;
+    BizDrawable(const juce::DrawableImage& d) : juce::DrawableImage(d){}
     void mouseDrag(const MouseEvent& event) override;
 };
 
+class BizTextButton : public juce::TextButton {
+public:
+    BizTextButton() = default;
+    void mouseDrag(const MouseEvent & event) override;
+};
+
+class BizLabel : public juce::Label {
+public:
+    void mouseDrag(const MouseEvent& event) override;
+};
 //==============================================================================
 
 /* NewModule GUI */
@@ -106,7 +121,7 @@ public:
 
     // currentModuleActivator
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
-    DragTextButton currentModuleActivator;
+    BizTextButton currentModuleActivator;
 
     // These methods implement the DragAndDropTarget interface, and allow our component
     // to accept drag-and-drop of objects from other JUCE components..
@@ -116,6 +131,8 @@ public:
     void itemDragExit(const SourceDetails& /*dragSourceDetails*/) override;
     void itemDropped(const SourceDetails& dragSourceDetails) override;
 
+    void mouseDrag(const MouseEvent& event) override;
+
 private:
 
     // This reference is provided as a quick way for your editor to
@@ -123,16 +140,14 @@ private:
     BiztortionAudioProcessor& audioProcessor;
     BiztortionAudioProcessorEditor& editor;
     unsigned int chainPosition;
-    juce::Label chainPositionLabel;
+    BizLabel chainPositionLabel;
 
     ModuleType moduleType = ModuleType::Uninstantiated;
 
     // UNUSED only by the 8° module
-    std::unique_ptr<juce::Drawable> rightCable;
-
-    GUIModule* createGUIModule(ModuleType type, unsigned int chainPosition);
+    std::unique_ptr<BizDrawable> rightCable;
     juce::AffineTransform getTransform();
-    std::unique_ptr<juce::Drawable> getRightCable(unsigned int chainPosition);
+    std::unique_ptr<BizDrawable> getRightCable(unsigned int chainPosition);
 
     bool somethingIsBeingDraggedOver = false;
 };
