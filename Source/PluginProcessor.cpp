@@ -356,7 +356,7 @@ void BiztortionAudioProcessor::addModuleToDSPmodules(DSPModule* module, unsigned
     bool inserted = false;
     for (auto it = DSPmodules.begin(); !inserted; ++it) {
         // end = 8° grid cell
-        if ((**it).getChainPosition() == 8) {
+        if ((**it).getChainPosition() == 9) {
             inserted = true;
             it = DSPmodules.insert(it, std::unique_ptr<DSPModule>(module));
             continue;
