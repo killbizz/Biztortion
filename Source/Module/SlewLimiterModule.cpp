@@ -341,17 +341,18 @@ std::vector<juce::Component*> SlewLimiterModuleGUI::getParamComps()
     };
 }
 
-void SlewLimiterModuleGUI::updateParameters(GUIModule* moduleToCopy)
+void SlewLimiterModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
-    auto m = dynamic_cast<SlewLimiterModuleGUI*>(moduleToCopy);
-    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    driveSlider.setValue(m->driveSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    mixSlider.setValue(m->mixSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    symmetrySlider.setValue(m->symmetrySlider.getValue(), juce::NotificationType::sendNotificationSync);
-    biasSlider.setValue(m->biasSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    slewLimiterRiseSlider.setValue(m->slewLimiterRiseSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    slewLimiterFallSlider.setValue(m->slewLimiterFallSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    DCoffsetEnabledButton.setToggleState(m->DCoffsetEnabledButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    auto value = values.begin();
+
+    bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    driveSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    biasSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    slewLimiterRiseSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    slewLimiterFallSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    DCoffsetEnabledButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void SlewLimiterModuleGUI::resetParameters(unsigned int chainPosition)
@@ -373,6 +374,22 @@ void SlewLimiterModuleGUI::resetParameters(unsigned int chainPosition)
     fall->setValueNotifyingHost(fall->getDefaultValue());
     dcOffset->setValueNotifyingHost(dcOffset->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+}
+
+juce::Array<juce::var> SlewLimiterModuleGUI::getParamValues()
+{
+    juce::Array<juce::var> values;
+
+    values.add(juce::var(bypassButton.getToggleState()));
+    values.add(juce::var(driveSlider.getValue()));
+    values.add(juce::var(mixSlider.getValue()));
+    values.add(juce::var(symmetrySlider.getValue()));
+    values.add(juce::var(biasSlider.getValue()));
+    values.add(juce::var(slewLimiterRiseSlider.getValue()));
+    values.add(juce::var(slewLimiterFallSlider.getValue()));
+    values.add(juce::var(DCoffsetEnabledButton.getToggleState()));
+
+    return values;
 }
 
 void SlewLimiterModuleGUI::paint(juce::Graphics& g)

@@ -103,8 +103,9 @@ public:
 
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
-    virtual void updateParameters(GUIModule* moduleToCopy) override;
+    virtual void updateParameters(const juce::Array<juce::var>& values) override;
     virtual void resetParameters(unsigned int chainPosition) override;
+    virtual juce::Array<juce::var> getParamValues() override;
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -121,11 +122,15 @@ private:
     juce::Label title;
 
     PowerButton bypassButton;
+
     ButtonAttachment bypassButtonAttachment;
+
     ButtonsLookAndFeel lnf;
 
     juce::ToggleButton DCoffsetEnabledButton;
+
     ButtonAttachment DCoffsetEnabledButtonAttachment;
+
     juce::Label DCoffsetEnabledButtonLabel;
 
     juce::Label driveLabel,
