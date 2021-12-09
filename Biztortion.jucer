@@ -101,7 +101,8 @@
     <VS2019 targetFolder="Builds/VisualStudio2019" smallIcon="LPCGa8" bigIcon="LPCGa8">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="Biztortion"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="Biztortion"/>
+        <CONFIGURATION isDebug="0" name="Release_x64" targetName="Biztortion"/>
+        <CONFIGURATION isDebug="0" name="Release_x32" targetName="Biztortion" winArchitecture="Win32"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="C:/JUCE/modules"/>
