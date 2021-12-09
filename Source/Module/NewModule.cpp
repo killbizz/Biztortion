@@ -415,7 +415,7 @@ void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     // delete preOldPositionDSPModule
     audioProcessor.removeModuleFromDSPmodules(cp);
     audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(cp);
-    // add the fresh GUImodule to the editor (is mandatory create a new GUIModule after deleting the DSP modules for the filter module)
+    // add the fresh GUImodule to the editor (is mandatory to create a new GUIModule after deleting the DSP modules for the filter module)
     addModuleToGUI(editor.createGUIModule(type, getChainPosition()));
     somethingIsBeingDraggedOver = false;
     repaint();
