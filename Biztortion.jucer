@@ -3,7 +3,7 @@
 <JUCERPROJECT id="M9lzAg" name="Biztortion" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginManufacturerCode="Bizz"
               pluginManufacturer="KillBizz" pluginDesc="Modular Distortion Plugin"
-              pluginCode="BZ97" aaxIdentifier="com.KillBizz.Biztortion" pluginVST3Category="Analyzer,Distortion,EQ,Filter,Fx,Stereo"
+              pluginCode="BZ97" aaxIdentifier="com.KillBizz.Biztortion" pluginVST3Category="Fx"
               cppLanguageStandard="latest" companyWebsite="https://github.com/killbizz"
               companyName="KillBizz" companyEmail="gabriel.bizzo@hotmail.it"
               companyCopyright="2021 KillBizz">
