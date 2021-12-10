@@ -337,18 +337,19 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getParamComps()
     };
 }
 
-void WaveshaperModuleGUI::updateParameters(GUIModule* moduleToCopy)
+void WaveshaperModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
-    auto m = dynamic_cast<WaveshaperModuleGUI*>(moduleToCopy);
-    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    driveSlider.setValue(m->driveSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    mixSlider.setValue(m->mixSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    symmetrySlider.setValue(m->symmetrySlider.getValue(), juce::NotificationType::sendNotificationSync);
-    biasSlider.setValue(m->biasSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    tanhAmpSlider.setValue(m->tanhAmpSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    tanhSlopeSlider.setValue(m->tanhSlopeSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    sineAmpSlider.setValue(m->sineAmpSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    sineFreqSlider.setValue(m->sineFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    auto value = values.begin();
+
+    bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    driveSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    biasSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    tanhAmpSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    tanhSlopeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    sineAmpSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    sineFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void WaveshaperModuleGUI::resetParameters(unsigned int chainPosition)
@@ -372,6 +373,23 @@ void WaveshaperModuleGUI::resetParameters(unsigned int chainPosition)
     sineAmp->setValueNotifyingHost(sineAmp->getDefaultValue());
     sineFreq->setValueNotifyingHost(sineFreq->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+}
+
+juce::Array<juce::var> WaveshaperModuleGUI::getParamValues()
+{
+    juce::Array<juce::var> values;
+
+    values.add(juce::var(bypassButton.getToggleState()));
+    values.add(juce::var(driveSlider.getValue()));
+    values.add(juce::var(mixSlider.getValue()));
+    values.add(juce::var(symmetrySlider.getValue()));
+    values.add(juce::var(biasSlider.getValue()));
+    values.add(juce::var(tanhAmpSlider.getValue()));
+    values.add(juce::var(tanhSlopeSlider.getValue()));
+    values.add(juce::var(sineAmpSlider.getValue()));
+    values.add(juce::var(sineFreqSlider.getValue()));
+
+    return values;
 }
 
 void WaveshaperModuleGUI::paint(juce::Graphics& g)

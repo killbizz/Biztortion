@@ -395,17 +395,18 @@ std::vector<juce::Component*> BitcrusherModuleGUI::getParamComps()
     };
 }
 
-void BitcrusherModuleGUI::updateParameters(GUIModule* moduleToCopy)
+void BitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
-    auto m = dynamic_cast<BitcrusherModuleGUI*>(moduleToCopy);
-    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    driveSlider.setValue(m->driveSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    mixSlider.setValue(m->mixSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    symmetrySlider.setValue(m->symmetrySlider.getValue(), juce::NotificationType::sendNotificationSync);
-    biasSlider.setValue(m->biasSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    bitcrusherDitherSlider.setValue(m->bitcrusherDitherSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    bitcrusherRateReduxSlider.setValue(m->bitcrusherRateReduxSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    bitcrusherBitReduxSlider.setValue(m->bitcrusherBitReduxSlider.getValue(), juce::NotificationType::sendNotificationSync);
+    auto value = values.begin();
+
+    bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    driveSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    biasSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    bitcrusherDitherSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    bitcrusherRateReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    bitcrusherBitReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void BitcrusherModuleGUI::resetParameters(unsigned int chainPosition)
@@ -427,6 +428,22 @@ void BitcrusherModuleGUI::resetParameters(unsigned int chainPosition)
     bitRedux->setValueNotifyingHost(bitRedux->getDefaultValue());
     dither->setValueNotifyingHost(dither->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
+}
+
+juce::Array<juce::var> BitcrusherModuleGUI::getParamValues()
+{
+    juce::Array<juce::var> values;
+
+    values.add(juce::var(bypassButton.getToggleState()));
+    values.add(juce::var(driveSlider.getValue()));
+    values.add(juce::var(mixSlider.getValue()));
+    values.add(juce::var(symmetrySlider.getValue()));
+    values.add(juce::var(biasSlider.getValue()));
+    values.add(juce::var(bitcrusherDitherSlider.getValue()));
+    values.add(juce::var(bitcrusherRateReduxSlider.getValue()));
+    values.add(juce::var(bitcrusherBitReduxSlider.getValue()));
+
+    return values;
 }
 
 void BitcrusherModuleGUI::paint(juce::Graphics& g)

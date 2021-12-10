@@ -85,8 +85,9 @@ public:
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
     // useless methods because (at this moment) this is not a module usable in the processing chain
-    virtual void updateParameters(GUIModule* moduleToCopy) override {};
+    virtual void updateParameters(const juce::Array<juce::var>& values) override {};
     virtual void resetParameters(unsigned int chainPosition) override {};
+    virtual juce::Array<juce::var> getParamValues() override { return juce::Array<juce::var>(); };
 
     void paint(juce::Graphics& g) override;
     void resized() override;

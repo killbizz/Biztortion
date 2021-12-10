@@ -371,18 +371,18 @@ std::vector<juce::Component*> FilterModuleGUI::getParamComps()
     };
 }
 
-void FilterModuleGUI::updateParameters(GUIModule* moduleToCopy)
+void FilterModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
-    auto m = dynamic_cast<FilterModuleGUI*>(moduleToCopy);
-    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    peakFreqSlider.setValue(m->peakFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    peakGainSlider.setValue(m->peakGainSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    peakQualitySlider.setValue(m->peakQualitySlider.getValue(), juce::NotificationType::sendNotificationSync);
-    lowCutFreqSlider.setValue(m->lowCutFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    highCutFreqSlider.setValue(m->highCutFreqSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    lowCutSlopeSlider.setValue(m->lowCutSlopeSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    highCutSlopeSlider.setValue(m->highCutSlopeSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    analyzerButton.setToggleState(m->analyzerButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    auto value = values.begin();
+    bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    peakFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    peakGainSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    peakQualitySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    lowCutFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    highCutFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    lowCutSlopeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    highCutSlopeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    analyzerButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void FilterModuleGUI::resetParameters(unsigned int chainPosition)
@@ -406,6 +406,23 @@ void FilterModuleGUI::resetParameters(unsigned int chainPosition)
     highcutSlope->setValueNotifyingHost(highcutSlope->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
     analyzerEnabled->setValueNotifyingHost(analyzerEnabled->getDefaultValue());
+}
+
+juce::Array<juce::var> FilterModuleGUI::getParamValues()
+{
+    juce::Array<juce::var> values;
+
+    values.add(juce::var(bypassButton.getToggleState()));
+    values.add(juce::var(peakFreqSlider.getValue()));
+    values.add(juce::var(peakGainSlider.getValue()));
+    values.add(juce::var(peakQualitySlider.getValue()));
+    values.add(juce::var(lowCutFreqSlider.getValue()));
+    values.add(juce::var(highCutFreqSlider.getValue()));
+    values.add(juce::var(lowCutSlopeSlider.getValue()));
+    values.add(juce::var(highCutSlopeSlider.getValue()));
+    values.add(juce::var(analyzerButton.getToggleState()));
+
+    return values;
 }
 
 void FilterModuleGUI::paint(juce::Graphics& g)

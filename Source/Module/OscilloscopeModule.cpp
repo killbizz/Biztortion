@@ -185,8 +185,10 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
     vZoomSlider.setTooltip("Adjust the vertical zoom of the oscilloscope");
     freezeButton.setTooltip("Take a snapshot of the oscilloscope");
 
-    leftOscilloscope->startTimerHz(59);
-    rightOscilloscope->startTimerHz(59);
+    if (!leftOscilloscope->isTimerRunning())
+        leftOscilloscope->startTimerHz(59);
+    if(!rightOscilloscope->isTimerRunning())
+        rightOscilloscope->startTimerHz(59);
 
     for (auto* comp : getAllComps())
     {
@@ -198,10 +200,10 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
 
 OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
 {
-    if (leftOscilloscope) {
+    if (leftOscilloscope && leftOscilloscope->isTimerRunning()) {
         leftOscilloscope->stopTimer();
     }
-    if (rightOscilloscope) {
+    if (rightOscilloscope && rightOscilloscope->isTimerRunning()) {
         rightOscilloscope->stopTimer();
     }
     leftOscilloscope = nullptr;
@@ -234,13 +236,14 @@ std::vector<juce::Component*> OscilloscopeModuleGUI::getParamComps()
     };
 }
 
-void OscilloscopeModuleGUI::updateParameters(GUIModule* moduleToCopy)
+void OscilloscopeModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
-    auto m = dynamic_cast<OscilloscopeModuleGUI*>(moduleToCopy);
-    bypassButton.setToggleState(m->bypassButton.getToggleState(), juce::NotificationType::sendNotificationSync);
-    hZoomSlider.setValue(m->hZoomSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    vZoomSlider.setValue(m->vZoomSlider.getValue(), juce::NotificationType::sendNotificationSync);
-    freezeButton.setToggleState(m->freezeButton.getToggleState(), juce::NotificationType::sendNotificationSync);
+    auto value = values.begin();
+
+    bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    hZoomSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    vZoomSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    freezeButton.setToggleState(false, juce::NotificationType::sendNotificationSync);
 }
 
 void OscilloscopeModuleGUI::resetParameters(unsigned int chainPosition)
@@ -253,6 +256,17 @@ void OscilloscopeModuleGUI::resetParameters(unsigned int chainPosition)
     vZoom->setValueNotifyingHost(vZoom->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
     freezeButton.setToggleState(false, juce::NotificationType::dontSendNotification);
+}
+
+juce::Array<juce::var> OscilloscopeModuleGUI::getParamValues()
+{
+    juce::Array<juce::var> values;
+
+    values.add(juce::var(bypassButton.getToggleState()));
+    values.add(juce::var(hZoomSlider.getValue()));
+    values.add(juce::var(vZoomSlider.getValue()));
+
+    return values;
 }
 
 void OscilloscopeModuleGUI::paint(juce::Graphics& g)
@@ -350,7 +364,9 @@ void OscilloscopeModuleGUI::resized()
     vZoomLabel.setJustificationType(juce::Justification::centred);
 
     leftOscilloscope->setBounds(graphArea.removeFromTop(graphArea.getHeight() * (1.f / 2.f)));
+    leftOscilloscope->startTimerHz(59);
     rightOscilloscope->setBounds(graphArea);
+    rightOscilloscope->startTimerHz(59);
     hZoomSlider.setBounds(hZoomArea);
     vZoomSlider.setBounds(vZoomArea);
     freezeButton.setBounds(freezeCorrectArea);

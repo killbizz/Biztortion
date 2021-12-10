@@ -83,8 +83,9 @@ public:
 
     std::vector<juce::Component*> getAllComps() override;
     virtual std::vector<juce::Component*> getParamComps() override;
-    virtual void updateParameters(GUIModule* moduleToCopy) override;
+    virtual void updateParameters(const juce::Array<juce::var>& values) override;
     virtual void resetParameters(unsigned int chainPosition) override;
+    virtual juce::Array<juce::var> getParamValues() override;
 
     void paint(juce::Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
@@ -107,11 +108,14 @@ private:
     RotarySliderWithLabels hZoomSlider, vZoomSlider;
     Attachment hZoomSliderAttachment, vZoomSliderAttachment;
     
-    ModuleLookAndFeel freezeLnf;
+    
     juce::TextButton freezeButton{ "Freeze" };
     PowerButton bypassButton;
+
     ButtonAttachment bypassButtonAttachment;
+
     ButtonsLookAndFeel lnf;
+    ModuleLookAndFeel freezeLnf;
 
     // TODO : add a sample-and-hold algorithm to drow::oscilloscope for a better visual + fix visual glitches
     drow::AudioOscilloscope* leftOscilloscope;

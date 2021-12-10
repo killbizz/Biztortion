@@ -378,17 +378,20 @@ void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     } else {
         component->newModuleSetup(ModuleType::Uninstantiated);
     }
-    // TOFIX : se i due moduli da scambiare sono uguali i moduli pre/post puntano agli stessi parametri e aggiornandone uno si aggiorna anche l'altro
-    // possibile soluzione : creare funzione per eliminare/creare gli attachment in modo da interrompere collegamento tra slider e parametri
     // create necessary GUIModules
     GUIModule* preModuleInOldPosition = editor.createGUIModule(type, cp);
     GUIModule* postModuleInOldPosition = editor.createGUIModule(thisModuleType, cp);
     GUIModule* preModuleInNewPosition = editor.createGUIModule(thisModuleType, getChainPosition());
     GUIModule* postModuleInNewPosition = editor.createGUIModule(type, getChainPosition());
-    // update parameters
-    postModuleInNewPosition->updateParameters(&*preModuleInOldPosition);
+    auto preModuleOldPositionParamValues = preModuleInOldPosition->getParamValues();
+    juce::Array<juce::var> preModuleNewPositionParamValues;
     if (oneModuleIsAllocatedHere) {
-        postModuleInOldPosition->updateParameters(&*preModuleInNewPosition);
+        preModuleNewPositionParamValues = preModuleInNewPosition->getParamValues();
+    }
+    // update parameters
+    postModuleInNewPosition->updateParameters(preModuleOldPositionParamValues);
+    if (oneModuleIsAllocatedHere) {
+        postModuleInOldPosition->updateParameters(preModuleNewPositionParamValues);
     }
     // reset the parameters to default
     if (type != thisModuleType) {
@@ -401,8 +404,9 @@ void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     delete preModuleInOldPosition;
     delete postModuleInOldPosition;
     delete preModuleInNewPosition;
-    // add the new GUImodule to the editor
-    addModuleToGUI(postModuleInNewPosition);
+    delete postModuleInNewPosition;
+    // delete the editor currentGUIModule (is mandatory before deleting the DSP modules for the oscilloscope module)
+    delete editor.currentGUIModule.release();
     if (oneModuleIsAllocatedHere) {
         // delete preNewPositionDSPModule
         audioProcessor.removeModuleFromDSPmodules(getChainPosition());
@@ -411,7 +415,8 @@ void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     // delete preOldPositionDSPModule
     audioProcessor.removeModuleFromDSPmodules(cp);
     audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(cp);
-
+    // add the fresh GUImodule to the editor (is mandatory to create a new GUIModule after deleting the DSP modules for the filter module)
+    addModuleToGUI(editor.createGUIModule(type, getChainPosition()));
     somethingIsBeingDraggedOver = false;
     repaint();
 }

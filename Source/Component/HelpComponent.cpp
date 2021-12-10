@@ -34,7 +34,7 @@ HelpComponent::HelpComponent()
 	one.setFont(juce::Font("Courier New", 22, 0));
 	one.setText("1)", juce::dontSendNotification);
 
-	firstRow.setText("Biztortion is an open-source modular distortion plugin, click on the \"About\" button for more info", juce::dontSendNotification);
+	firstRow.setText("This software is an open-source modular distortion plugin, click on the \"About\" button for more info about author's works", juce::dontSendNotification);
 	firstRow.setFont(juce::Font("Courier New", 18, 0));
 
 
