@@ -117,7 +117,6 @@ private:
     ButtonsLookAndFeel lnf;
     ModuleLookAndFeel freezeLnf;
 
-    // TODO : add a sample-and-hold algorithm to drow::oscilloscope for a better visual + fix visual glitches
     drow::AudioOscilloscope* leftOscilloscope;
     drow::AudioOscilloscope* rightOscilloscope;
 };
