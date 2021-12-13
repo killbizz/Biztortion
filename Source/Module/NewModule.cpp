@@ -36,7 +36,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     : GUIModule(), audioProcessor(p), editor(e), chainPosition(_chainPosition)
 {
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
-    chainPositionLabel.setFont(juce::Font("Courier New", 12, 0));
+    chainPositionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     addAndMakeVisible(chainPositionLabel);
 
     // newModule

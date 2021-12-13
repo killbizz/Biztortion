@@ -156,7 +156,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	// labels
 	const int fontHeight = 10;
 	String str;
-	g.setFont(fontHeight);
+	g.setFont(Font(fontHeight, Font::bold));
 	Rectangle<int> r;
 
 	// --- INPUT ---
@@ -188,7 +188,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	r.setCentre(point.getX(), point.getY());
 	g.drawFittedText(str, r, juce::Justification::centred, 1);
 	// input label
-	g.setFont(juce::Font("Courier New", fontHeight+2, 0));
+	g.setFont(juce::Font("Courier New", fontHeight+2, Font::bold));
 	str.clear();
 	str << "input";
 	textWidth = g.getCurrentFont().getStringWidth(str);
@@ -201,6 +201,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	// --- OUTPUT ---
 	// -1
 	str.clear();
+	g.setFont(Font(fontHeight, Font::bold));
 	str << "-1";
 	textWidth = g.getCurrentFont().getStringWidth(str);
 	r.setSize(textWidth, fontHeight);
@@ -219,7 +220,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	r.setCentre(point.getX(), point.getY());
 	g.drawFittedText(str, r, juce::Justification::centred, 1);
 	// output label
-	g.setFont(juce::Font("Courier New", fontHeight+2, 0));
+	g.setFont(juce::Font("Courier New", fontHeight+2, Font::bold));
 	str.clear();
 	str << "output";
 	textWidth = g.getCurrentFont().getStringWidth(str);
