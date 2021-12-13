@@ -41,26 +41,26 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-//==============================================================================
-/** Custom Look And Feel subclass.
-
-    Simply override the methods you need to, anything else will be inherited from the base class.
-    It's a good idea not to hard code your colours, use the findColour method along with appropriate
-    ColourIds so you can set these on a per-component basis.
-*/
-
 using namespace juce;
 
 struct ModuleLookAndFeel : public LookAndFeel_V4
 {
 
+    static Font getLabelsFont() {
+        return Font("Courier New", 14, 0);
+    }
+
+    static Font getTitlesFont() {
+        return Font("Courier New", 26, Font::bold);
+    }
+
     Font getTextButtonFont(TextButton&, int buttonHeight) override
     {
-        return juce::Font("Courier New", buttonHeight*0.39f, 0);
+        return juce::Font("Courier New", buttonHeight*0.39f, Font::bold);
     }
 
     Font getAlertWindowTitleFont() override {
-        return juce::Font("Courier New", 22, 0);
+        return juce::Font("Courier New", 26, 0);
     }
 
     Font getComboBoxFont(ComboBox&) override {
