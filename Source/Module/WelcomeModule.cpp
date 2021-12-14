@@ -37,17 +37,23 @@ WelcomeModuleGUI::WelcomeModuleGUI()
     title.setFont(juce::Font("Prestige Elite Std", 28, 0));*/
 
     author.setText("(c) 2021 Gabriel Bizzo", juce::dontSendNotification);
-    author.setFont(juce::Font("Courier New", 14, 0));
+    author.setFont(juce::Font("Courier New", 16, juce::Font::italic));
 
     version.setText("version: 1.0", juce::dontSendNotification);
-    version.setFont(juce::Font("Courier New", 14, 0));
+    version.setFont(juce::Font("Courier New", 16, juce::Font::italic));
+
+    auto buildDate = juce::Time::getCompilationDate().toString(true, false);
+
+    buildInfo.setText("Build: " + buildDate, juce::dontSendNotification);
+    buildInfo.setFont(juce::Font("Courier New", 16, juce::Font::italic));
+
 
     for (auto* comp : getAllComps())
     {
         addAndMakeVisible(comp);
     }
 
-    startTimerHz(60);
+    startTimerHz(45);
 
 }
 
@@ -80,6 +86,9 @@ void WelcomeModuleGUI::resized()
 
     version.setBounds(titleArea);
     version.setJustificationType(juce::Justification::centredRight);
+
+    buildInfo.setBounds(welcomeArea);
+    buildInfo.setJustificationType(juce::Justification::topRight);
 }
 
 std::vector<juce::Component*> WelcomeModuleGUI::getAllComps()
@@ -87,7 +96,8 @@ std::vector<juce::Component*> WelcomeModuleGUI::getAllComps()
     return {
         //&title,
         &author,
-        &version
+        &version,
+        &buildInfo
     };
 }
 
