@@ -267,7 +267,7 @@ FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chain
 {
     // title setup
     title.setText("Filter", juce::dontSendNotification);
-    title.setFont(juce::Font("Courier New", 24, 0));
+    title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     // labels
 
@@ -430,10 +430,10 @@ void FilterModuleGUI::paint(juce::Graphics& g)
     drawContainer(g);
     // filter types
     g.setColour(juce::Colours::white);
-    g.setFont(juce::Font("Courier New", 12, 0));
-    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -10), juce::Justification::centredTop, 1);
-    g.drawFittedText("Peak", peakFreqSlider.getBounds().translated(0, -10), juce::Justification::centredTop, 1);
-    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -10), juce::Justification::centredTop, 1);
+    g.setFont(ModuleLookAndFeel::getLabelsFont());
+    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
+    g.drawFittedText("Peak", peakFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
+    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
 }
 
 void FilterModuleGUI::resized()
@@ -450,7 +450,7 @@ void FilterModuleGUI::resized()
 
     bypassButton.setBounds(bypassButtonArea);
 
-    // analyzer
+    // analyzer button
     auto temp2 = filtersArea;
     auto analyzerButtonArea = temp2.removeFromTop(25);
 
@@ -467,17 +467,61 @@ void FilterModuleGUI::resized()
     responseCurveArea.reduce(10, 10);
     auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
     auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
+    auto lfArea = lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f));
+    auto lsArea = lowCutArea;
+    auto hfArea = highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f));
+    auto hsArea = highCutArea;
+    auto pfArea = filtersArea.removeFromTop(filtersArea.getHeight() * 0.33);
+    auto pgArea = filtersArea.removeFromTop(filtersArea.getHeight() * 0.5);
+    auto pqArea = filtersArea;
+
+    juce::Rectangle<int> renderArea;
+    renderArea.setSize(lfArea.getHeight(), lfArea.getHeight());
+    const int offset = 6;
+
+    // title
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centredBottom);
 
+    // fft analyzer & response curve
+
     filterFftAnalyzerComponent.setBounds(responseCurveArea);
     responseCurveComponent.setBounds(responseCurveArea);
-    lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f)));
-    highCutFreqSlider.setBounds(highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f)));
-    peakFreqSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.33));
-    peakGainSlider.setBounds(filtersArea.removeFromTop(filtersArea.getHeight() * 0.5));
-    peakQualitySlider.setBounds(filtersArea);
-    lowCutSlopeSlider.setBounds(lowCutArea);
-    highCutSlopeSlider.setBounds(highCutArea);
+
+    // lowpass
+
+    renderArea.setCentre(lfArea.getCentre());
+    renderArea.setY(lfArea.getTopLeft().getY() + offset);
+    lowCutFreqSlider.setBounds(renderArea);
+
+    renderArea.setCentre(lsArea.getCentre());
+    renderArea.setY(lsArea.getTopLeft().getY() + offset);
+    lowCutSlopeSlider.setBounds(renderArea);
+
+    // highpass
+
+    renderArea.setCentre(hfArea.getCentre());
+    renderArea.setY(hfArea.getTopLeft().getY() + offset);
+    highCutFreqSlider.setBounds(renderArea);
+
+    renderArea.setCentre(hsArea.getCentre());
+    renderArea.setY(hsArea.getTopLeft().getY() + offset);
+    highCutSlopeSlider.setBounds(renderArea);
+
+    // peak
+
+    renderArea.setSize(pfArea.getHeight() + 10, pfArea.getHeight());
+
+    renderArea.setCentre(pfArea.getCentre());
+    renderArea.setY(pfArea.getTopLeft().getY() + offset);
+    peakFreqSlider.setBounds(renderArea);
+
+    renderArea.setCentre(pgArea.getCentre());
+    renderArea.setY(pgArea.getTopLeft().getY() + offset);
+    peakGainSlider.setBounds(renderArea);
+
+    renderArea.setCentre(pqArea.getCentre());
+    renderArea.setY(pqArea.getTopLeft().getY() + offset);
+    peakQualitySlider.setBounds(renderArea);
 }

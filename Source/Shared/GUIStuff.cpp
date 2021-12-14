@@ -183,10 +183,10 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto range = getRange();
 
     auto sliderBounds = getSliderBounds();
-    
     // correction of sliderBounds
     sliderBounds.setY(2);
 
+    // draw slider bounds
     /*g.setColour(Colours::red);
     g.drawRect(getLocalBounds());
     g.setColour(Colours::yellow);

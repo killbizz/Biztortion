@@ -125,13 +125,13 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::
 {
     // title setup
     title.setText("Oscilloscope", juce::dontSendNotification);
-    title.setFont(juce::Font("Courier New", 24, 0));
+    title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     // labels
     hZoomLabel.setText("H Zoom", juce::dontSendNotification);
-    hZoomLabel.setFont(juce::Font("Courier New", 12, 0));
+    hZoomLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     vZoomLabel.setText("V Zoom", juce::dontSendNotification);
-    vZoomLabel.setFont(juce::Font("Courier New", 12, 0));
+    vZoomLabel.setFont(ModuleLookAndFeel::getLabelsFont());
 
     hZoomSlider.labels.add({ 0.f, "0" });
     hZoomSlider.labels.add({ 1.f, "1" });
@@ -288,7 +288,7 @@ void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
     auto left = juce::Point<float>((float)leftOscArea.getTopLeft().getX(), leftOscArea.getCentreY());
     auto right = juce::Point<float>((float)leftOscArea.getTopRight().getX(), leftOscArea.getCentreY());
     g.drawLine(juce::Line<float>(left, right), 1.f);
-    g.setColour(juce::Colours::white);
+    //g.setColour(juce::Colours::white);
     // +1
     juce::Rectangle<int> labelArea;
     labelArea.setBounds(right.getX() - 14, leftOscArea.getTopRight().getY(), 14, 12);
@@ -300,6 +300,7 @@ void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
     labelArea.setBounds(right.getX() - 14, leftOscArea.getBottomRight().getY() - 13, 14, 12);
     g.drawFittedText("-1", labelArea, juce::Justification::centred, 1);
     // channel label
+    g.setColour(juce::Colours::white.darker());
     labelArea.setBounds(left.getX() + 1, leftOscArea.getTopLeft().getY() + 1, 18, 16);
     g.drawFittedText("L", labelArea, juce::Justification::centred, 1);
 
@@ -308,7 +309,7 @@ void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
     left = juce::Point<float>((float)rightOscArea.getTopLeft().getX(), rightOscArea.getCentreY());
     right = juce::Point<float>((float)rightOscArea.getTopRight().getX(), rightOscArea.getCentreY());
     g.drawLine(juce::Line<float>(left, right), 1.f);
-    g.setColour(juce::Colours::white);
+    //g.setColour(juce::Colours::white);
     // +1
     labelArea.setBounds(right.getX() - 14, rightOscArea.getTopRight().getY(), 14, 12);
     g.drawFittedText("+1", labelArea, juce::Justification::centred, 1);
@@ -319,6 +320,7 @@ void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
     labelArea.setBounds(right.getX() - 14, rightOscArea.getBottomRight().getY() - 13, 14, 12);
     g.drawFittedText("-1", labelArea, juce::Justification::centred, 1);
     // channel label
+    g.setColour(juce::Colours::white.darker());
     labelArea.setBounds(left.getX() + 1, rightOscArea.getTopLeft().getY() + 2, 18, 16);
     g.drawFittedText("R", labelArea, juce::Justification::centred, 1);
 
@@ -350,13 +352,16 @@ void OscilloscopeModuleGUI::resized()
     freezeCorrectArea.setCentre(freezeArea.getCentre());
 
     auto hZoomArea = oscilloscopeArea.removeFromLeft(oscilloscopeArea.getWidth() * (1.f / 2.f));
-    auto hZoomLabelArea = hZoomArea.removeFromTop(12);
+    auto hZoomLabelArea = hZoomArea.removeFromTop(14);
 
     auto vZoomArea = oscilloscopeArea;
-    auto vZoomLabelArea = vZoomArea.removeFromTop(12);
+    auto vZoomLabelArea = vZoomArea.removeFromTop(14);
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centredBottom);
+
+    juce::Rectangle<int> renderArea;
+    renderArea.setSize(hZoomArea.getHeight(), hZoomArea.getHeight());
 
     hZoomLabel.setBounds(hZoomLabelArea);
     hZoomLabel.setJustificationType(juce::Justification::centred);
@@ -367,7 +372,14 @@ void OscilloscopeModuleGUI::resized()
     leftOscilloscope->startTimerHz(59);
     rightOscilloscope->setBounds(graphArea);
     rightOscilloscope->startTimerHz(59);
-    hZoomSlider.setBounds(hZoomArea);
-    vZoomSlider.setBounds(vZoomArea);
+
+    renderArea.setCentre(hZoomArea.getCentre());
+    renderArea.setY(hZoomArea.getTopLeft().getY());
+    hZoomSlider.setBounds(renderArea);
+
+    renderArea.setCentre(vZoomArea.getCentre());
+    renderArea.setY(vZoomArea.getTopLeft().getY());
+    vZoomSlider.setBounds(renderArea);
+
     freezeButton.setBounds(freezeCorrectArea);
 }
