@@ -42,11 +42,11 @@ WelcomeModuleGUI::WelcomeModuleGUI()
     version.setText("version: 1.0", juce::dontSendNotification);
     version.setFont(juce::Font("Courier New", 16, 0));
 
-    auto buildDate = juce::Time::getCompilationDate().toString(true, false);
+    juce::String buildDate = "2022/01/02";
 
-    buildInfo.setText("Build: " + buildDate, juce::dontSendNotification);
+    buildInfo.setText("build: " + buildDate, juce::dontSendNotification);
     buildInfo.setFont(juce::Font("Courier New", 16, 0));
-
+    //buildInfo.setColour(juce::Label::textColourId, juce::Colours::whitesmoke.darker(0.3f));
 
     for (auto* comp : getAllComps())
     {
@@ -74,21 +74,24 @@ void WelcomeModuleGUI::paint(juce::Graphics& g)
 
 void WelcomeModuleGUI::resized()
 {
-    auto welcomeArea = getContentRenderArea();
+    auto area1 = getContentRenderArea();
+    auto area2 = area1;
 
-    auto titleArea = welcomeArea.removeFromTop(welcomeArea.getHeight() * (1.f / 6.f));
+    auto topArea = area1.removeFromTop(area1.getHeight() * (1.f / 6.f));
+    auto bottomArea = area2.removeFromTop(area2.getHeight() * (1.f / 3.5f));
 
-    title.setBounds(titleArea);
-    title.setJustificationType(juce::Justification::centred);
+    //title.setBounds(topArea);
+    //title.setJustificationType(juce::Justification::centred);
 
-    author.setBounds(titleArea);
+    author.setBounds(topArea);
     author.setJustificationType(juce::Justification::centredLeft);
 
-    version.setBounds(titleArea);
+    version.setBounds(topArea);
     version.setJustificationType(juce::Justification::centredRight);
 
-    buildInfo.setBounds(welcomeArea);
-    buildInfo.setJustificationType(juce::Justification::topRight);
+    buildInfo.setBounds(bottomArea);
+    buildInfo.setJustificationType(juce::Justification::centredRight);
+    
 }
 
 std::vector<juce::Component*> WelcomeModuleGUI::getAllComps()
