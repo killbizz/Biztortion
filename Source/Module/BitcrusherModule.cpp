@@ -121,7 +121,7 @@ void BitcrusherModuleDSP::updateDSPState(double sampleRate)
     wetGain.setTargetValue(mix);
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
     symmetry.setTargetValue(settings.symmetry * 0.01f);
-    bias.setTargetValue(settings.bias * 0.01f);
+    bias.setTargetValue(settings.bias);
 
     rateRedux.setTargetValue(settings.rateRedux);
     bitRedux.setTargetValue(settings.bitRedux);
@@ -240,7 +240,7 @@ void BitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Drive " + std::to_string(i), "Bitcrusher Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Mix " + std::to_string(i), "Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Symmetry " + std::to_string(i), "Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bias " + std::to_string(i), "Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-90.f, 90.f, 1.f), 0.f, "Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bias " + std::to_string(i), "Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Rate Redux " + std::to_string(i), "Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bit Redux " + std::to_string(i), "Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Dither " + std::to_string(i), "Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
@@ -290,23 +290,23 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned i
 {
     // title setup
     title.setText("Bitcrusher", juce::dontSendNotification);
-    title.setFont(juce::Font("Courier New", 24, 0));
+    title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
-    driveLabel.setFont(juce::Font("Courier New", 12, 0));
+    driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     mixLabel.setText("Mix", juce::dontSendNotification);
-    mixLabel.setFont(juce::Font("Courier New", 12, 0));
+    mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
-    symmetryLabel.setFont(juce::Font("Courier New", 12, 0));
+    symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     biasLabel.setText("Bias", juce::dontSendNotification);
-    biasLabel.setFont(juce::Font("Courier New", 12, 0));
+    biasLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     bitcrusherDitherLabel.setText("Dither", juce::dontSendNotification);
-    bitcrusherDitherLabel.setFont(juce::Font("Courier New", 12, 0));
+    bitcrusherDitherLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     bitcrusherRateReduxLabel.setText("Sampling Rate Redux", juce::dontSendNotification);
-    bitcrusherRateReduxLabel.setFont(juce::Font("Courier New", 12, 0));
+    bitcrusherRateReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
-    bitcrusherBitReduxLabel.setFont(juce::Font("Courier New", 12, 0));
+    bitcrusherBitReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -473,8 +473,8 @@ void BitcrusherModuleGUI::resized()
     auto topArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
     auto bottomArea = bitcrusherArea;
 
-    auto topLabelsArea = topArea.removeFromTop(12);
-    auto bottomLabelsArea = bottomArea.removeFromTop(12);
+    auto topLabelsArea = topArea.removeFromTop(14);
+    auto bottomLabelsArea = bottomArea.removeFromTop(14);
 
     // label areas
     temp = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
@@ -496,34 +496,53 @@ void BitcrusherModuleGUI::resized()
     auto bitArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
     auto ditherArea = bottomArea;
 
+    juce::Rectangle<int> renderArea;
+    renderArea.setSize(driveArea.getWidth(), driveArea.getWidth());
+
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centredBottom);
 
-    driveSlider.setBounds(driveArea);
+    renderArea.setCentre(driveArea.getCentre());
+    renderArea.setY(driveArea.getTopLeft().getY());
+    driveSlider.setBounds(renderArea);
     driveLabel.setBounds(driveLabelArea);
     driveLabel.setJustificationType(juce::Justification::centred);
 
-    mixSlider.setBounds(mixArea);
+    renderArea.setCentre(mixArea.getCentre());
+    renderArea.setY(mixArea.getTopLeft().getY());
+    mixSlider.setBounds(renderArea);
     mixLabel.setBounds(mixLabelArea);
     mixLabel.setJustificationType(juce::Justification::centred);
 
-    symmetrySlider.setBounds(symmetryArea);
+    renderArea.setCentre(symmetryArea.getCentre());
+    renderArea.setY(symmetryArea.getTopLeft().getY());
+    symmetrySlider.setBounds(renderArea);
     symmetryLabel.setBounds(symmetryLabelArea);
     symmetryLabel.setJustificationType(juce::Justification::centred);
 
-    biasSlider.setBounds(biasArea);
+    renderArea.setCentre(biasArea.getCentre());
+    renderArea.setY(biasArea.getTopLeft().getY());
+    biasSlider.setBounds(renderArea);
     biasLabel.setBounds(biasLabelArea);
     biasLabel.setJustificationType(juce::Justification::centred);
 
-    bitcrusherRateReduxSlider.setBounds(rateArea);
+    renderArea.setSize(rateArea.getHeight(), rateArea.getHeight());
+
+    renderArea.setCentre(rateArea.getCentre());
+    renderArea.setY(rateArea.getTopLeft().getY());
+    bitcrusherRateReduxSlider.setBounds(renderArea);
     bitcrusherRateReduxLabel.setBounds(rateLabelArea);
     bitcrusherRateReduxLabel.setJustificationType(juce::Justification::centred);
 
-    bitcrusherBitReduxSlider.setBounds(bitArea);
+    renderArea.setCentre(bitArea.getCentre());
+    renderArea.setY(bitArea.getTopLeft().getY());
+    bitcrusherBitReduxSlider.setBounds(renderArea);
     bitcrusherBitReduxLabel.setBounds(bitLabelArea);
     bitcrusherBitReduxLabel.setJustificationType(juce::Justification::centred);
 
-    bitcrusherDitherSlider.setBounds(ditherArea);
+    renderArea.setCentre(ditherArea.getCentre());
+    renderArea.setY(ditherArea.getTopLeft().getY());
+    bitcrusherDitherSlider.setBounds(renderArea);
     bitcrusherDitherLabel.setBounds(ditherLabelArea);
     bitcrusherDitherLabel.setJustificationType(juce::Justification::centred);
 }

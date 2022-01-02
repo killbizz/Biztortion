@@ -207,7 +207,7 @@ void FFTAnalyzerComponent::resized()
     // --- CHANNEL LABELS ---
     String str;
     str << "L";
-    g.setFont(fontHeight);
+    g.setFont(juce::Font(fontHeight, juce::Font::bold));
     auto textWidth = g.getCurrentFont().getStringWidth(str);
     Rectangle<int> r;
     r.setSize(textWidth, fontHeight);

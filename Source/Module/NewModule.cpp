@@ -36,7 +36,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     : GUIModule(), audioProcessor(p), editor(e), chainPosition(_chainPosition)
 {
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
-    chainPositionLabel.setFont(juce::Font("Courier New", 12, 0));
+    chainPositionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     addAndMakeVisible(chainPositionLabel);
 
     // newModule
@@ -68,6 +68,7 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     newModuleSelector.setJustificationType(juce::Justification::centred);
     // 999 id for the default text entry
     newModuleSelector.addItem("Select the module to create", 999);
+    newModuleSelector.addSeparator();
     newModuleSelector.addItem("Oscilloscope", ModuleType::Oscilloscope);
     newModuleSelector.addItem("Filter", ModuleType::IIRFilter);
     newModuleSelector.addSeparator();
@@ -161,15 +162,11 @@ void NewModuleGUI::deleteTheCurrentNewModule()
     moduleType = ModuleType::Uninstantiated;
     // reset the parameter values to default
     editor.currentGUIModule->resetParameters(getChainPosition());
-    editor.currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
-    editor.addAndMakeVisible(*editor.currentGUIModule);
-    // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
-    editor.currentGUIModule->setWantsKeyboardFocus(true);
+    editor.updateCurrentGUIModule(new WelcomeModuleGUI());
     newModuleSetup(moduleType);
     // remove DSP module
     audioProcessor.removeModuleFromDSPmodules(getChainPosition());
     audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
-    editor.resized();
 }
 
 void NewModuleGUI::paint(juce::Graphics& g)
@@ -314,7 +311,6 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
         currentModuleActivator.setVisible(false);
     }
     resized();
-    //editor.resized();
 }
 
 // These methods implement the DragAndDropTarget interface, and allow our component

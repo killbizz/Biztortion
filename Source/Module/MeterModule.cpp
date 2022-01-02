@@ -114,7 +114,7 @@ MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
     levelSliderAttachment(audioProcessor.apvts, type + " Meter Level", levelSlider)
 {
     meterTitle.setText(type, juce::dontSendNotification);
-    meterTitle.setFont(juce::Font("Courier New", 16, 0));
+    meterTitle.setFont(juce::Font("Courier New", 20, juce::Font::bold));
 
     // meter custom colors
     lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::black);
@@ -186,8 +186,15 @@ void MeterModuleGUI::resized()
     meterArea.reduce(4, 4);
     bounds.reduce(4, 4);
 
+    juce::Rectangle<int> renderArea;
+    renderArea.setSize(bounds.getHeight(), bounds.getHeight());
+
     meterTitle.setBounds(titleArea);
     meterTitle.setJustificationType(juce::Justification::centred);
+
     meter.setBounds(meterArea);
-    levelSlider.setBounds(bounds);
+
+    renderArea.setCentre(bounds.getCentre());
+    renderArea.setY(bounds.getTopLeft().getY());
+    levelSlider.setBounds(renderArea);
 }
