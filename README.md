@@ -2,10 +2,12 @@
 
  Modular distortion plugin for VST-based hosts made with C++ and JUCE framework.
  
+ Windows/MacOS installers of the software, both 32 bit and 64 bit, are available for ****DOWNLOAD**** in the [releases section](https://github.com/killbizz/Biztortion/releases/).
+ 
  ![Biztortion-Screenshot](Biztortion.png)
  
- Thesys project for the bachelor degree in Electronic Music at the C. Pollini Conservatory of Music in Padua (Italy).
- The thesys document, wrote in Italian language and included in the repository, contains an in-depth study on the phenomenon of audio distortion and a technical analysis of the different algorithms implemented in the plugin.
+ This repository contains the thesys project for the bachelor degree in Electronic Music of Gabriel Bizzo at the C. Pollini Conservatory of Music in Padua (Italy).
+ The thesys document, wrote in Italian language, contains an in-depth study on the phenomenon of audio distortion and a technical analysis of the different algorithms implemented in the plugin.
 
 ## Dependencies
 
