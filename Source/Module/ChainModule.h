@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    NewModuleModule.h
+    ChainModule.h
 
     Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
@@ -37,52 +37,18 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class BiztortionAudioProcessor;
 class BiztortionAudioProcessorEditor;
 
-class BizComboBox : public juce::ComboBox {
-public:
-    BizComboBox(juce::TextButton* nm) {
-        newModule = nm;
-    }
-
-    void focusLost(juce::Component::FocusChangeType ct) override {
-        hidePopup();
-        setVisible(false);
-        juce::ComboBox::focusLost(ct);
-        newModule->setToggleState(false, juce::NotificationType::dontSendNotification);
-    }
-private:
-    juce::TextButton* newModule;
-};
-
-// classes for drag-and-drop logic
-
-class BizDrawable : public juce::DrawableImage {
-public:
-    BizDrawable() = default;
-    BizDrawable(const juce::DrawableImage& d) : juce::DrawableImage(d){}
-    void mouseDrag(const MouseEvent& event) override;
-};
-
-class BizTextButton : public juce::TextButton {
-public:
-    BizTextButton() = default;
-    void mouseDrag(const MouseEvent & event) override;
-};
-
-class BizLabel : public juce::Label {
-public:
-    void mouseDrag(const MouseEvent& event) override;
-};
-//==============================================================================
-
-/* NewModule GUI */
 
 //==============================================================================
 
-class NewModuleGUI : public GUIModule, public DragAndDropTarget {
+/* ChainModule GUI */
+
+//==============================================================================
+
+class ChainModuleGUI : public GUIModule, public DragAndDropTarget {
 public:
 
-    NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition);
-    ~NewModuleGUI();
+    ChainModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition);
+    ~ChainModuleGUI();
 
     unsigned int getChainPosition();
     void setChainPosition(unsigned int cp);
@@ -149,6 +115,8 @@ private:
     std::unique_ptr<BizDrawable> rightCable;
     juce::AffineTransform getTransform();
     std::unique_ptr<BizDrawable> getRightCable(unsigned int chainPosition);
+
+    std::unique_ptr<BizDrawable> dragIcon;
 
     bool somethingIsBeingDraggedOver = false;
 };

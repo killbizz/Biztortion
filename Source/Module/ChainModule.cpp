@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    NewModuleModule.cpp
+    ChainModule.cpp
 
     Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
@@ -27,12 +27,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 */
 
-#include "NewModule.h"
+#include "ChainModule.h"
 #include "../PluginProcessor.h"
 #include "../PluginEditor.h"
 #include <algorithm>
 
-NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition)
+ChainModuleGUI::ChainModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition)
     : GUIModule(), audioProcessor(p), editor(e), chainPosition(_chainPosition)
 {
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
@@ -121,34 +121,34 @@ NewModuleGUI::NewModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessor
     }
 }
 
-NewModuleGUI::~NewModuleGUI()
+ChainModuleGUI::~ChainModuleGUI()
 {
     newModule.setLookAndFeel(nullptr);
     deleteModule.setLookAndFeel(nullptr);
     currentModuleActivator.setLookAndFeel(nullptr);
 }
 
-unsigned int NewModuleGUI::getChainPosition()
+unsigned int ChainModuleGUI::getChainPosition()
 {
     return chainPosition;
 }
 
-void NewModuleGUI::setChainPosition(unsigned int cp)
+void ChainModuleGUI::setChainPosition(unsigned int cp)
 {
     chainPosition = cp;
 }
 
-ModuleType NewModuleGUI::getModuleType()
+ModuleType ChainModuleGUI::getModuleType()
 {
     return moduleType;
 }
 
-void NewModuleGUI::setModuleType(ModuleType mt)
+void ChainModuleGUI::setModuleType(ModuleType mt)
 {
     moduleType = mt;
 }
 
-void NewModuleGUI::addNewModule(ModuleType type)
+void ChainModuleGUI::addNewModule(ModuleType type)
 {
     audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
     audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
@@ -156,7 +156,7 @@ void NewModuleGUI::addNewModule(ModuleType type)
     newModuleSetup(type);
 }
 
-void NewModuleGUI::deleteTheCurrentNewModule()
+void ChainModuleGUI::deleteTheCurrentNewModule()
 {
     // remove GUI module
     moduleType = ModuleType::Uninstantiated;
@@ -169,7 +169,7 @@ void NewModuleGUI::deleteTheCurrentNewModule()
     audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
 }
 
-void NewModuleGUI::paint(juce::Graphics& g)
+void ChainModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
     // draw a red line around the comp if the user's currently dragging something over it..
@@ -180,7 +180,7 @@ void NewModuleGUI::paint(juce::Graphics& g)
     }
 }
 
-void NewModuleGUI::resized()
+void ChainModuleGUI::resized()
 {
     auto bounds = getContentRenderArea();
 
@@ -212,7 +212,7 @@ void NewModuleGUI::resized()
     }
 }
 
-std::vector<juce::Component*> NewModuleGUI::getAllComps()
+std::vector<juce::Component*> ChainModuleGUI::getAllComps()
 {
     return {
         &newModule,
@@ -220,12 +220,12 @@ std::vector<juce::Component*> NewModuleGUI::getAllComps()
     };
 }
 
-std::vector<juce::Component*> NewModuleGUI::getParamComps()
+std::vector<juce::Component*> ChainModuleGUI::getParamComps()
 {
     return std::vector<juce::Component*>();
 }
 
-void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
+void ChainModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
     laf.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
@@ -234,7 +234,7 @@ void NewModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
 }
 
-void NewModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
+void ChainModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::ComboBox::backgroundColourId, juce::Colours::darkgrey.withAlpha(0.75f));
     laf.setColour(juce::ComboBox::textColourId, juce::Colours::white);
@@ -242,7 +242,7 @@ void NewModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
     laf.setColour(juce::PopupMenu::backgroundColourId, laf.findColour(juce::ComboBox::backgroundColourId));
 }
 
-void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
+void ChainModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
     laf.setColour(juce::TextButton::textColourOffId, juce::Colours::red);
@@ -251,7 +251,7 @@ void NewModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
 }
 
-void NewModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
+void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
     laf.setColour(juce::TextButton::textColourOffId, juce::Colours::green);
@@ -260,7 +260,7 @@ void NewModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
 }
 
-void NewModuleGUI::newModuleSetup(const ModuleType type)
+void ChainModuleGUI::newModuleSetup(const ModuleType type)
 {
     moduleType = type;
     // newModule and deleteModule setup
@@ -316,12 +316,12 @@ void NewModuleGUI::newModuleSetup(const ModuleType type)
 // These methods implement the DragAndDropTarget interface, and allow our component
 // to accept drag-and-drop of objects from other JUCE components..
 
-bool NewModuleGUI::isInterestedInDragSource(const SourceDetails& dragSourceDetails)
+bool ChainModuleGUI::isInterestedInDragSource(const SourceDetails& dragSourceDetails)
 {
     // normally you'd check the sourceDescription value to see if it's the
     // sort of object that you're interested in before returning true, but for
     // the demo, we'll say yes to anything..
-    auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
+    auto component = dynamic_cast<ChainModuleGUI*>(dragSourceDetails.sourceComponent.get());
     if (component) {
         if (component->getChainPosition() == getChainPosition()) {
             return false;
@@ -335,26 +335,26 @@ bool NewModuleGUI::isInterestedInDragSource(const SourceDetails& dragSourceDetai
     }
 }
 
-void NewModuleGUI::itemDragEnter(const SourceDetails& /*dragSourceDetails*/)
+void ChainModuleGUI::itemDragEnter(const SourceDetails& /*dragSourceDetails*/)
 {
     somethingIsBeingDraggedOver = true;
     repaint();
 }
 
-void NewModuleGUI::itemDragMove(const SourceDetails& /*dragSourceDetails*/)
+void ChainModuleGUI::itemDragMove(const SourceDetails& /*dragSourceDetails*/)
 {
 }
 
-void NewModuleGUI::itemDragExit(const SourceDetails& /*dragSourceDetails*/)
+void ChainModuleGUI::itemDragExit(const SourceDetails& /*dragSourceDetails*/)
 {
     somethingIsBeingDraggedOver = false;
     repaint();
 }
 
 // drag-and-drop logic : changes one module position or swap two modules
-void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
+void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
 {
-    auto component = dynamic_cast<NewModuleGUI*>(dragSourceDetails.sourceComponent.get());
+    auto component = dynamic_cast<ChainModuleGUI*>(dragSourceDetails.sourceComponent.get());
     auto type = component->getModuleType();
     auto cp = component->getChainPosition();
     auto thisModuleType = moduleType;
@@ -417,50 +417,27 @@ void NewModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     repaint();
 }
 
-void NewModuleGUI::mouseDrag(const MouseEvent& event)
+void ChainModuleGUI::mouseDrag(const MouseEvent& event)
 {
     auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent());
     if(getModuleType() != ModuleType::Uninstantiated)
         editor->startDragging("", this);
 }
 
-void BizDrawable::mouseDrag(const MouseEvent& event)
-{
-    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent());
-    if (newModule->getModuleType() != ModuleType::Uninstantiated)
-        editor->startDragging("", newModule);
-}
 
-void BizTextButton::mouseDrag(const MouseEvent& event)
-{
-    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
-    if (newModule->getModuleType() != ModuleType::Uninstantiated)
-        editor->startDragging("", newModule);
-}
-
-void BizLabel::mouseDrag(const MouseEvent& event)
-{
-    auto newModule = dynamic_cast<NewModuleGUI*>(getParentComponent());
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
-    if (newModule->getModuleType() != ModuleType::Uninstantiated)
-        editor->startDragging("", newModule);
-}
-
-void NewModuleGUI::addModuleToGUI(GUIModule* module)
+void ChainModuleGUI::addModuleToGUI(GUIModule* module)
 {
     editor.updateCurrentGUIModule(module);
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
 }
 
-juce::AffineTransform NewModuleGUI::getTransform()
+juce::AffineTransform ChainModuleGUI::getTransform()
 {
     return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);
 }
 
-std::unique_ptr<BizDrawable> NewModuleGUI::getRightCable(unsigned int chainPosition)
+std::unique_ptr<BizDrawable> ChainModuleGUI::getRightCable(unsigned int chainPosition)
 {
     switch (chainPosition) {
 
