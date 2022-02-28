@@ -62,6 +62,8 @@
               file="Source/Module/BitcrusherModule.cpp"/>
         <FILE id="jEJGqC" name="BitcrusherModule.h" compile="0" resource="0"
               file="Source/Module/BitcrusherModule.h"/>
+        <FILE id="YXe7c7" name="ChainModule.cpp" compile="1" resource="0" file="Source/Module/ChainModule.cpp"/>
+        <FILE id="y5hFo0" name="ChainModule.h" compile="0" resource="0" file="Source/Module/ChainModule.h"/>
         <FILE id="yc7UDc" name="DSPModule.cpp" compile="1" resource="0" file="Source/Module/DSPModule.cpp"/>
         <FILE id="qxoPsW" name="DSPModule.h" compile="0" resource="0" file="Source/Module/DSPModule.h"/>
         <FILE id="QGnBgS" name="FilterModule.cpp" compile="1" resource="0"
@@ -71,8 +73,6 @@
         <FILE id="PFdRlU" name="GUIModule.h" compile="0" resource="0" file="Source/Module/GUIModule.h"/>
         <FILE id="kjGTBJ" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule.cpp"/>
         <FILE id="tZhcEl" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule.h"/>
-        <FILE id="JIulEh" name="NewModule.cpp" compile="1" resource="0" file="Source/Module/NewModule.cpp"/>
-        <FILE id="H02Dre" name="NewModule.h" compile="0" resource="0" file="Source/Module/NewModule.h"/>
         <FILE id="DuhuD4" name="OscilloscopeModule.cpp" compile="1" resource="0"
               file="Source/Module/OscilloscopeModule.cpp"/>
         <FILE id="w2Avkr" name="OscilloscopeModule.h" compile="0" resource="0"
