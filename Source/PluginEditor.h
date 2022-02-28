@@ -45,7 +45,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "Shared/GUIStuff.h"
 #include "Module/FilterModule.h"
 #include "Module/WaveshaperModule.h"
-#include "Module/NewModule.h"
+#include "Module/ChainModule.h"
 #include "Module/WelcomeModule.h"
 
 //==============================================================================
@@ -67,7 +67,7 @@ public:
     std::unique_ptr<GUIModule> inputMeter;
     std::unique_ptr<GUIModule> outputMeter;
     std::unique_ptr<GUIModule> currentGUIModule;
-    std::vector<std::unique_ptr<NewModuleGUI>> newModules;
+    std::vector<std::unique_ptr<ChainModuleGUI>> newModules;
 
 private:
 

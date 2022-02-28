@@ -76,8 +76,8 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
 
     // 1 - 8 = chain positions with visible components in the chain part of the UI
     for (int i = 0; i < 8; ++i) {
-        NewModuleGUI* item = new NewModuleGUI(audioProcessor, *this, i + 1);
-        newModules.push_back(std::unique_ptr<NewModuleGUI>(item));
+        ChainModuleGUI* item = new ChainModuleGUI(audioProcessor, *this, i + 1);
+        newModules.push_back(std::unique_ptr<ChainModuleGUI>(item));
     }
 
     currentGUIModule = std::unique_ptr<GUIModule>(new WelcomeModuleGUI());
