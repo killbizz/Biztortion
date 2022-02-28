@@ -30,6 +30,8 @@
             file="Resources/BiztortionLogoWhite.png"/>
       <FILE id="WaH5M9" name="biztortionNoseAlpha.png" compile="0" resource="1"
             file="Resources/biztortionNoseAlpha.png"/>
+      <FILE id="U3C2zM" name="drag-and-drop-alpha.png" compile="0" resource="1"
+            file="Resources/drag-and-drop-alpha.png"/>
     </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
       <GROUP id="{3CE862F7-9551-DF55-4209-CE64AF968F62}" name="Shared">
