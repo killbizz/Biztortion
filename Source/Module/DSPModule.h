@@ -55,7 +55,7 @@ public:
 
 protected:
     juce::AudioProcessorValueTreeState& apvts;
-    // 0 - 9
+    // range: 0 - 9
     unsigned int chainPosition;
     ModuleType moduleType;
 
