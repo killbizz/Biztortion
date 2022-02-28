@@ -269,3 +269,43 @@ struct AnalyzerButton : juce::ToggleButton
 
     juce::Path randomPath;
 };
+
+//==============================================================================
+
+// class for module instantiation logic
+
+class BizComboBox : public juce::ComboBox {
+public:
+    BizComboBox(juce::TextButton* nm) {
+        newModule = nm;
+    }
+
+    void focusLost(juce::Component::FocusChangeType ct) override {
+        hidePopup();
+        setVisible(false);
+        juce::ComboBox::focusLost(ct);
+        newModule->setToggleState(false, juce::NotificationType::dontSendNotification);
+    }
+private:
+    juce::TextButton* newModule;
+};
+
+// classes for drag-and-drop logic
+
+class BizDrawable : public juce::DrawableImage {
+public:
+    BizDrawable() = default;
+    BizDrawable(const juce::DrawableImage& d) : juce::DrawableImage(d) {}
+    void mouseDrag(const MouseEvent& event) override;
+};
+
+class BizTextButton : public juce::TextButton {
+public:
+    BizTextButton() = default;
+    void mouseDrag(const MouseEvent& event) override;
+};
+
+class BizLabel : public juce::Label {
+public:
+    void mouseDrag(const MouseEvent& event) override;
+};

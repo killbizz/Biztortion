@@ -38,6 +38,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "GUIStuff.h"
+#include "../PluginEditor.h"
 
 void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
     int x,
@@ -314,4 +315,30 @@ void AnalyzerButton::resized()
         randomPath.lineTo(x,
             insetRect.getY() + insetRect.getHeight() * r.nextFloat());
     }
+}
+
+//==============================================================================
+
+void BizDrawable::mouseDrag(const MouseEvent& event)
+{
+    auto newModule = dynamic_cast<ChainModuleGUI*>(getParentComponent());
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent());
+    if (newModule->getModuleType() != ModuleType::Uninstantiated)
+        editor->startDragging("", newModule);
+}
+
+void BizTextButton::mouseDrag(const MouseEvent& event)
+{
+    auto newModule = dynamic_cast<ChainModuleGUI*>(getParentComponent());
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
+    if (newModule->getModuleType() != ModuleType::Uninstantiated)
+        editor->startDragging("", newModule);
+}
+
+void BizLabel::mouseDrag(const MouseEvent& event)
+{
+    auto newModule = dynamic_cast<ChainModuleGUI*>(getParentComponent());
+    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
+    if (newModule->getModuleType() != ModuleType::Uninstantiated)
+        editor->startDragging("", newModule);
 }
