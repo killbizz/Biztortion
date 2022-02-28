@@ -349,9 +349,6 @@ DSPModule* BiztortionAudioProcessor::createDSPModule(ModuleType mt)
 
 void BiztortionAudioProcessor::addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition)
 {
-    // DSP module setup
-    module->setChainPosition(chainPosition);
-    module->setModuleType();
     // insert module to DSPmodules vector
     bool inserted = false;
     for (auto it = DSPmodules.begin(); !inserted; ++it) {
@@ -380,6 +377,9 @@ void BiztortionAudioProcessor::addAndSetupModuleForDSP(DSPModule* module, unsign
 {
     // suspend audio processing
     suspendProcessing(true);
+    // DSP module setup
+    module->setChainPosition(chainPosition);
+    module->setModuleType();
     addModuleToDSPmodules(module, chainPosition);
     // prepare to play the audio chain
     prepareToPlay(getSampleRate(), getBlockSize());
