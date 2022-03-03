@@ -1,10 +1,13 @@
 # Biztortion
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![Supported Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows-green)
+[![HitCount](https://hits.dwyl.com/killbizz/Biztortion.svg?style=flat-square)](http://hits.dwyl.com/killbizz/Biztortion)
 
  Modular distortion plugin for VST-based hosts made with C++ and JUCE framework.
  
  The software in question is designed to carry out very creative sound design, providing various very useful tools mainly for the production of **Electronic Dance Music**, without however excluding a possible use related to audio post-production.
  
- Windows/MacOS installers of the software, both 32 bit and 64 bit, are available for ****FREE DOWNLOAD**** in the [releases section](https://github.com/killbizz/Biztortion/releases/).
+ Windows/MacOS installers of the software, both 32 bit and 64 bit, are available for `FREE DOWNLOAD` in the [releases section](https://github.com/killbizz/Biztortion/releases/).
  
  ![Biztortion-Screenshot](Biztortion.png)
  
@@ -15,13 +18,13 @@
 
 - Chain together the modules available in the **chain section** for a complex sound processing
 - Have fun **dragging modules** to different chain positions, creating different combinations that give life to new sounds
-- **Input/Output Stage** for a total dynamics control
-- **Waveshaper Module** : distort the input signal using the transfer function which uses the sine and arctangent functions to create very complex waveforms
-- **Bitcrusher Module** : reduce the resolution of the signal by adjusting the sampling frequency and bit depth. This gradually introduces the digital artifacts typical of older digital samplers
-- **Slew Limiter Module** : this type of signal processor is usually present in analog modular synthesizers and allows you to level a signal so that the intensity variation cannot exceed a certain value per second
+- `Input/Output Stage` for a total dynamics control
+- `Waveshaper Module` : distort the input signal using the transfer function which uses the sine and arctangent functions to create very complex waveforms
+- `Bitcrusher Module` : reduce the resolution of the signal by adjusting the sampling frequency and bit depth. This gradually introduces the digital artifacts typical of older digital samplers
+- `Slew Limiter Module` : this type of signal processor is usually present in analog modular synthesizers and allows you to level a signal so that the intensity variation cannot exceed a certain value per second
 - In each distortion module you can decide whether to apply the effect to the whole signal or to the single upper or lower section of it. Use the "symmetry" and "bias" parameters to decide how to apply the **asymmetry** in the algorithm
-- **Filter Section** : use this module to shape the tone of the sound while distorting the signal at any free chain position
-- **Oscilloscope Module** : this module allows you to view the waveform of the sound in any free chain position 
+- `Filter Section` : use this module to shape the tone of the sound while distorting the signal at any free chain position
+- `Oscilloscope Module` : this module allows you to view the waveform of the sound in any free chain position 
 
 ## Dependencies
 
