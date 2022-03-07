@@ -74,7 +74,7 @@ public:
     void setupCurrentModuleActivatorColours(juce::LookAndFeel& laf);
 
     void addModuleToGUI(GUIModule* module);
-    void newModuleSetup(ModuleType type);
+    void setup(ModuleType type);
 
     // newModule
     ModuleLookAndFeel newModuleLookAndFeel;

@@ -153,7 +153,7 @@ void ChainModuleGUI::addNewModule(ModuleType type)
     audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
     audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
     addModuleToGUI(editor.createGUIModule(type, getChainPosition()));
-    newModuleSetup(type);
+    setup(type);
 }
 
 void ChainModuleGUI::deleteTheCurrentNewModule()
@@ -163,7 +163,7 @@ void ChainModuleGUI::deleteTheCurrentNewModule()
     // reset the parameter values to default
     editor.currentGUIModule->resetParameters(getChainPosition());
     editor.updateCurrentGUIModule(new WelcomeModuleGUI());
-    newModuleSetup(moduleType);
+    setup(moduleType);
     // remove DSP module
     audioProcessor.removeModuleFromDSPmodules(getChainPosition());
     audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
@@ -260,7 +260,7 @@ void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
 }
 
-void ChainModuleGUI::newModuleSetup(const ModuleType type)
+void ChainModuleGUI::setup(const ModuleType type)
 {
     moduleType = type;
     // newModule and deleteModule setup
@@ -368,11 +368,11 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
         audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(getModuleType(), cp);
     }
     // setup NewModuleGUIs
-    newModuleSetup(type);
+    setup(type);
     if (oneModuleIsAllocatedHere) {
-        component->newModuleSetup(thisModuleType);
+        component->setup(thisModuleType);
     } else {
-        component->newModuleSetup(ModuleType::Uninstantiated);
+        component->setup(ModuleType::Uninstantiated);
     }
     // create necessary GUIModules
     GUIModule* preModuleInOldPosition = editor.createGUIModule(type, cp);
