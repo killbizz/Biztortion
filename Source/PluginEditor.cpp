@@ -218,7 +218,7 @@ void BiztortionAudioProcessorEditor::editorSetup()
     auto end = --audioProcessor.DSPmodules.end();
     while ( it < end ) {
         auto newModuleIt = newModules.begin() + (**it).getChainPosition() -1;
-        (**newModuleIt).newModuleSetup((**it).getModuleType());
+        (**newModuleIt).setup((**it).getModuleType());
         ++it;
     }
 }

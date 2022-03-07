@@ -153,7 +153,7 @@ void ChainModuleGUI::addNewModule(ModuleType type)
     audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
     audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
     addModuleToGUI(editor.createGUIModule(type, getChainPosition()));
-    setup(type);
+    this->setup(type);
 }
 
 void ChainModuleGUI::deleteTheCurrentNewModule()
@@ -163,7 +163,7 @@ void ChainModuleGUI::deleteTheCurrentNewModule()
     // reset the parameter values to default
     editor.currentGUIModule->resetParameters(getChainPosition());
     editor.updateCurrentGUIModule(new WelcomeModuleGUI());
-    setup(moduleType);
+    this->setup(moduleType);
     // remove DSP module
     audioProcessor.removeModuleFromDSPmodules(getChainPosition());
     audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
