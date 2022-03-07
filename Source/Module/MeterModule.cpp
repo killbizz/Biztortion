@@ -172,11 +172,6 @@ std::vector<juce::Component*> MeterModuleGUI::getParamComps()
     return std::vector<juce::Component*>();
 }
 
-void MeterModuleGUI::paint(juce::Graphics& g)
-{
-    drawContainer(g);
-}
-
 void MeterModuleGUI::resized()
 {
     auto bounds = getContentRenderArea();

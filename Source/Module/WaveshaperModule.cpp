@@ -392,11 +392,6 @@ juce::Array<juce::var> WaveshaperModuleGUI::getParamValues()
     return values;
 }
 
-void WaveshaperModuleGUI::paint(juce::Graphics& g)
-{
-    drawContainer(g);
-}
-
 void WaveshaperModuleGUI::resized()
 {
     auto waveshaperArea = getContentRenderArea();

@@ -392,11 +392,6 @@ juce::Array<juce::var> SlewLimiterModuleGUI::getParamValues()
     return values;
 }
 
-void SlewLimiterModuleGUI::paint(juce::Graphics& g)
-{
-    drawContainer(g);
-}
-
 void SlewLimiterModuleGUI::resized()
 {
     auto slewLimiterArea = getContentRenderArea();

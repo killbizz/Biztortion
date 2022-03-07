@@ -446,11 +446,6 @@ juce::Array<juce::var> BitcrusherModuleGUI::getParamValues()
     return values;
 }
 
-void BitcrusherModuleGUI::paint(juce::Graphics& g)
-{
-    drawContainer(g);
-}
-
 void BitcrusherModuleGUI::resized()
 {
     auto bitcrusherArea = getContentRenderArea();

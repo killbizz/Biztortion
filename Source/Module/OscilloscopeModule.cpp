@@ -269,11 +269,6 @@ juce::Array<juce::var> OscilloscopeModuleGUI::getParamValues()
     return values;
 }
 
-void OscilloscopeModuleGUI::paint(juce::Graphics& g)
-{
-    drawContainer(g);
-}
-
 void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
 {
     auto leftOscArea = leftOscilloscope->getBounds();

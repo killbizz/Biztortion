@@ -149,7 +149,6 @@ public:
     virtual void resetParameters(unsigned int chainPosition) override;
     virtual juce::Array<juce::var> getParamValues() override;
 
-    void paint(juce::Graphics& g) override;
     void resized() override;
 
 private:

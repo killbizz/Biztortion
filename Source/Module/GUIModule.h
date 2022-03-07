@@ -34,9 +34,10 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class GUIModule : public juce::Component {
 public:
     virtual ~GUIModule() = default;
-    void drawContainer(juce::Graphics& g);
-    juce::Rectangle<int> getContentRenderArea();
     void handleParamCompsEnablement(bool bypass);
+
+    // basic GUImodule painting (a single GUImodule can override this method to generate a more complex paint method)
+    void paint(juce::Graphics& g) override;
 
     // facility for addAndMakeVisible function
     virtual std::vector<juce::Component*> getAllComps() = 0;
@@ -51,4 +52,8 @@ public:
 
 private:
     juce::Rectangle<int> getContainerArea();
+
+protected:
+    juce::Rectangle<int> getContentRenderArea();
+    void drawContainer(juce::Graphics& g);
 };

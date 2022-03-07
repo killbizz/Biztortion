@@ -57,6 +57,11 @@ void GUIModule::handleParamCompsEnablement(bool bypass)
     }
 }
 
+void GUIModule::paint(juce::Graphics& g)
+{
+    drawContainer(g);
+}
+
 juce::Rectangle<int> GUIModule::getContainerArea()
 {
     // returns a dimesion reduced rectangle as bounds in order to avoid margin collisions
