@@ -32,16 +32,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include <JuceHeader.h>
 #include <string>
 
-enum ModuleType {
-    Uninstantiated,
-    Meter,
-    IIRFilter,
-    Oscilloscope,
-    Waveshaper,
-    Bitcrusher,
-    SlewLimiter
-};
-
 class DSPModule {
 public:
     DSPModule(juce::AudioProcessorValueTreeState& _apvts);
