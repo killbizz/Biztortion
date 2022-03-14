@@ -35,20 +35,16 @@
     </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
       <GROUP id="{3CE862F7-9551-DF55-4209-CE64AF968F62}" name="Shared">
-        <FILE id="ALcWpl" name="DSPModuleFactory.cpp" compile="1" resource="0"
-              file="Source/Shared/DSPModuleFactory.cpp"/>
-        <FILE id="LvM1yx" name="DSPModuleFactory.h" compile="0" resource="0"
-              file="Source/Shared/DSPModuleFactory.h"/>
         <FILE id="A3PsK4" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/Shared/FFTAnalyzer.cpp"/>
         <FILE id="mVJRiw" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/Shared/FFTAnalyzer.h"/>
-        <FILE id="GIhHYM" name="GUIModuleFactory.cpp" compile="1" resource="0"
-              file="Source/Shared/GUIModuleFactory.cpp"/>
-        <FILE id="notEJv" name="GUIModuleFactory.h" compile="0" resource="0"
-              file="Source/Shared/GUIModuleFactory.h"/>
         <FILE id="szjAV1" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
         <FILE id="wPGj1Y" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
+        <FILE id="c4lIGn" name="ModuleFactory.cpp" compile="1" resource="0"
+              file="Source/Shared/ModuleFactory.cpp"/>
         <FILE id="Mno5NO" name="ModuleFactory.h" compile="0" resource="0" file="Source/Shared/ModuleFactory.h"/>
         <FILE id="XHS35Z" name="ModuleType.h" compile="0" resource="0" file="Source/Shared/ModuleType.h"/>
+        <FILE id="jE7lxU" name="PluginState.cpp" compile="1" resource="0" file="Source/Shared/PluginState.cpp"/>
+        <FILE id="u2PZmA" name="PluginState.h" compile="0" resource="0" file="Source/Shared/PluginState.h"/>
       </GROUP>
       <GROUP id="{D0A202A6-9C7E-68CA-1A7B-EA022F0173D3}" name="Component">
         <FILE id="vB1U6r" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
