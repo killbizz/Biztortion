@@ -33,9 +33,6 @@ WelcomeModuleGUI::WelcomeModuleGUI()
 {
     bigNoseImg = juce::ImageFileFormat::loadFrom(BinaryData::biztortionNoseAlpha_png, BinaryData::biztortionNoseAlpha_pngSize);
 
-    /*title.setText("Biztortion", juce::dontSendNotification);
-    title.setFont(juce::Font("Prestige Elite Std", 28, 0));*/
-
     author.setText("(c) 2021 Gabriel Bizzo", juce::dontSendNotification);
     author.setFont(juce::Font("Courier New", 16, 0));
 
@@ -46,7 +43,6 @@ WelcomeModuleGUI::WelcomeModuleGUI()
 
     buildInfo.setText("build: " + buildDate, juce::dontSendNotification);
     buildInfo.setFont(juce::Font("Courier New", 16, 0));
-    //buildInfo.setColour(juce::Label::textColourId, juce::Colours::whitesmoke.darker(0.3f));
 
     for (auto* comp : getAllComps())
     {
@@ -80,9 +76,6 @@ void WelcomeModuleGUI::resized()
     auto topArea = area1.removeFromTop(area1.getHeight() * (1.f / 6.f));
     auto bottomArea = area2.removeFromTop(area2.getHeight() * (1.f / 3.5f));
 
-    //title.setBounds(topArea);
-    //title.setJustificationType(juce::Justification::centred);
-
     author.setBounds(topArea);
     author.setJustificationType(juce::Justification::centredLeft);
 
@@ -97,7 +90,6 @@ void WelcomeModuleGUI::resized()
 std::vector<juce::Component*> WelcomeModuleGUI::getAllComps()
 {
     return {
-        //&title,
         &author,
         &version,
         &buildInfo
