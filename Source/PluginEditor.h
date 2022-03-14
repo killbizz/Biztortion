@@ -38,13 +38,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
+
 #include "PluginProcessor.h"
 #include "Component/FFTAnalyzerComponent.h"
 #include "Component/TransferFunctionGraphComponent.h"
 #include "Component/HelpComponent.h"
 #include "Shared/GUIStuff.h"
-#include "Module/FilterModule.h"
-#include "Module/WaveshaperModule.h"
 #include "Module/ChainModule.h"
 #include "Module/WelcomeModule.h"
 
@@ -58,7 +57,7 @@ public:
     ~BiztortionAudioProcessorEditor() override;
 
     void editorSetup();
-    GUIModule* createGUIModule(ModuleType type, unsigned int chainPosition);
+    /*GUIModule* createGUIModule(ModuleType type, unsigned int chainPosition);*/
     void updateCurrentGUIModule(GUIModule* module);
 
     void paint (juce::Graphics&) override;

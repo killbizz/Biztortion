@@ -45,6 +45,8 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
+    // TODO : update costructor
+
     tooltipWindow.setLookAndFeel(&laf);
 
     helpButton.setFont(juce::Font("Courier New", 20, 0), true);
@@ -85,12 +87,12 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (BiztortionAudioP
     // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
     currentGUIModule->setWantsKeyboardFocus(true);
 
-    inputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor, "Input"));
+    inputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor.pluginState, "Input", audioProcessor.pluginState.getMeterSource("Input")));
     addAndMakeVisible(*inputMeter);
     // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
     inputMeter->setWantsKeyboardFocus(true);
 
-    outputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor, "Output"));
+    outputMeter = std::unique_ptr<GUIModule>(new MeterModuleGUI(audioProcessor.pluginState, "Output", audioProcessor.pluginState.getMeterSource("Output")));
     addAndMakeVisible(*outputMeter);
     // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
     outputMeter->setWantsKeyboardFocus(true);
@@ -214,8 +216,8 @@ void BiztortionAudioProcessorEditor::resized()
 
 void BiztortionAudioProcessorEditor::editorSetup()
 {
-    auto it = ++audioProcessor.DSPmodules.begin();
-    auto end = --audioProcessor.DSPmodules.end();
+    auto it = ++audioProcessor.pluginState.DSPmodules.begin();
+    auto end = --audioProcessor.pluginState.DSPmodules.end();
     while ( it < end ) {
         auto newModuleIt = newModules.begin() + (**it).getChainPosition() -1;
         (**newModuleIt).setup((**it).getModuleType());
@@ -223,53 +225,53 @@ void BiztortionAudioProcessorEditor::editorSetup()
     }
 }
 
-GUIModule* BiztortionAudioProcessorEditor::createGUIModule(ModuleType type, unsigned int chainPosition)
-{
-    GUIModule* newModule = nullptr;
-    switch (type) {
-    case ModuleType::IIRFilter: {
-        newModule = new FilterModuleGUI(audioProcessor, chainPosition);
-        break;
-    }
-    case ModuleType::Oscilloscope: {
-        // [A] check : if there are 2 OscilloscopeModuleDSP in the same chainPosition i need the second one (the first is gonna be deleted, used only for changing chain order)
-        OscilloscopeModuleDSP* oscilloscopeDSPModule = nullptr;
-        bool found = false;
-        for (auto it = audioProcessor.DSPmodules.cbegin(); !found && it < audioProcessor.DSPmodules.cend(); ++it) {
-            auto temp = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
-            if ((**it).getChainPosition() == chainPosition && temp) {
-                auto next = it;
-                ++next;
-                // [A]
-                if (next != audioProcessor.DSPmodules.cend() && (**next).getChainPosition() == chainPosition && dynamic_cast<OscilloscopeModuleDSP*>(&**next)) {
-                    oscilloscopeDSPModule = dynamic_cast<OscilloscopeModuleDSP*>(&**next);
-                }
-                else {
-                    oscilloscopeDSPModule = temp;
-                }
-                found = true;
-            }
-        }
-        newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), chainPosition);
-        break;
-    }
-    case ModuleType::Waveshaper: {
-        newModule = new WaveshaperModuleGUI(audioProcessor, chainPosition);
-        break;
-    }
-    case ModuleType::Bitcrusher: {
-        newModule = new BitcrusherModuleGUI(audioProcessor, chainPosition);
-        break;
-    }
-    case ModuleType::SlewLimiter: {
-        newModule = new SlewLimiterModuleGUI(audioProcessor, chainPosition);
-        break;
-    }
-    default:
-        break;
-    }
-    return newModule;
-}
+//GUIModule* BiztortionAudioProcessorEditor::createGUIModule(ModuleType type, unsigned int chainPosition)
+//{
+//    GUIModule* newModule = nullptr;
+//    switch (type) {
+//    case ModuleType::IIRFilter: {
+//        newModule = new FilterModuleGUI(audioProcessor, chainPosition);
+//        break;
+//    }
+//    case ModuleType::Oscilloscope: {
+//        // [A] check : if there are 2 OscilloscopeModuleDSP in the same chainPosition i need the second one (the first is gonna be deleted, used only for changing chain order)
+//        OscilloscopeModuleDSP* oscilloscopeDSPModule = nullptr;
+//        bool found = false;
+//        for (auto it = audioProcessor.DSPmodules.cbegin(); !found && it < audioProcessor.DSPmodules.cend(); ++it) {
+//            auto temp = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
+//            if ((**it).getChainPosition() == chainPosition && temp) {
+//                auto next = it;
+//                ++next;
+//                // [A]
+//                if (next != audioProcessor.DSPmodules.cend() && (**next).getChainPosition() == chainPosition && dynamic_cast<OscilloscopeModuleDSP*>(&**next)) {
+//                    oscilloscopeDSPModule = dynamic_cast<OscilloscopeModuleDSP*>(&**next);
+//                }
+//                else {
+//                    oscilloscopeDSPModule = temp;
+//                }
+//                found = true;
+//            }
+//        }
+//        newModule = new OscilloscopeModuleGUI(audioProcessor, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), chainPosition);
+//        break;
+//    }
+//    case ModuleType::Waveshaper: {
+//        newModule = new WaveshaperModuleGUI(audioProcessor, chainPosition);
+//        break;
+//    }
+//    case ModuleType::Bitcrusher: {
+//        newModule = new BitcrusherModuleGUI(audioProcessor, chainPosition);
+//        break;
+//    }
+//    case ModuleType::SlewLimiter: {
+//        newModule = new SlewLimiterModuleGUI(audioProcessor, chainPosition);
+//        break;
+//    }
+//    default:
+//        break;
+//    }
+//    return newModule;
+//}
 
 void BiztortionAudioProcessorEditor::updateCurrentGUIModule(GUIModule* module)
 {
