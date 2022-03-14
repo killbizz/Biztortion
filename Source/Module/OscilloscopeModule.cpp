@@ -34,7 +34,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 //==============================================================================
 
 #include "OscilloscopeModule.h"
-#include "../PluginProcessor.h"
 
 OscilloscopeModuleDSP::OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
     : DSPModule(_apvts)
@@ -115,13 +114,13 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 //==============================================================================
 
-OscilloscopeModuleGUI::OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int chainPosition)
-    : GUIModule(), audioProcessor(p), leftOscilloscope(_leftOscilloscope), rightOscilloscope(_rightOscilloscope),
-    hZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(chainPosition)), ""),
-    vZoomSlider(*audioProcessor.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(chainPosition)), ""),
-    hZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope H Zoom " + std::to_string(chainPosition), hZoomSlider),
-    vZoomSliderAttachment(audioProcessor.apvts, "Oscilloscope V Zoom " + std::to_string(chainPosition), vZoomSlider),
-    bypassButtonAttachment(audioProcessor.apvts, "Oscilloscope Bypassed " + std::to_string(chainPosition), bypassButton)
+OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int parameterNumber)
+    : GUIModule(), pluginState(p), leftOscilloscope(_leftOscilloscope), rightOscilloscope(_rightOscilloscope),
+    hZoomSlider(*pluginState.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(parameterNumber)), ""),
+    vZoomSlider(*pluginState.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(parameterNumber)), ""),
+    hZoomSliderAttachment(pluginState.apvts, "Oscilloscope H Zoom " + std::to_string(parameterNumber), hZoomSlider),
+    vZoomSliderAttachment(pluginState.apvts, "Oscilloscope V Zoom " + std::to_string(parameterNumber), vZoomSlider),
+    bypassButtonAttachment(pluginState.apvts, "Oscilloscope Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
     title.setText("Oscilloscope", juce::dontSendNotification);
@@ -246,11 +245,11 @@ void OscilloscopeModuleGUI::updateParameters(const juce::Array<juce::var>& value
     freezeButton.setToggleState(false, juce::NotificationType::sendNotificationSync);
 }
 
-void OscilloscopeModuleGUI::resetParameters(unsigned int chainPosition)
+void OscilloscopeModuleGUI::resetParameters(unsigned int parameterNumber)
 {
-    auto hZoom = audioProcessor.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(chainPosition));
-    auto vZoom = audioProcessor.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(chainPosition));
-    auto bypassed = audioProcessor.apvts.getParameter("Oscilloscope Bypassed " + std::to_string(chainPosition));
+    auto hZoom = pluginState.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(parameterNumber));
+    auto vZoom = pluginState.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(parameterNumber));
+    auto bypassed = pluginState.apvts.getParameter("Oscilloscope Bypassed " + std::to_string(parameterNumber));
 
     hZoom->setValueNotifyingHost(hZoom->getDefaultValue());
     vZoom->setValueNotifyingHost(vZoom->getDefaultValue());

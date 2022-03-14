@@ -40,7 +40,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
-class BiztortionAudioProcessor;
+#include "../Shared/PluginState.h"
 
 using Filter = juce::dsp::IIR::Filter<float>;
 using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
@@ -56,7 +56,7 @@ struct ResponseCurveComponent : juce::Component,
     juce::AudioProcessorParameter::Listener,
     juce::Timer {
 
-    ResponseCurveComponent(BiztortionAudioProcessor& p, unsigned int chainPosition);
+    ResponseCurveComponent(PluginState& p, unsigned int parameterNumber);
     ~ResponseCurveComponent();
 
     /** Receives a callback when a parameter has been changed.
@@ -95,11 +95,13 @@ struct ResponseCurveComponent : juce::Component,
 
 private:
 
-    BiztortionAudioProcessor& audioProcessor;
+    PluginState& pluginState;
+
     juce::Atomic<bool> parameterChanged{ false };
     MonoChain monoChain;
-    unsigned int chainPosition;
     juce::Path responseCurve;
+
+    unsigned int parameterNumber;
 
     void updateResponseCurve();
     void updateChain();

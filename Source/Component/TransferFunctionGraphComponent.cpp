@@ -38,16 +38,15 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "TransferFunctionGraphComponent.h"
-#include "../PluginProcessor.h"
 
-TransferFunctionGraphComponent::TransferFunctionGraphComponent(BiztortionAudioProcessor& p, unsigned int chainPosition)
-	: audioProcessor(p), chainPosition(chainPosition)
+TransferFunctionGraphComponent::TransferFunctionGraphComponent(PluginState& p, unsigned int parameterNumber)
+	: pluginState(p), parameterNumber(parameterNumber)
 {
 	updateParams();
 
-	const auto& params = audioProcessor.getParameters();
+	const auto& params = pluginState.audioProcessor.getParameters();
 	for (auto param : params) {
-		if (param->getLabel() == juce::String("Waveshaper " + std::to_string(chainPosition))) {
+		if (param->getLabel() == juce::String("Waveshaper " + std::to_string(parameterNumber))) {
 			param->addListener(this);
 		}
 	}
@@ -56,9 +55,9 @@ TransferFunctionGraphComponent::TransferFunctionGraphComponent(BiztortionAudioPr
 
 TransferFunctionGraphComponent::~TransferFunctionGraphComponent()
 {
-	const auto& params = audioProcessor.getParameters();
+	const auto& params = pluginState.audioProcessor.getParameters();
 	for (auto param : params) {
-		if (param->getLabel() == juce::String("Waveshaper " + std::to_string(chainPosition))) {
+		if (param->getLabel() == juce::String("Waveshaper " + std::to_string(parameterNumber))) {
 			param->removeListener(this);
 		}
 	}
@@ -237,7 +236,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 
 void TransferFunctionGraphComponent::updateParams()
 {
-	WaveshaperSettings settings = WaveshaperModuleDSP::getSettings(audioProcessor.apvts, chainPosition);
+	WaveshaperSettings settings = WaveshaperModuleDSP::getSettings(pluginState.apvts, parameterNumber);
 	setTanhAmp(settings.tanhAmp);
 	setTanhSlope(settings.tanhSlope);
 	setSineAmp(settings.sinAmp);

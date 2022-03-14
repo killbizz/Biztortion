@@ -40,14 +40,14 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
-#include "../Shared/FFTAnalyzer.h"
 
-class BiztortionAudioProcessor;
+#include "../Shared/FFTAnalyzer.h"
+#include "../Shared/PluginState.h"
 
 struct FFTAnalyzerComponent : juce::Component,
     juce::Timer {
 
-    FFTAnalyzerComponent(BiztortionAudioProcessor& p, unsigned int chainPosition);
+    FFTAnalyzerComponent(PluginState& p, unsigned int parameterNumber);
 
     void timerCallback() override;
     void paint(juce::Graphics& g) override;
@@ -58,7 +58,8 @@ struct FFTAnalyzerComponent : juce::Component,
 
 private:
 
-    BiztortionAudioProcessor& audioProcessor;
+    PluginState& pluginState;
+
     bool enableFFTanalysis = true;
 
     juce::Image background;

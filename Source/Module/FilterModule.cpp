@@ -38,7 +38,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "FilterModule.h"
-#include "../PluginProcessor.h"
 
 //==============================================================================
 
@@ -244,26 +243,26 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 
 //==============================================================================
 
-FilterModuleGUI::FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition)
-    : GUIModule(), audioProcessor(p),
-    peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq " + std::to_string(chainPosition)), "Hz"),
-    peakGainSlider(*audioProcessor.apvts.getParameter("Peak Gain " + std::to_string(chainPosition)), "dB"),
-    peakQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality " + std::to_string(chainPosition)), ""),
-    lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq " + std::to_string(chainPosition)), "Hz"),
-    highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCut Freq " + std::to_string(chainPosition)), "Hz"),
-    lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCut Slope " + std::to_string(chainPosition)), "dB/Oct"),
-    highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCut Slope " + std::to_string(chainPosition)), "dB/Oct"),
-    responseCurveComponent(p, chainPosition),
-    filterFftAnalyzerComponent(p, chainPosition),
-    peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq " + std::to_string(chainPosition), peakFreqSlider),
-    peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain " + std::to_string(chainPosition), peakGainSlider),
-    peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality " + std::to_string(chainPosition), peakQualitySlider),
-    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq " + std::to_string(chainPosition), lowCutFreqSlider),
-    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq " + std::to_string(chainPosition), highCutFreqSlider),
-    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope " + std::to_string(chainPosition), lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope " + std::to_string(chainPosition), highCutSlopeSlider),
-    bypassButtonAttachment(audioProcessor.apvts, "Filter Bypassed " + std::to_string(chainPosition), bypassButton),
-    analyzerButtonAttachment(audioProcessor.apvts, "Filter Analyzer Enabled " + std::to_string(chainPosition), analyzerButton)
+FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
+    : GUIModule(), pluginState(p),
+    peakFreqSlider(*pluginState.apvts.getParameter("Peak Freq " + std::to_string(parameterNumber)), "Hz"),
+    peakGainSlider(*pluginState.apvts.getParameter("Peak Gain " + std::to_string(parameterNumber)), "dB"),
+    peakQualitySlider(*pluginState.apvts.getParameter("Peak Quality " + std::to_string(parameterNumber)), ""),
+    lowCutFreqSlider(*pluginState.apvts.getParameter("LowCut Freq " + std::to_string(parameterNumber)), "Hz"),
+    highCutFreqSlider(*pluginState.apvts.getParameter("HighCut Freq " + std::to_string(parameterNumber)), "Hz"),
+    lowCutSlopeSlider(*pluginState.apvts.getParameter("LowCut Slope " + std::to_string(parameterNumber)), "dB/Oct"),
+    highCutSlopeSlider(*pluginState.apvts.getParameter("HighCut Slope " + std::to_string(parameterNumber)), "dB/Oct"),
+    responseCurveComponent(p, parameterNumber),
+    filterFftAnalyzerComponent(p, parameterNumber),
+    peakFreqSliderAttachment(pluginState.apvts, "Peak Freq " + std::to_string(parameterNumber), peakFreqSlider),
+    peakGainSliderAttachment(pluginState.apvts, "Peak Gain " + std::to_string(parameterNumber), peakGainSlider),
+    peakQualitySliderAttachment(pluginState.apvts, "Peak Quality " + std::to_string(parameterNumber), peakQualitySlider),
+    lowCutFreqSliderAttachment(pluginState.apvts, "LowCut Freq " + std::to_string(parameterNumber), lowCutFreqSlider),
+    highCutFreqSliderAttachment(pluginState.apvts, "HighCut Freq " + std::to_string(parameterNumber), highCutFreqSlider),
+    lowCutSlopeSliderAttachment(pluginState.apvts, "LowCut Slope " + std::to_string(parameterNumber), lowCutSlopeSlider),
+    highCutSlopeSliderAttachment(pluginState.apvts, "HighCut Slope " + std::to_string(parameterNumber), highCutSlopeSlider),
+    bypassButtonAttachment(pluginState.apvts, "Filter Bypassed " + std::to_string(parameterNumber), bypassButton),
+    analyzerButtonAttachment(pluginState.apvts, "Filter Analyzer Enabled " + std::to_string(parameterNumber), analyzerButton)
 {
     // title setup
     title.setText("Filter", juce::dontSendNotification);
@@ -385,17 +384,17 @@ void FilterModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     analyzerButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
-void FilterModuleGUI::resetParameters(unsigned int chainPosition)
+void FilterModuleGUI::resetParameters(unsigned int parameterNumber)
 {
-    auto peakFreq = audioProcessor.apvts.getParameter("Peak Freq " + std::to_string(chainPosition));
-    auto peakGain = audioProcessor.apvts.getParameter("Peak Gain " + std::to_string(chainPosition));
-    auto peakQuality = audioProcessor.apvts.getParameter("Peak Quality " + std::to_string(chainPosition));
-    auto lowcutFreq = audioProcessor.apvts.getParameter("LowCut Freq " + std::to_string(chainPosition));
-    auto highcutFreq = audioProcessor.apvts.getParameter("HighCut Freq " + std::to_string(chainPosition));
-    auto lowcutSlope = audioProcessor.apvts.getParameter("LowCut Slope " + std::to_string(chainPosition));
-    auto highcutSlope = audioProcessor.apvts.getParameter("HighCut Slope " + std::to_string(chainPosition));
-    auto bypassed = audioProcessor.apvts.getParameter("Filter Bypassed " + std::to_string(chainPosition));
-    auto analyzerEnabled = audioProcessor.apvts.getParameter("Filter Analyzer Enabled " + std::to_string(chainPosition));
+    auto peakFreq = pluginState.apvts.getParameter("Peak Freq " + std::to_string(parameterNumber));
+    auto peakGain = pluginState.apvts.getParameter("Peak Gain " + std::to_string(parameterNumber));
+    auto peakQuality = pluginState.apvts.getParameter("Peak Quality " + std::to_string(parameterNumber));
+    auto lowcutFreq = pluginState.apvts.getParameter("LowCut Freq " + std::to_string(parameterNumber));
+    auto highcutFreq = pluginState.apvts.getParameter("HighCut Freq " + std::to_string(parameterNumber));
+    auto lowcutSlope = pluginState.apvts.getParameter("LowCut Slope " + std::to_string(parameterNumber));
+    auto highcutSlope = pluginState.apvts.getParameter("HighCut Slope " + std::to_string(parameterNumber));
+    auto bypassed = pluginState.apvts.getParameter("Filter Bypassed " + std::to_string(parameterNumber));
+    auto analyzerEnabled = pluginState.apvts.getParameter("Filter Analyzer Enabled " + std::to_string(parameterNumber));
 
     peakFreq->setValueNotifyingHost(peakFreq->getDefaultValue());
     peakGain->setValueNotifyingHost(peakGain->getDefaultValue());

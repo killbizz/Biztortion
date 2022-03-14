@@ -39,7 +39,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 
 #include "BitcrusherModule.h"
-#include "../PluginProcessor.h"
 
 //==============================================================================
 
@@ -270,23 +269,23 @@ BitcrusherSettings BitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTre
 
 //==============================================================================
 
-BitcrusherModuleGUI::BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition)
-    : GUIModule(), audioProcessor(p),
-    driveSlider(*audioProcessor.apvts.getParameter("Bitcrusher Drive " + std::to_string(chainPosition)), "dB"),
-    mixSlider(*audioProcessor.apvts.getParameter("Bitcrusher Mix " + std::to_string(chainPosition)), "%"),
-    symmetrySlider(*audioProcessor.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(chainPosition)), "%"),
-    biasSlider(*audioProcessor.apvts.getParameter("Bitcrusher Bias " + std::to_string(chainPosition)), ""),
-    bitcrusherDitherSlider(*audioProcessor.apvts.getParameter("Bitcrusher Dither " + std::to_string(chainPosition)), "%"),
-    bitcrusherRateReduxSlider(*audioProcessor.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(chainPosition)), "Hz"),
-    bitcrusherBitReduxSlider(*audioProcessor.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(chainPosition)), ""),
-    driveSliderAttachment(audioProcessor.apvts, "Bitcrusher Drive " + std::to_string(chainPosition), driveSlider),
-    mixSliderAttachment(audioProcessor.apvts, "Bitcrusher Mix " + std::to_string(chainPosition), mixSlider),
-    symmetrySliderAttachment(audioProcessor.apvts, "Bitcrusher Symmetry " + std::to_string(chainPosition), symmetrySlider),
-    biasSliderAttachment(audioProcessor.apvts, "Bitcrusher Bias " + std::to_string(chainPosition), biasSlider),
-    bitcrusherDitherSliderAttachment(audioProcessor.apvts, "Bitcrusher Dither " + std::to_string(chainPosition), bitcrusherDitherSlider),
-    bitcrusherRateReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Rate Redux " + std::to_string(chainPosition), bitcrusherRateReduxSlider),
-    bitcrusherBitReduxSliderAttachment(audioProcessor.apvts, "Bitcrusher Bit Redux " + std::to_string(chainPosition), bitcrusherBitReduxSlider),
-    bypassButtonAttachment(audioProcessor.apvts, "Bitcrusher Bypassed " + std::to_string(chainPosition), bypassButton)
+BitcrusherModuleGUI::BitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber)
+    : GUIModule(), pluginState(p),
+    driveSlider(*pluginState.apvts.getParameter("Bitcrusher Drive " + std::to_string(parameterNumber)), "dB"),
+    mixSlider(*pluginState.apvts.getParameter("Bitcrusher Mix " + std::to_string(parameterNumber)), "%"),
+    symmetrySlider(*pluginState.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(parameterNumber)), "%"),
+    biasSlider(*pluginState.apvts.getParameter("Bitcrusher Bias " + std::to_string(parameterNumber)), ""),
+    bitcrusherDitherSlider(*pluginState.apvts.getParameter("Bitcrusher Dither " + std::to_string(parameterNumber)), "%"),
+    bitcrusherRateReduxSlider(*pluginState.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(parameterNumber)), "Hz"),
+    bitcrusherBitReduxSlider(*pluginState.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(parameterNumber)), ""),
+    driveSliderAttachment(pluginState.apvts, "Bitcrusher Drive " + std::to_string(parameterNumber), driveSlider),
+    mixSliderAttachment(pluginState.apvts, "Bitcrusher Mix " + std::to_string(parameterNumber), mixSlider),
+    symmetrySliderAttachment(pluginState.apvts, "Bitcrusher Symmetry " + std::to_string(parameterNumber), symmetrySlider),
+    biasSliderAttachment(pluginState.apvts, "Bitcrusher Bias " + std::to_string(parameterNumber), biasSlider),
+    bitcrusherDitherSliderAttachment(pluginState.apvts, "Bitcrusher Dither " + std::to_string(parameterNumber), bitcrusherDitherSlider),
+    bitcrusherRateReduxSliderAttachment(pluginState.apvts, "Bitcrusher Rate Redux " + std::to_string(parameterNumber), bitcrusherRateReduxSlider),
+    bitcrusherBitReduxSliderAttachment(pluginState.apvts, "Bitcrusher Bit Redux " + std::to_string(parameterNumber), bitcrusherBitReduxSlider),
+    bypassButtonAttachment(pluginState.apvts, "Bitcrusher Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
     title.setText("Bitcrusher", juce::dontSendNotification);
@@ -409,16 +408,16 @@ void BitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     bitcrusherBitReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
-void BitcrusherModuleGUI::resetParameters(unsigned int chainPosition)
+void BitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
 {
-    auto drive = audioProcessor.apvts.getParameter("Bitcrusher Drive " + std::to_string(chainPosition));
-    auto mix = audioProcessor.apvts.getParameter("Bitcrusher Mix " + std::to_string(chainPosition));
-    auto symmetry = audioProcessor.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(chainPosition));
-    auto bias = audioProcessor.apvts.getParameter("Bitcrusher Bias " + std::to_string(chainPosition));
-    auto rateRedux = audioProcessor.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(chainPosition));
-    auto bitRedux = audioProcessor.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(chainPosition));
-    auto dither = audioProcessor.apvts.getParameter("Bitcrusher Dither " + std::to_string(chainPosition));
-    auto bypassed = audioProcessor.apvts.getParameter("Bitcrusher Bypassed " + std::to_string(chainPosition));
+    auto drive = pluginState.apvts.getParameter("Bitcrusher Drive " + std::to_string(parameterNumber));
+    auto mix = pluginState.apvts.getParameter("Bitcrusher Mix " + std::to_string(parameterNumber));
+    auto symmetry = pluginState.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(parameterNumber));
+    auto bias = pluginState.apvts.getParameter("Bitcrusher Bias " + std::to_string(parameterNumber));
+    auto rateRedux = pluginState.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(parameterNumber));
+    auto bitRedux = pluginState.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(parameterNumber));
+    auto dither = pluginState.apvts.getParameter("Bitcrusher Dither " + std::to_string(parameterNumber));
+    auto bypassed = pluginState.apvts.getParameter("Bitcrusher Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());

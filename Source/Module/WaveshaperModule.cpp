@@ -38,7 +38,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "WaveshaperModule.h"
-#include "../PluginProcessor.h"
 
 //==============================================================================
 
@@ -200,26 +199,26 @@ void WaveshaperModuleDSP::updateDSPState(double)
 
 //==============================================================================
 
-WaveshaperModuleGUI::WaveshaperModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition)
-    : GUIModule(), audioProcessor(p),
-    driveSlider(*audioProcessor.apvts.getParameter("Waveshaper Drive " + std::to_string(chainPosition)), "dB"),
-    mixSlider(*audioProcessor.apvts.getParameter("Waveshaper Mix " + std::to_string(chainPosition)), "%"),
-    symmetrySlider(*audioProcessor.apvts.getParameter("Waveshaper Symmetry " + std::to_string(chainPosition)), "%"),
-    biasSlider(*audioProcessor.apvts.getParameter("Waveshaper Bias " + std::to_string(chainPosition)), ""),
-    tanhAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(chainPosition)), ""),
-    tanhSlopeSlider(*audioProcessor.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(chainPosition)), ""),
-    sineAmpSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Amp " + std::to_string(chainPosition)), ""),
-    sineFreqSlider(*audioProcessor.apvts.getParameter("Waveshaper Sine Freq " + std::to_string(chainPosition)), ""),
-    transferFunctionGraph(p, chainPosition),
-    driveSliderAttachment(audioProcessor.apvts, "Waveshaper Drive " + std::to_string(chainPosition), driveSlider),
-    mixSliderAttachment(audioProcessor.apvts, "Waveshaper Mix " + std::to_string(chainPosition), mixSlider),
-    symmetrySliderAttachment(audioProcessor.apvts, "Waveshaper Symmetry " + std::to_string(chainPosition), symmetrySlider),
-    biasSliderAttachment(audioProcessor.apvts, "Waveshaper Bias " + std::to_string(chainPosition), biasSlider),
-    tanhAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Amp " + std::to_string(chainPosition), tanhAmpSlider),
-    tanhSlopeSliderAttachment(audioProcessor.apvts, "Waveshaper Tanh Slope " + std::to_string(chainPosition), tanhSlopeSlider),
-    sineAmpSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Amp " + std::to_string(chainPosition), sineAmpSlider),
-    sineFreqSliderAttachment(audioProcessor.apvts, "Waveshaper Sine Freq " + std::to_string(chainPosition), sineFreqSlider),
-    bypassButtonAttachment(audioProcessor.apvts, "Waveshaper Bypassed " + std::to_string(chainPosition), bypassButton)
+WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterNumber)
+    : GUIModule(), pluginState(p),
+    driveSlider(*pluginState.apvts.getParameter("Waveshaper Drive " + std::to_string(parameterNumber)), "dB"),
+    mixSlider(*pluginState.apvts.getParameter("Waveshaper Mix " + std::to_string(parameterNumber)), "%"),
+    symmetrySlider(*pluginState.apvts.getParameter("Waveshaper Symmetry " + std::to_string(parameterNumber)), "%"),
+    biasSlider(*pluginState.apvts.getParameter("Waveshaper Bias " + std::to_string(parameterNumber)), ""),
+    tanhAmpSlider(*pluginState.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(parameterNumber)), ""),
+    tanhSlopeSlider(*pluginState.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(parameterNumber)), ""),
+    sineAmpSlider(*pluginState.apvts.getParameter("Waveshaper Sine Amp " + std::to_string(parameterNumber)), ""),
+    sineFreqSlider(*pluginState.apvts.getParameter("Waveshaper Sine Freq " + std::to_string(parameterNumber)), ""),
+    transferFunctionGraph(p, parameterNumber),
+    driveSliderAttachment(pluginState.apvts, "Waveshaper Drive " + std::to_string(parameterNumber), driveSlider),
+    mixSliderAttachment(pluginState.apvts, "Waveshaper Mix " + std::to_string(parameterNumber), mixSlider),
+    symmetrySliderAttachment(pluginState.apvts, "Waveshaper Symmetry " + std::to_string(parameterNumber), symmetrySlider),
+    biasSliderAttachment(pluginState.apvts, "Waveshaper Bias " + std::to_string(parameterNumber), biasSlider),
+    tanhAmpSliderAttachment(pluginState.apvts, "Waveshaper Tanh Amp " + std::to_string(parameterNumber), tanhAmpSlider),
+    tanhSlopeSliderAttachment(pluginState.apvts, "Waveshaper Tanh Slope " + std::to_string(parameterNumber), tanhSlopeSlider),
+    sineAmpSliderAttachment(pluginState.apvts, "Waveshaper Sine Amp " + std::to_string(parameterNumber), sineAmpSlider),
+    sineFreqSliderAttachment(pluginState.apvts, "Waveshaper Sine Freq " + std::to_string(parameterNumber), sineFreqSlider),
+    bypassButtonAttachment(pluginState.apvts, "Waveshaper Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
     title.setText("Waveshaper", juce::dontSendNotification);
@@ -352,17 +351,17 @@ void WaveshaperModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     sineFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
-void WaveshaperModuleGUI::resetParameters(unsigned int chainPosition)
+void WaveshaperModuleGUI::resetParameters(unsigned int parameterNumber)
 {
-    auto drive = audioProcessor.apvts.getParameter("Waveshaper Drive " + std::to_string(chainPosition));
-    auto mix = audioProcessor.apvts.getParameter("Waveshaper Mix " + std::to_string(chainPosition));
-    auto symmetry = audioProcessor.apvts.getParameter("Waveshaper Symmetry " + std::to_string(chainPosition));
-    auto bias = audioProcessor.apvts.getParameter("Waveshaper Bias " + std::to_string(chainPosition));
-    auto tanhAmp = audioProcessor.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(chainPosition));
-    auto tanhSlope = audioProcessor.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(chainPosition));
-    auto sineAmp = audioProcessor.apvts.getParameter("Waveshaper Sine Amp " + std::to_string(chainPosition));
-    auto sineFreq = audioProcessor.apvts.getParameter("Waveshaper Sine Freq " + std::to_string(chainPosition));
-    auto bypassed = audioProcessor.apvts.getParameter("Waveshaper Bypassed " + std::to_string(chainPosition));
+    auto drive = pluginState.apvts.getParameter("Waveshaper Drive " + std::to_string(parameterNumber));
+    auto mix = pluginState.apvts.getParameter("Waveshaper Mix " + std::to_string(parameterNumber));
+    auto symmetry = pluginState.apvts.getParameter("Waveshaper Symmetry " + std::to_string(parameterNumber));
+    auto bias = pluginState.apvts.getParameter("Waveshaper Bias " + std::to_string(parameterNumber));
+    auto tanhAmp = pluginState.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(parameterNumber));
+    auto tanhSlope = pluginState.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(parameterNumber));
+    auto sineAmp = pluginState.apvts.getParameter("Waveshaper Sine Amp " + std::to_string(parameterNumber));
+    auto sineFreq = pluginState.apvts.getParameter("Waveshaper Sine Freq " + std::to_string(parameterNumber));
+    auto bypassed = pluginState.apvts.getParameter("Waveshaper Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());

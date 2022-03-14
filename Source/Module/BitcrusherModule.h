@@ -41,10 +41,11 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
-#include "DSPModule.h"
-#include "GUIModule.h"
+
 #include "../Shared/GUIStuff.h"
-class BiztortionAudioProcessor;
+#include "../Module/DSPModule.h"
+#include "../Module/GUIModule.h"
+#include "../Shared/PluginState.h"
 
 //==============================================================================
 
@@ -92,13 +93,13 @@ private:
 
 class BitcrusherModuleGUI : public GUIModule {
 public:
-    BitcrusherModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
+    BitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber);
     ~BitcrusherModuleGUI();
 
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
     virtual void updateParameters(const juce::Array<juce::var>& values) override;
-    virtual void resetParameters(unsigned int chainPosition) override;
+    virtual void resetParameters(unsigned int parameterNumber) override;
     virtual juce::Array<juce::var> getParamValues() override;
 
     void resized() override;
@@ -109,9 +110,8 @@ private:
     using Attachment = APVTS::SliderAttachment;
     using ButtonAttachment = APVTS::ButtonAttachment;
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    BiztortionAudioProcessor& audioProcessor;
+    PluginState& pluginState;
+
     juce::Label title;
 
     juce::Label driveLabel,

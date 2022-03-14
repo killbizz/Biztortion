@@ -40,7 +40,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
-class BiztortionAudioProcessor;
+#include "../Shared/PluginState.h"
 
 class TransferFunctionGraphComponent : public juce::Component,
 	juce::AudioProcessorParameter::Listener,
@@ -48,7 +48,7 @@ class TransferFunctionGraphComponent : public juce::Component,
 {
 public:
 	//==============================================================================
-	TransferFunctionGraphComponent(BiztortionAudioProcessor& p, unsigned int chainPosition);
+	TransferFunctionGraphComponent(PluginState& p, unsigned int parameterNumber);
 	~TransferFunctionGraphComponent();
 
 	/** Receives a callback when a parameter has been changed.
@@ -95,9 +95,11 @@ public:
 private:
 	// params
 	float tanhAmplitude, tanhSlope, sineAmplitude, sineFrequency;
-	BiztortionAudioProcessor& audioProcessor;
+
+	PluginState& pluginState;
+
 	juce::Atomic<bool> parameterChanged{ false };
-	unsigned int chainPosition;
+	unsigned int parameterNumber;
 
 	void updateParams();
 	void setTanhAmp(float v);

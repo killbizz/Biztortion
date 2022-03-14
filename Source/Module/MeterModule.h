@@ -31,10 +31,10 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-class BiztortionAudioProcessor;
-#include "../Module/GUIModule.h"
-#include "../Module/DSPModule.h"
 #include "../Shared/GUIStuff.h"
+#include "../Module/DSPModule.h"
+#include "../Module/GUIModule.h"
+#include "../Shared/PluginState.h"
 
 //==============================================================================
 
@@ -49,6 +49,7 @@ struct MeterSettings {
 class MeterModuleDSP : public DSPModule {
 public:
     MeterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type);
+    // virtual DSPModule* clone() override;
 
     juce::String getType();
     static MeterSettings getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type);
@@ -76,17 +77,16 @@ private:
 
 class MeterModuleGUI : public GUIModule {
 public:
-    MeterModuleGUI(BiztortionAudioProcessor& p, juce::String type);
+    MeterModuleGUI(PluginState& p, juce::String type, foleys::LevelMeterSource* ms);
     ~MeterModuleGUI();
 
     juce::String getType();
-    foleys::LevelMeterSource* getMeterSource();
 
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
     // useless methods because (at this moment) this is not a module usable in the processing chain
     virtual void updateParameters(const juce::Array<juce::var>& values) override {};
-    virtual void resetParameters(unsigned int chainPosition) override {};
+    virtual void resetParameters(unsigned int parameterNumber) override {};
     virtual juce::Array<juce::var> getParamValues() override { return juce::Array<juce::var>(); };
 
     void resized() override;
@@ -96,16 +96,15 @@ private:
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    BiztortionAudioProcessor& audioProcessor;
+    PluginState& pluginState;
+
     // input/output meter
     juce::String type;
     //gain
     RotarySliderWithLabels levelSlider;
     Attachment levelSliderAttachment;
 
-    juce::Label meterTitle;
+    juce::Label title;
 
     foleys::LevelMeterLookAndFeel lnf;
     foleys::LevelMeter meter{ foleys::LevelMeter::MeterFlags::Default };

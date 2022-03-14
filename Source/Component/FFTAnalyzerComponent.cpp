@@ -38,17 +38,16 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "FFTAnalyzerComponent.h"
-#include "../PluginProcessor.h"
 
 // component for the response curve in order to paint the curve only in his area
-FFTAnalyzerComponent::FFTAnalyzerComponent(BiztortionAudioProcessor& p, unsigned int chainPosition)
-    : audioProcessor(p), 
-      leftPathProducer(*audioProcessor.leftAnalyzerFIFOs[0]),
-      rightPathProducer(*audioProcessor.rightAnalyzerFIFOs[0])
+FFTAnalyzerComponent::FFTAnalyzerComponent(PluginState& p, unsigned int parameterNumber)
+    : pluginState(p), 
+      leftPathProducer(*pluginState.leftAnalyzerFIFOs[0]),
+      rightPathProducer(*pluginState.rightAnalyzerFIFOs[0])
 {
-    auto index = audioProcessor.getFftAnalyzerFifoIndexOfCorrespondingFilter(chainPosition);
-    leftPathProducer.setSingleChannelSampleFifo(audioProcessor.leftAnalyzerFIFOs[index]);
-    rightPathProducer.setSingleChannelSampleFifo(audioProcessor.rightAnalyzerFIFOs[index]);
+    auto index = pluginState.getFftAnalyzerFifoIndexOfCorrespondingFilter(parameterNumber);
+    leftPathProducer.setSingleChannelSampleFifo(pluginState.leftAnalyzerFIFOs[index]);
+    rightPathProducer.setSingleChannelSampleFifo(pluginState.rightAnalyzerFIFOs[index]);
 
     startTimerHz(59);
 }
@@ -57,7 +56,7 @@ void FFTAnalyzerComponent::timerCallback() {
 
     if (enableFFTanalysis) {
         auto fftBounds = getAnalysysArea().toFloat();
-        auto sampleRate = audioProcessor.getSampleRate();
+        auto sampleRate = pluginState.audioProcessor.getSampleRate();
         leftPathProducer.process(fftBounds, sampleRate);
         rightPathProducer.process(fftBounds, sampleRate);
 

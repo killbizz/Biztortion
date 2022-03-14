@@ -38,17 +38,16 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "ResponseCurveComponent.h"
-#include "../PluginProcessor.h"
 
 
 // component for the response curve in order to paint the curve only in his area
-ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, unsigned int chainPosition)
-    : audioProcessor(p), chainPosition(chainPosition)
+ResponseCurveComponent::ResponseCurveComponent(PluginState& p, unsigned int parameterNumber)
+    : pluginState(p), parameterNumber(parameterNumber)
 {
 
-    const auto& params = audioProcessor.getParameters();
+    const auto& params = pluginState.audioProcessor.getParameters();
     for (auto param : params) {
-        if (param->getLabel() == juce::String("Filter " + std::to_string(chainPosition))) {
+        if (param->getLabel() == juce::String("Filter " + std::to_string(parameterNumber))) {
             param->addListener(this);
         }
     }
@@ -58,9 +57,9 @@ ResponseCurveComponent::ResponseCurveComponent(BiztortionAudioProcessor& p, unsi
 }
 
 ResponseCurveComponent::~ResponseCurveComponent() {
-    const auto& params = audioProcessor.getParameters();
+    const auto& params = pluginState.audioProcessor.getParameters();
     for (auto param : params) {
-        if (param->getLabel() == juce::String("Filter " + std::to_string(chainPosition))) {
+        if (param->getLabel() == juce::String("Filter " + std::to_string(parameterNumber))) {
             param->removeListener(this);
         }
     }
@@ -109,7 +108,7 @@ void ResponseCurveComponent::updateResponseCurve()
     auto& peak = monoChain.get<ChainPositions::Peak>();
     auto& highcut = monoChain.get<ChainPositions::HighCut>();
 
-    auto sampleRate = audioProcessor.getSampleRate();
+    auto sampleRate = pluginState.audioProcessor.getSampleRate();
 
     // RESPONSE AREA AND RESPONSE CURVE
 
@@ -178,13 +177,15 @@ void ResponseCurveComponent::updateResponseCurve()
 
 void ResponseCurveComponent::updateChain()
 {
-    auto chainSettings = FilterModuleDSP::getSettings(audioProcessor.apvts, chainPosition);
+    auto chainSettings = FilterModuleDSP::getSettings(pluginState.apvts, parameterNumber);
 
-    auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+    auto sampleRate = pluginState.audioProcessor.getSampleRate();
+
+    auto peakCoefficients = FilterModuleDSP::makePeakFilter(chainSettings, sampleRate);
     updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
 
-    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, audioProcessor.getSampleRate());
-    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, audioProcessor.getSampleRate());
+    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, sampleRate);
+    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, sampleRate);
 
     updateCutFilter(monoChain.get<ChainPositions::LowCut>(),
         lowCutCoefficients,

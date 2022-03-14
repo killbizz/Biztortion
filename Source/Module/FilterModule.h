@@ -41,11 +41,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "GUIModule.h"
-#include "DSPModule.h"
 #include "../Component/ResponseCurveComponent.h"
 #include "../Component/FFTAnalyzerComponent.h"
 #include "../Shared/GUIStuff.h"
+#include "../Module/DSPModule.h"
+#include "../Module/GUIModule.h"
+#include "../Shared/PluginState.h"
 
 //==============================================================================
 
@@ -163,13 +164,13 @@ private:
 
 class FilterModuleGUI : public GUIModule {
 public:
-    FilterModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition);
+    FilterModuleGUI(PluginState& p, unsigned int parameterNumber);
     ~FilterModuleGUI();
 
     std::vector<juce::Component*> getAllComps() override;
     virtual std::vector<juce::Component*> getParamComps() override;
     virtual void updateParameters(const juce::Array<juce::var>& values) override;
-    virtual void resetParameters(unsigned int chainPosition) override;
+    virtual void resetParameters(unsigned int parameterNumber) override;
     virtual juce::Array<juce::var> getParamValues() override;
 
     void paint(juce::Graphics& g) override;
@@ -181,9 +182,8 @@ private:
     using Attachment = APVTS::SliderAttachment;
     using ButtonAttachment = APVTS::ButtonAttachment;
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    BiztortionAudioProcessor& audioProcessor;
+    PluginState& pluginState;
+
     juce::Label title;
 
     RotarySliderWithLabels peakFreqSlider,

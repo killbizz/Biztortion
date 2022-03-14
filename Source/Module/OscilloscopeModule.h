@@ -31,10 +31,10 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-class BiztortionAudioProcessor;
-#include "../Module/GUIModule.h"
-#include "../Module/DSPModule.h"
 #include "../Shared/GUIStuff.h"
+#include "../Module/DSPModule.h"
+#include "../Module/GUIModule.h"
+#include "../Shared/PluginState.h"
 
 //==============================================================================
 
@@ -78,13 +78,13 @@ private:
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(BiztortionAudioProcessor& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int chainPosition);
+    OscilloscopeModuleGUI(PluginState& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int parameterNumber);
     ~OscilloscopeModuleGUI();
 
     std::vector<juce::Component*> getAllComps() override;
     virtual std::vector<juce::Component*> getParamComps() override;
     virtual void updateParameters(const juce::Array<juce::var>& values) override;
-    virtual void resetParameters(unsigned int chainPosition) override;
+    virtual void resetParameters(unsigned int parameterNumber) override;
     virtual juce::Array<juce::var> getParamValues() override;
 
     void paintOverChildren(Graphics& g) override;
@@ -96,9 +96,8 @@ private:
     using Attachment = APVTS::SliderAttachment;
     using ButtonAttachment = APVTS::ButtonAttachment;
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    BiztortionAudioProcessor& audioProcessor;
+    PluginState& pluginState;
+
     juce::Label title;
 
     juce::Label hZoomLabel,

@@ -28,7 +28,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "MeterModule.h"
-#include "../PluginProcessor.h"
 
 //==============================================================================
 
@@ -40,6 +39,11 @@ MeterModuleDSP::MeterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce:
     : DSPModule(_apvts), type(_type) {
     setChainPosition(type == "Input" ? 0 : 9);
 }
+
+//DSPModule* MeterModuleDSP::clone()
+//{
+//    return new MeterModuleDSP(*this);
+//}
 
 juce::String MeterModuleDSP::getType()
 {
@@ -108,13 +112,13 @@ void MeterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 
 //==============================================================================
 
-MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
-    : GUIModule(), audioProcessor(p), type(_type),
-    levelSlider(*audioProcessor.apvts.getParameter(type + " Meter Level"), "dB"),
-    levelSliderAttachment(audioProcessor.apvts, type + " Meter Level", levelSlider)
+MeterModuleGUI::MeterModuleGUI(PluginState& p, juce::String _type, foleys::LevelMeterSource* ms)
+    : GUIModule(), pluginState(p), type(_type),
+    levelSlider(*pluginState.apvts.getParameter(type + " Meter Level"), "dB"),
+    levelSliderAttachment(pluginState.apvts, type + " Meter Level", levelSlider)
 {
-    meterTitle.setText(type, juce::dontSendNotification);
-    meterTitle.setFont(juce::Font("Courier New", 20, juce::Font::bold));
+    title.setText(type, juce::dontSendNotification);
+    title.setFont(juce::Font("Courier New", 20, juce::Font::bold));
 
     // meter custom colors
     lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::black);
@@ -122,7 +126,7 @@ MeterModuleGUI::MeterModuleGUI(BiztortionAudioProcessor& p, juce::String _type)
     lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, juce::Colours::darkorange);
     lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, juce::Colour(0, 240, 48));
     meter.setLookAndFeel(&lnf);
-    meter.setMeterSource(getMeterSource());
+    meter.setMeterSource(ms);
 
     levelSlider.labels.add({ 0.f, "-60dB" });
     levelSlider.labels.add({ 1.f, "+10dB" });
@@ -146,22 +150,10 @@ juce::String MeterModuleGUI::getType()
     return type;
 }
 
-foleys::LevelMeterSource* MeterModuleGUI::getMeterSource()
-{
-    foleys::LevelMeterSource* source = nullptr;
-    for (auto it = audioProcessor.DSPmodules.cbegin(); it < audioProcessor.DSPmodules.cend(); ++it) {
-        auto temp = dynamic_cast<MeterModuleDSP*>(&(**it));
-        if (temp && temp->getType() == type) {
-            source = &temp->getMeterSource();
-        }
-    }
-    return source;
-}
-
 std::vector<juce::Component*> MeterModuleGUI::getAllComps()
 {
     return {
-        &meterTitle,
+        &title,
         &meter,
         &levelSlider
     };
@@ -184,8 +176,8 @@ void MeterModuleGUI::resized()
     juce::Rectangle<int> renderArea;
     renderArea.setSize(bounds.getHeight(), bounds.getHeight());
 
-    meterTitle.setBounds(titleArea);
-    meterTitle.setJustificationType(juce::Justification::centred);
+    title.setBounds(titleArea);
+    title.setJustificationType(juce::Justification::centred);
 
     meter.setBounds(meterArea);
 

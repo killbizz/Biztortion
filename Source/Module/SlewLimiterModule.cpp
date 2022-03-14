@@ -39,8 +39,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "SlewLimiterModule.h"
 
-#include "../PluginProcessor.h"
-
 //==============================================================================
 
 /* SlewLimiterModule DSP */
@@ -219,22 +217,22 @@ SlewLimiterSettings SlewLimiterModuleDSP::getSettings(juce::AudioProcessorValueT
 
 //==============================================================================
 
-SlewLimiterModuleGUI::SlewLimiterModuleGUI(BiztortionAudioProcessor& p, unsigned int chainPosition)
-    : GUIModule(), audioProcessor(p),
-    driveSlider(*audioProcessor.apvts.getParameter("SlewLimiter Drive " + std::to_string(chainPosition)), "dB"),
-    mixSlider(*audioProcessor.apvts.getParameter("SlewLimiter Mix " + std::to_string(chainPosition)), "%"),
-    symmetrySlider(*audioProcessor.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(chainPosition)), "%"),
-    biasSlider(*audioProcessor.apvts.getParameter("SlewLimiter Bias " + std::to_string(chainPosition)), ""),
-    slewLimiterRiseSlider(*audioProcessor.apvts.getParameter("SlewLimiter Rise " + std::to_string(chainPosition)), "%"),
-    slewLimiterFallSlider(*audioProcessor.apvts.getParameter("SlewLimiter Fall " + std::to_string(chainPosition)), "%"),
-    driveSliderAttachment(audioProcessor.apvts, "SlewLimiter Drive " + std::to_string(chainPosition), driveSlider),
-    mixSliderAttachment(audioProcessor.apvts, "SlewLimiter Mix " + std::to_string(chainPosition), mixSlider),
-    symmetrySliderAttachment(audioProcessor.apvts, "SlewLimiter Symmetry " + std::to_string(chainPosition), symmetrySlider),
-    biasSliderAttachment(audioProcessor.apvts, "SlewLimiter Bias " + std::to_string(chainPosition), biasSlider),
-    slewLimiterRiseSliderAttachment(audioProcessor.apvts, "SlewLimiter Rise " + std::to_string(chainPosition), slewLimiterRiseSlider),
-    slewLimiterFallSliderAttachment(audioProcessor.apvts, "SlewLimiter Fall " + std::to_string(chainPosition), slewLimiterFallSlider),
-    DCoffsetEnabledButtonAttachment(audioProcessor.apvts, "SlewLimiter DCoffset Enabled " + std::to_string(chainPosition), DCoffsetEnabledButton),
-    bypassButtonAttachment(audioProcessor.apvts, "SlewLimiter Bypassed " + std::to_string(chainPosition), bypassButton)
+SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int parameterNumber)
+    : GUIModule(), pluginState(p),
+    driveSlider(*pluginState.apvts.getParameter("SlewLimiter Drive " + std::to_string(parameterNumber)), "dB"),
+    mixSlider(*pluginState.apvts.getParameter("SlewLimiter Mix " + std::to_string(parameterNumber)), "%"),
+    symmetrySlider(*pluginState.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(parameterNumber)), "%"),
+    biasSlider(*pluginState.apvts.getParameter("SlewLimiter Bias " + std::to_string(parameterNumber)), ""),
+    slewLimiterRiseSlider(*pluginState.apvts.getParameter("SlewLimiter Rise " + std::to_string(parameterNumber)), "%"),
+    slewLimiterFallSlider(*pluginState.apvts.getParameter("SlewLimiter Fall " + std::to_string(parameterNumber)), "%"),
+    driveSliderAttachment(pluginState.apvts, "SlewLimiter Drive " + std::to_string(parameterNumber), driveSlider),
+    mixSliderAttachment(pluginState.apvts, "SlewLimiter Mix " + std::to_string(parameterNumber), mixSlider),
+    symmetrySliderAttachment(pluginState.apvts, "SlewLimiter Symmetry " + std::to_string(parameterNumber), symmetrySlider),
+    biasSliderAttachment(pluginState.apvts, "SlewLimiter Bias " + std::to_string(parameterNumber), biasSlider),
+    slewLimiterRiseSliderAttachment(pluginState.apvts, "SlewLimiter Rise " + std::to_string(parameterNumber), slewLimiterRiseSlider),
+    slewLimiterFallSliderAttachment(pluginState.apvts, "SlewLimiter Fall " + std::to_string(parameterNumber), slewLimiterFallSlider),
+    DCoffsetEnabledButtonAttachment(pluginState.apvts, "SlewLimiter DCoffset Enabled " + std::to_string(parameterNumber), DCoffsetEnabledButton),
+    bypassButtonAttachment(pluginState.apvts, "SlewLimiter Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
     title.setText("Slew Limiter", juce::dontSendNotification);
@@ -355,16 +353,16 @@ void SlewLimiterModuleGUI::updateParameters(const juce::Array<juce::var>& values
     DCoffsetEnabledButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
-void SlewLimiterModuleGUI::resetParameters(unsigned int chainPosition)
+void SlewLimiterModuleGUI::resetParameters(unsigned int parameterNumber)
 {
-    auto drive = audioProcessor.apvts.getParameter("SlewLimiter Drive " + std::to_string(chainPosition));
-    auto mix = audioProcessor.apvts.getParameter("SlewLimiter Mix " + std::to_string(chainPosition));
-    auto symmetry = audioProcessor.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(chainPosition));
-    auto bias = audioProcessor.apvts.getParameter("SlewLimiter Bias " + std::to_string(chainPosition));
-    auto rise = audioProcessor.apvts.getParameter("SlewLimiter Rise " + std::to_string(chainPosition));
-    auto fall = audioProcessor.apvts.getParameter("SlewLimiter Fall " + std::to_string(chainPosition));
-    auto dcOffset = audioProcessor.apvts.getParameter("SlewLimiter DCoffset Enabled " + std::to_string(chainPosition));
-    auto bypassed = audioProcessor.apvts.getParameter("SlewLimiter Bypassed " + std::to_string(chainPosition));
+    auto drive = pluginState.apvts.getParameter("SlewLimiter Drive " + std::to_string(parameterNumber));
+    auto mix = pluginState.apvts.getParameter("SlewLimiter Mix " + std::to_string(parameterNumber));
+    auto symmetry = pluginState.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(parameterNumber));
+    auto bias = pluginState.apvts.getParameter("SlewLimiter Bias " + std::to_string(parameterNumber));
+    auto rise = pluginState.apvts.getParameter("SlewLimiter Rise " + std::to_string(parameterNumber));
+    auto fall = pluginState.apvts.getParameter("SlewLimiter Fall " + std::to_string(parameterNumber));
+    auto dcOffset = pluginState.apvts.getParameter("SlewLimiter DCoffset Enabled " + std::to_string(parameterNumber));
+    auto bypassed = pluginState.apvts.getParameter("SlewLimiter Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());
