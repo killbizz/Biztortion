@@ -34,22 +34,6 @@ PluginState::PluginState(juce::AudioProcessor& ap) :
     // TODO : add moduleParameterNumbers
 }
 
-
-juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameterLayout() {
-    juce::AudioProcessorValueTreeState::ParameterLayout layout;
-
-    // dynamic parameter management is not supported
-
-    MeterModuleDSP::addParameters(layout);
-    FilterModuleDSP::addParameters(layout);
-    WaveshaperModuleDSP::addParameters(layout);
-    OscilloscopeModuleDSP::addParameters(layout);
-    BitcrusherModuleDSP::addParameters(layout);
-    SlewLimiterModuleDSP::addParameters(layout);
-
-    return layout;
-}
-
 void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition)
 {
     // insert module to DSPmodules vector
@@ -212,4 +196,19 @@ foleys::LevelMeterSource* PluginState::getMeterSource(juce::String type)
         }
     }
     return source;
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameterLayout() {
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    // dynamic parameter management is not supported
+
+    MeterModuleDSP::addParameters(layout);
+    FilterModuleDSP::addParameters(layout);
+    WaveshaperModuleDSP::addParameters(layout);
+    OscilloscopeModuleDSP::addParameters(layout);
+    BitcrusherModuleDSP::addParameters(layout);
+    SlewLimiterModuleDSP::addParameters(layout);
+
+    return layout;
 }
