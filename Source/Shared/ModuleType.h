@@ -27,6 +27,15 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 */
 
+#pragma once
+
+//#include "../Module/BitcrusherModule.h"
+//#include "../Module/WaveshaperModule.h"
+//#include "../Module/FilterModule.h"
+//#include "../Module/MeterModule.h"
+//#include "../Module/OscilloscopeModule.h"
+//#include "../Module/SlewLimiterModule.h"
+
 enum ModuleType {
     Uninstantiated,
     Meter,
@@ -37,27 +46,20 @@ enum ModuleType {
     SlewLimiter
 };
 
-#pragma once
+const std::unordered_map<ModuleType, juce::String> moduleType_names({
+    {ModuleType::Meter, "Meter"},
+    {ModuleType::IIRFilter, "Filter"},
+    {ModuleType::Oscilloscope, "Oscilloscope"},
+    {ModuleType::Waveshaper, "Waveshaper"},
+    {ModuleType::Bitcrusher, "Bitcrusher"},
+    {ModuleType::SlewLimiter, "SlewLimiter"}
+    });
 
-#define MODULE_TYPES \
-X(Uninstantiated, "Uninstantiated") \
-X(Meter, "Meter") \
-X(IIRFilter, "Filter") \
-X(Oscilloscope, "Oscilloscope") \
-X(Waveshaper, "Waveshaper") \
-X(Bitcrusher, "Bitcrusher") \
-X(SlewLimiter, "SlewLimiter")
-
-#define X(type, typeName) type,
-enum ModuleType : size_t
-{
-    MODULE_TYPES
-};
-#undef X
-
-#define X(type, typeName) typeName,
-char const* moduleType_name[] =
-{
-    MODULE_TYPES
-};
-#undef X
+//const std::unordered_map<ModuleType, DSPModule*> moduleType_DSPobjects({
+//    {ModuleType::Meter, new MeterModuleDSP()},
+//    {ModuleType::IIRFilter, "Filter"},
+//    {ModuleType::Oscilloscope, "Oscilloscope"},
+//    {ModuleType::Waveshaper, "Waveshaper"},
+//    {ModuleType::Bitcrusher, "Bitcrusher"},
+//    {ModuleType::SlewLimiter, "SlewLimiter"}
+//    });
