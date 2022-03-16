@@ -31,14 +31,11 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "GUIModule.h"
-#include "DSPModule.h"
 #include "../Shared/GUIStuff.h"
-#include "../Shared/ModuleType.h"
-
-class BiztortionAudioProcessor;
-class BiztortionAudioProcessorEditor;
-
+#include "../Shared/GUIState.h"
+#include "../Shared/PluginState.h"
+#include "../Module/WelcomeModule.h"
+#include "../Shared/ModuleFactory.h"
 
 //==============================================================================
 
@@ -49,7 +46,7 @@ class BiztortionAudioProcessorEditor;
 class ChainModuleGUI : public GUIModule, public DragAndDropTarget {
 public:
 
-    ChainModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition);
+    ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chainPosition);
     ~ChainModuleGUI();
 
     unsigned int getChainPosition();
@@ -65,7 +62,8 @@ public:
 
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
-    // useless methods because (at this moment) this is not a module usable in the processing chain
+
+    // useless methods because this is not a module usable in the processing chain
     virtual void updateParameters(const juce::Array<juce::var>&) override {};
     virtual void resetParameters(unsigned int) override {};
     virtual juce::Array<juce::var> getParamValues() override { return juce::Array<juce::var>(); };
@@ -77,6 +75,18 @@ public:
 
     void addModuleToGUI(GUIModule* module);
     void setup(ModuleType type);
+
+    // These methods implement the DragAndDropTarget interface, and allow our component
+    // to accept drag-and-drop of objects from other JUCE components..
+    bool isInterestedInDragSource(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDragEnter(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDragMove(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDragExit(const SourceDetails& /*dragSourceDetails*/) override;
+    void itemDropped(const SourceDetails& dragSourceDetails) override;
+
+    void mouseDrag(const MouseEvent& event) override;
+
+    //==============================================================================
 
     // newModule
     ModuleLookAndFeel newModuleLookAndFeel;
@@ -92,26 +102,16 @@ public:
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
     BizTextButton currentModuleActivator;
 
-    // These methods implement the DragAndDropTarget interface, and allow our component
-    // to accept drag-and-drop of objects from other JUCE components..
-    bool isInterestedInDragSource(const SourceDetails& /*dragSourceDetails*/) override;
-    void itemDragEnter(const SourceDetails& /*dragSourceDetails*/) override;
-    void itemDragMove(const SourceDetails& /*dragSourceDetails*/) override;
-    void itemDragExit(const SourceDetails& /*dragSourceDetails*/) override;
-    void itemDropped(const SourceDetails& dragSourceDetails) override;
-
-    void mouseDrag(const MouseEvent& event) override;
-
 private:
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    BiztortionAudioProcessor& audioProcessor;
-    BiztortionAudioProcessorEditor& editor;
+    PluginState& pluginState;
+    GUIState& guiState;
+
     unsigned int chainPosition;
     BizLabel chainPositionLabel;
 
     ModuleType moduleType = ModuleType::Uninstantiated;
+    ModuleFactory moduleFactory;
 
     // UNUSED only by the 8° module
     std::unique_ptr<BizDrawable> rightCable;

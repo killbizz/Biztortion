@@ -45,6 +45,8 @@ public:
 
     ModuleFactory(PluginState& s);
 
+    // TODO : implementation of a fully-extensible factory
+
     DSPModule* createDSPModule(ModuleType mt);
     GUIModule* createGUIModule(ModuleType type, unsigned int parameterNumber);
 

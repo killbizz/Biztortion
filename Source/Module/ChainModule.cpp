@@ -28,12 +28,11 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "ChainModule.h"
-#include "../PluginProcessor.h"
-#include "../PluginEditor.h"
+
 #include <algorithm>
 
-ChainModuleGUI::ChainModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProcessorEditor& e, unsigned int _chainPosition)
-    : GUIModule(), audioProcessor(p), editor(e), chainPosition(_chainPosition)
+ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chainPosition)
+    : GUIModule(), pluginState(ps), guiState(gs), chainPosition(_chainPosition), moduleFactory(pluginState)
 {
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
     chainPositionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
@@ -87,12 +86,12 @@ ChainModuleGUI::ChainModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProce
     // lambdas
 
     newModule.onClick = [this] {
-        editor.removeChildComponent(&newModuleSelector);
-        editor.addAndMakeVisible(newModuleSelector);
+        guiState.editor.removeChildComponent(&newModuleSelector);
+        guiState.editor.addAndMakeVisible(newModuleSelector);
         newModuleSelector.setVisible(newModule.getToggleState());
         newModuleSelector.grabKeyboardFocus();
         juce::Rectangle<int> rect{310, 50};
-        rect.setCentre(editor.currentGUIModule->getBounds().getCentre());
+        rect.setCentre(guiState.currentGUIModule->getBounds().getCentre());
         newModuleSelector.setBounds(rect);
         if (newModule.getToggleState()) {
             newModuleSelector.showPopup();
@@ -110,13 +109,13 @@ ChainModuleGUI::ChainModuleGUI(BiztortionAudioProcessor& p, BiztortionAudioProce
     };
 
     currentModuleActivator.onClick = [this] {
-        addModuleToGUI(editor.createGUIModule(moduleType, getChainPosition()));
+        addModuleToGUI(moduleFactory.createGUIModule(moduleType, getChainPosition()));
     };
 
     // Audio Cables
     if (chainPosition != 8) {
         rightCable = getRightCable(chainPosition);
-        editor.addAndMakeVisible(*rightCable);
+        guiState.editor.addAndMakeVisible(*rightCable);
         rightCable->setAlwaysOnTop(true);
     }
 }
@@ -150,9 +149,9 @@ void ChainModuleGUI::setModuleType(ModuleType mt)
 
 void ChainModuleGUI::addNewModule(ModuleType type)
 {
-    audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
-    audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
-    addModuleToGUI(editor.createGUIModule(type, getChainPosition()));
+    pluginState.addAndSetupModuleForDSP(moduleFactory.createDSPModule(type), getChainPosition());
+    pluginState.addDSPmoduleToAPVTS(type, getChainPosition());
+    addModuleToGUI(moduleFactory.createGUIModule(type, getChainPosition()));
     this->setup(type);
 }
 
@@ -161,12 +160,12 @@ void ChainModuleGUI::deleteTheCurrentNewModule()
     // remove GUI module
     moduleType = ModuleType::Uninstantiated;
     // reset the parameter values to default
-    editor.currentGUIModule->resetParameters(getChainPosition());
-    editor.updateCurrentGUIModule(new WelcomeModuleGUI());
+    guiState.currentGUIModule->resetParameters(getChainPosition());
+    guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
     this->setup(moduleType);
     // remove DSP module
-    audioProcessor.removeModuleFromDSPmodules(getChainPosition());
-    audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
+    pluginState.removeModuleFromDSPmodules(getChainPosition());
+    pluginState.removeDSPmoduleFromAPVTS(getChainPosition());
 }
 
 void ChainModuleGUI::paint(juce::Graphics& g)
@@ -278,31 +277,7 @@ void ChainModuleGUI::setup(const ModuleType type)
 
     // currentModuleActivator setup
     if (type != ModuleType::Uninstantiated) {
-        juce::String typeString;
-        switch (type) {
-            case ModuleType::Oscilloscope: {
-                typeString = "Oscilloscope";
-                break;
-            }
-            case ModuleType::IIRFilter: {
-                typeString = "Filter";
-                break;
-            }
-            case ModuleType::Waveshaper: {
-                typeString = "Waveshaper";
-                break;
-            }
-            case ModuleType::Bitcrusher: {
-                typeString = "Bitcrusher";
-                break;
-            }
-            case ModuleType::SlewLimiter: {
-                typeString = "Slew Limiter";
-                break;
-            }
-            default:
-                break;
-        }
+        juce::String typeString = moduleType_names.at(type);
         currentModuleActivator.setVisible(true);
         currentModuleActivator.setButtonText(typeString);
         currentModuleActivator.changeWidthToFitText(10);
@@ -360,12 +335,12 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     auto thisModuleType = moduleType;
     bool oneModuleIsAllocatedHere = getModuleType() != ModuleType::Uninstantiated;
     // add newPosition DSPModule
-    audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(type), getChainPosition());
-    audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(type, getChainPosition());
+    pluginState.addAndSetupModuleForDSP(moduleFactory.createDSPModule(type), getChainPosition());
+    pluginState.addDSPmoduleToAPVTS(type, getChainPosition());
     if (oneModuleIsAllocatedHere) {
         // add oldPosition DSPModule
-        audioProcessor.addAndSetupModuleForDSP(audioProcessor.createDSPModule(getModuleType()), cp);
-        audioProcessor.addDSPmoduleTypeAndPositionToAPVTS(getModuleType(), cp);
+        pluginState.addAndSetupModuleForDSP(moduleFactory.createDSPModule(getModuleType()), cp);
+        pluginState.addDSPmoduleToAPVTS(getModuleType(), cp);
     }
     // setup NewModuleGUIs
     setup(type);
@@ -375,10 +350,10 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
         component->setup(ModuleType::Uninstantiated);
     }
     // create necessary GUIModules
-    GUIModule* preModuleInOldPosition = editor.createGUIModule(type, cp);
-    GUIModule* postModuleInOldPosition = editor.createGUIModule(thisModuleType, cp);
-    GUIModule* preModuleInNewPosition = editor.createGUIModule(thisModuleType, getChainPosition());
-    GUIModule* postModuleInNewPosition = editor.createGUIModule(type, getChainPosition());
+    GUIModule* preModuleInOldPosition = moduleFactory.createGUIModule(type, cp);
+    GUIModule* postModuleInOldPosition = moduleFactory.createGUIModule(thisModuleType, cp);
+    GUIModule* preModuleInNewPosition = moduleFactory.createGUIModule(thisModuleType, getChainPosition());
+    GUIModule* postModuleInNewPosition = moduleFactory.createGUIModule(type, getChainPosition());
     auto preModuleOldPositionParamValues = preModuleInOldPosition->getParamValues();
     juce::Array<juce::var> preModuleNewPositionParamValues;
     if (oneModuleIsAllocatedHere) {
@@ -402,24 +377,24 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     delete preModuleInNewPosition;
     delete postModuleInNewPosition;
     // delete the editor currentGUIModule (is mandatory before deleting the DSP modules for the oscilloscope module)
-    delete editor.currentGUIModule.release();
+    delete guiState.currentGUIModule.release();
     if (oneModuleIsAllocatedHere) {
         // delete preNewPositionDSPModule
-        audioProcessor.removeModuleFromDSPmodules(getChainPosition());
-        audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(getChainPosition());
+        pluginState.removeModuleFromDSPmodules(getChainPosition());
+        pluginState.removeDSPmoduleFromAPVTS(getChainPosition());
     }
     // delete preOldPositionDSPModule
-    audioProcessor.removeModuleFromDSPmodules(cp);
-    audioProcessor.removeDSPmoduleTypeAndPositionFromAPVTS(cp);
+    pluginState.removeModuleFromDSPmodules(cp);
+    pluginState.removeDSPmoduleFromAPVTS(cp);
     // add the fresh GUImodule to the editor (is mandatory to create a new GUIModule after deleting the DSP modules for the filter module)
-    addModuleToGUI(editor.createGUIModule(type, getChainPosition()));
+    addModuleToGUI(moduleFactory.createGUIModule(type, getChainPosition()));
     somethingIsBeingDraggedOver = false;
     repaint();
 }
 
 void ChainModuleGUI::mouseDrag(const MouseEvent& event)
 {
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent());
+    auto editor = dynamic_cast<DragAndDropContainer*>(getParentComponent());
     if(getModuleType() != ModuleType::Uninstantiated)
         editor->startDragging("", this);
 }
@@ -427,7 +402,7 @@ void ChainModuleGUI::mouseDrag(const MouseEvent& event)
 
 void ChainModuleGUI::addModuleToGUI(GUIModule* module)
 {
-    editor.updateCurrentGUIModule(module);
+    guiState.updateCurrentGUIModule(module);
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
 }
