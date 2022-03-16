@@ -42,11 +42,14 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 class ModuleFactory {
 public:
+
     ModuleFactory(PluginState& s);
 
     DSPModule* createDSPModule(ModuleType mt);
     GUIModule* createGUIModule(ModuleType type, unsigned int parameterNumber);
+
 private:
+
     PluginState& pluginState;
 
     /*const std::unordered_map<ModuleType, juce::String> moduleType_names;

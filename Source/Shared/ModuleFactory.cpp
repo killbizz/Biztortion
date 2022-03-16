@@ -9,16 +9,6 @@
 */
 
 /*
-  ==============================================================================
-
-    Copyright (c) 2021 Charles Schiermeyer
-    Content: the original Equalizer Algorithm
-    Source: https://github.com/matkatmusic/SimpleEQ
-
-  ==============================================================================
-*/
-
-/*
 
 This file is part of Biztortion software.
 
