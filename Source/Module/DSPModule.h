@@ -31,22 +31,36 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 #include <string>
+#include "../Shared/ModuleType.h"
 
 class DSPModule {
 public:
     DSPModule(juce::AudioProcessorValueTreeState& _apvts);
+    // virtual ~DSPModule() = default;
+
+    // mandatory for a fully-extensible ModuleFactory
+    // virtual DSPModule* clone() = 0;
+
     unsigned int getChainPosition();
     void setChainPosition(unsigned int cp);
+    unsigned int getParameterNumber();
+    void setParameterNumber(unsigned int pn);
     ModuleType getModuleType();
     virtual void setModuleType() = 0;
+
     virtual void updateDSPState(double sampleRate) = 0;
     virtual void prepareToPlay(double sampleRate, int samplesPerBlock) = 0;
     virtual void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double) = 0;
 
 protected:
     juce::AudioProcessorValueTreeState& apvts;
+
     // range: 0 - 9
+    // mandatory for the correct placement in the DSPmodules
     unsigned int chainPosition;
+    // mandatory for a consistent connection between the module and a specific parameter
+    unsigned int parameterNumber;
+
     ModuleType moduleType;
 
     /**

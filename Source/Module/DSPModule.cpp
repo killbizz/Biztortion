@@ -44,6 +44,16 @@ void DSPModule::setChainPosition(unsigned int cp)
     chainPosition = cp;
 }
 
+unsigned int DSPModule::getParameterNumber()
+{
+    return parameterNumber;
+}
+
+void DSPModule::setParameterNumber(unsigned int pn)
+{
+    parameterNumber = pn;
+}
+
 ModuleType DSPModule::getModuleType()
 {
     return moduleType;
