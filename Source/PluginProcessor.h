@@ -42,17 +42,13 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "Shared/ModuleFactory.h"
 #include "Shared/PluginState.h"
 
-//==============================================================================
-/**
-*/
 class BiztortionAudioProcessor  : public juce::AudioProcessor
 {
 public:
-    //==============================================================================
+
     BiztortionAudioProcessor();
     ~BiztortionAudioProcessor() override;
 
-    //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
@@ -62,14 +58,12 @@ public:
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
-    //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    //==============================================================================
     const juce::String getName() const override;
 
     bool acceptsMidi() const override;
@@ -77,7 +71,6 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    //==============================================================================
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram (int index) override;
@@ -86,44 +79,13 @@ public:
 
     //==============================================================================
 
-    
-
-    //static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-
-    //// APVTS
-    //juce::AudioProcessorValueTreeState apvts{
-    //  *this, nullptr, "Parameters", createParameterLayout()
-    //};
-    //// fft analyzers
-    //using BlockType = juce::AudioBuffer<float>;
-    //// analyzer FIFO allocated only if the relative module is istantiated
-    //std::vector<SingleChannelSampleFifo<BlockType>*> leftAnalyzerFIFOs;
-    //std::vector<SingleChannelSampleFifo<BlockType>*> rightAnalyzerFIFOs;
-    //// modules
-    //std::vector<std::unique_ptr<DSPModule>> DSPmodules;
-
     PluginState pluginState;
     ModuleFactory moduleFactory;
-
-    /*void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
-    void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
-    void addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition);
-    void removeModuleFromDSPmodules(unsigned int chainPosition);
-    void removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition);
-    unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
-    void insertNewAnalyzerFIFO(unsigned int chainPosition);
-    void deleteOldAnalyzerFIFO(unsigned int chainPosition);
-    foleys::LevelMeterSource* getMeterSource(juce::String type);*/
 
 private:
 
     // test signal
     // juce::dsp::Oscillator<float> osc;
 
-    // parameter which should not be visible in the DAW
-    /*juce::Value moduleTypes;
-    juce::Value moduleChainPositions;*/
-
-    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessor)
 };
