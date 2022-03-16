@@ -150,7 +150,7 @@ void BiztortionAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
         (**it).prepareToPlay(sampleRate, samplesPerBlock);
     }
 
-    // fft analyzers
+    // prepareToPlay for all the fft analyzer FIFOs
     for (auto it = pluginState.leftAnalyzerFIFOs.cbegin(); it < pluginState.leftAnalyzerFIFOs.cend(); ++it) {
         (*it)->prepare(samplesPerBlock);
     }
@@ -223,9 +223,8 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         for (auto it = pluginState.DSPmodules.cbegin(); it < pluginState.DSPmodules.cend(); ++it) {
             auto module = &**it;
             module->processBlock(buffer, midiMessages, getSampleRate());
-            auto filter = dynamic_cast<FilterModuleDSP*>(module);
             // fft analyzers FIFOs update
-            if (filter) {
+            if (module->getModuleType() == ModuleType::IIRFilter) {
                 auto index = filterModuleCounter++;
                 pluginState.leftAnalyzerFIFOs[index]->update(buffer);
                 pluginState.rightAnalyzerFIFOs[index]->update(buffer);
