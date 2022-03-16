@@ -39,32 +39,25 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "PluginProcessor.h"
 #include "Component/FFTAnalyzerComponent.h"
 #include "Component/TransferFunctionGraphComponent.h"
 #include "Component/HelpComponent.h"
 #include "Shared/GUIStuff.h"
-#include "Module/ChainModule.h"
+#include "Shared/GUIState.h"
 #include "Module/WelcomeModule.h"
 
-//==============================================================================
-/** EDITOR
-*/
 class BiztortionAudioProcessorEditor  : public juce::AudioProcessorEditor, public DragAndDropContainer
 {
 public:
     BiztortionAudioProcessorEditor (juce::AudioProcessor& ap, PluginState& ps);
     ~BiztortionAudioProcessorEditor() override;
 
-    /*void editorSetup();*/
-    /*GUIModule* createGUIModule(ModuleType type, unsigned int chainPosition);*/
-    /*void updateCurrentGUIModule(GUIModule* module);*/
-
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    /*std::unique_ptr<GUIModule> currentGUIModule;
-    std::vector<std::unique_ptr<ChainModuleGUI>> newModules;*/
+    //==============================================================================
+
+    GUIState guiState;
 
 private:
 
@@ -85,11 +78,6 @@ private:
     };
 
     juce::TooltipWindow tooltipWindow;
-
-    GUIState guiState;
-
-    /*std::unique_ptr<GUIModule> inputMeter;
-    std::unique_ptr<GUIModule> outputMeter;*/
 
     juce::HyperlinkButton helpButton;
     juce::HyperlinkButton githubLink;
