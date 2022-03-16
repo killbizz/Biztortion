@@ -53,20 +53,18 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class BiztortionAudioProcessorEditor  : public juce::AudioProcessorEditor, public DragAndDropContainer
 {
 public:
-    BiztortionAudioProcessorEditor (BiztortionAudioProcessor&);
+    BiztortionAudioProcessorEditor (juce::AudioProcessor& ap, PluginState& ps);
     ~BiztortionAudioProcessorEditor() override;
 
-    void editorSetup();
+    /*void editorSetup();*/
     /*GUIModule* createGUIModule(ModuleType type, unsigned int chainPosition);*/
-    void updateCurrentGUIModule(GUIModule* module);
+    /*void updateCurrentGUIModule(GUIModule* module);*/
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    std::unique_ptr<GUIModule> inputMeter;
-    std::unique_ptr<GUIModule> outputMeter;
-    std::unique_ptr<GUIModule> currentGUIModule;
-    std::vector<std::unique_ptr<ChainModuleGUI>> newModules;
+    /*std::unique_ptr<GUIModule> currentGUIModule;
+    std::vector<std::unique_ptr<ChainModuleGUI>> newModules;*/
 
 private:
 
@@ -88,17 +86,18 @@ private:
 
     juce::TooltipWindow tooltipWindow;
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    BiztortionAudioProcessor& audioProcessor;
+    GUIState guiState;
+
+    /*std::unique_ptr<GUIModule> inputMeter;
+    std::unique_ptr<GUIModule> outputMeter;*/
 
     juce::HyperlinkButton helpButton;
     juce::HyperlinkButton githubLink;
 
-    ModuleLookAndFeel laf;
-
     std::unique_ptr<AlertWindow> asyncAlertWindow;
     HelpComponent helpComponent;
+
+    ModuleLookAndFeel laf;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
 };

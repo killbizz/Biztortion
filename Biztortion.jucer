@@ -37,6 +37,8 @@
       <GROUP id="{3CE862F7-9551-DF55-4209-CE64AF968F62}" name="Shared">
         <FILE id="A3PsK4" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/Shared/FFTAnalyzer.cpp"/>
         <FILE id="mVJRiw" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/Shared/FFTAnalyzer.h"/>
+        <FILE id="CYJuTM" name="GUIState.cpp" compile="1" resource="0" file="Source/Shared/GUIState.cpp"/>
+        <FILE id="SrtuIT" name="GUIState.h" compile="0" resource="0" file="Source/Shared/GUIState.h"/>
         <FILE id="szjAV1" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
         <FILE id="wPGj1Y" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
         <FILE id="c4lIGn" name="ModuleFactory.cpp" compile="1" resource="0"
