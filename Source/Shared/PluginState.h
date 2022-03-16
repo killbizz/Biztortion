@@ -2,10 +2,29 @@
   ==============================================================================
 
     PluginState.h
-    Created: 14 Mar 2022 3:05:30pm
-    Author:  gabri
+
+    Copyright (c) 2022 KillBizz - Gabriel Bizzo
 
   ==============================================================================
+*/
+
+/*
+
+This file is part of Biztortion software.
+
+Biztortion is free software : you can redistribute it and /or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Biztortion is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
+
 */
 
 #pragma once
@@ -18,6 +37,7 @@
 #include "../Module/BitcrusherModule.h"
 #include "../Module/SlewLimiterModule.h"
 #include "../Module/OscilloscopeModule.h"
+#include "../Module/ChainModule.h"
 
 #include "../Shared/ModuleType.h"
 
@@ -26,18 +46,19 @@ public:
 
     PluginState(juce::AudioProcessor& ap);
 
+    // quick way to access the audio processor
     juce::AudioProcessor& audioProcessor;
     // APVTS
     juce::AudioProcessorValueTreeState apvts;
-    // fft analyzers
+
+    // --------- DSP ---------
+    std::vector<std::unique_ptr<DSPModule>> DSPmodules;
+    // fft analyzer FIFOs allocated only if a module which needs fft analysis is istantiated
     using BlockType = juce::AudioBuffer<float>;
-    // analyzer FIFO allocated only if the relative module is istantiated
     std::vector<SingleChannelSampleFifo<BlockType>*> leftAnalyzerFIFOs;
     std::vector<SingleChannelSampleFifo<BlockType>*> rightAnalyzerFIFOs;
-    // DSP modules
-    std::vector<std::unique_ptr<DSPModule>> DSPmodules;
 
-    // parameter which should not be visible in the DAW
+    // parameters which should not be visible in the DAW
     juce::Value moduleTypes;
     juce::Value moduleChainPositions;
     // TODO : add moduleParameterNumbers
@@ -46,7 +67,7 @@ public:
     void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
     void addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition);
     void removeModuleFromDSPmodules(unsigned int chainPosition);
-    void removeDSPmoduleTypeAndPositionFromAPVTS(unsigned int chainPosition);
+    void removeDSPmoduleFromAPVTS(unsigned int chainPosition);
     unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
     void insertNewAnalyzerFIFO(unsigned int chainPosition);
     void deleteOldAnalyzerFIFO(unsigned int chainPosition);
