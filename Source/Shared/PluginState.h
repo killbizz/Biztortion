@@ -31,47 +31,44 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "../Module/MeterModule.h"
-#include "../Module/FilterModule.h"
-#include "../Module/WaveshaperModule.h"
-#include "../Module/BitcrusherModule.h"
-#include "../Module/SlewLimiterModule.h"
-#include "../Module/OscilloscopeModule.h"
-#include "../Module/ChainModule.h"
-
 #include "../Shared/ModuleType.h"
+#include "../Module/DSPModule.h"
+
+#include "../Shared/FFTAnalyzer.h"
 
 class PluginState {
 public:
 
     PluginState(juce::AudioProcessor& ap);
 
-    // quick way to access the audio processor
-    juce::AudioProcessor& audioProcessor;
-    // APVTS
-    juce::AudioProcessorValueTreeState apvts;
+    void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
+    void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
+    void addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition);
+    void removeModuleFromDSPmodules(unsigned int chainPosition);
+    void removeDSPmoduleFromAPVTS(unsigned int chainPosition);
 
+    unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
+    void insertNewAnalyzerFIFO(unsigned int chainPosition);
+    void deleteOldAnalyzerFIFO(unsigned int chainPosition);
+
+    foleys::LevelMeterSource* getMeterSource(juce::String type);
+
+    // TODO : add getStateInformation / setStateInformation methods
+
+    //==============================================================================
+    
+    juce::AudioProcessor& audioProcessor;
+    juce::AudioProcessorValueTreeState apvts;
     // --------- DSP ---------
     std::vector<std::unique_ptr<DSPModule>> DSPmodules;
     // fft analyzer FIFOs allocated only if a module which needs fft analysis is istantiated
     using BlockType = juce::AudioBuffer<float>;
     std::vector<SingleChannelSampleFifo<BlockType>*> leftAnalyzerFIFOs;
     std::vector<SingleChannelSampleFifo<BlockType>*> rightAnalyzerFIFOs;
-
     // parameters which should not be visible in the DAW
     juce::Value moduleTypes;
     juce::Value moduleChainPositions;
     // TODO : add moduleParameterNumbers
-
-    void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
-    void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
-    void addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition);
-    void removeModuleFromDSPmodules(unsigned int chainPosition);
-    void removeDSPmoduleFromAPVTS(unsigned int chainPosition);
-    unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
-    void insertNewAnalyzerFIFO(unsigned int chainPosition);
-    void deleteOldAnalyzerFIFO(unsigned int chainPosition);
-    foleys::LevelMeterSource* getMeterSource(juce::String type);
 
 private:
 

@@ -38,7 +38,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "GUIStuff.h"
-#include "../PluginEditor.h"
+
+#include "../Module/ChainModule.h"
 
 void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
     int x,
@@ -322,7 +323,7 @@ void AnalyzerButton::resized()
 void BizDrawable::mouseDrag(const MouseEvent& event)
 {
     auto newModule = dynamic_cast<ChainModuleGUI*>(getParentComponent());
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent());
+    auto editor = dynamic_cast<juce::DragAndDropContainer*>(getParentComponent());
     if (newModule->getModuleType() != ModuleType::Uninstantiated)
         editor->startDragging("", newModule);
 }
@@ -330,7 +331,7 @@ void BizDrawable::mouseDrag(const MouseEvent& event)
 void BizTextButton::mouseDrag(const MouseEvent& event)
 {
     auto newModule = dynamic_cast<ChainModuleGUI*>(getParentComponent());
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
+    auto editor = dynamic_cast<juce::DragAndDropContainer*>(getParentComponent()->getParentComponent());
     if (newModule->getModuleType() != ModuleType::Uninstantiated)
         editor->startDragging("", newModule);
 }
@@ -338,7 +339,7 @@ void BizTextButton::mouseDrag(const MouseEvent& event)
 void BizLabel::mouseDrag(const MouseEvent& event)
 {
     auto newModule = dynamic_cast<ChainModuleGUI*>(getParentComponent());
-    auto editor = dynamic_cast<BiztortionAudioProcessorEditor*>(getParentComponent()->getParentComponent());
+    auto editor = dynamic_cast<juce::DragAndDropContainer*>(getParentComponent()->getParentComponent());
     if (newModule->getModuleType() != ModuleType::Uninstantiated)
         editor->startDragging("", newModule);
 }

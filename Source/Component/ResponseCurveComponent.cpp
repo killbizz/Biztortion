@@ -39,6 +39,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "ResponseCurveComponent.h"
 
+#include "../Module/FilterModule.h"
+
 
 // component for the response curve in order to paint the curve only in his area
 ResponseCurveComponent::ResponseCurveComponent(PluginState& p, unsigned int parameterNumber)

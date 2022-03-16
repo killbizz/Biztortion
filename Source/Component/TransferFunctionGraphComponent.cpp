@@ -38,6 +38,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "TransferFunctionGraphComponent.h"
+#include "../Module/WaveshaperModule.h"
 
 TransferFunctionGraphComponent::TransferFunctionGraphComponent(PluginState& p, unsigned int parameterNumber)
 	: pluginState(p), parameterNumber(parameterNumber)
@@ -78,6 +79,8 @@ void TransferFunctionGraphComponent::timerCallback()
 
 void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 {
+	using namespace juce;
+
 	auto width = static_cast<float> (getWidth());
 	auto height = static_cast<float> (getHeight());
 

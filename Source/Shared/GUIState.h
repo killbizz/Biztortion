@@ -30,25 +30,28 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
+
 #include "../Module/GUIModule.h"
-#include "../Module/ChainModule.h"
+#include "../Shared/PluginState.h"
+
+class ChainModuleGUI;
 
 class GUIState {
 public:
 
     GUIState(juce::AudioProcessorEditor& ape, PluginState& ps);
 
-    // quick way to access the audio processor
-    juce::AudioProcessorEditor& editor;
+    void setupChainModules();
+    void updateCurrentGUIModule(GUIModule* module);
 
+    //==============================================================================
+
+    juce::AudioProcessorEditor& editor;
     // --------- GUI ---------
     std::unique_ptr<GUIModule> currentGUIModule;
     std::vector<std::unique_ptr<ChainModuleGUI>> chainModules;
     std::unique_ptr<GUIModule> inputMeter;
     std::unique_ptr<GUIModule> outputMeter;
-
-    void setupChainModules();
-    void updateCurrentGUIModule(GUIModule* module);
 
 private:
 

@@ -29,6 +29,13 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "PluginState.h"
 
+#include "../Module/MeterModule.h"
+#include "../Module/FilterModule.h"
+#include "../Module/WaveshaperModule.h"
+#include "../Module/BitcrusherModule.h"
+#include "../Module/SlewLimiterModule.h"
+#include "../Module/OscilloscopeModule.h"
+
 PluginState::PluginState(juce::AudioProcessor& ap) : 
     audioProcessor(ap),
     apvts(ap, nullptr, "Parameters", createParameterLayout()),
