@@ -81,7 +81,7 @@ void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPos
         // else continue to iterate to find the right grid position
     }
     // module is a Filter => FIFO allocation for fft analyzer
-    if (dynamic_cast<FilterModuleDSP*>(module)) {
+    if (module->getModuleType() == ModuleType::IIRFilter) {
         insertNewAnalyzerFIFO(chainPosition);
     }
 }
@@ -127,8 +127,7 @@ void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
             found = true;
             audioProcessor.suspendProcessing(true);
             // remove fft analyzer FIFO associated with **it filter
-            auto filter = dynamic_cast<FilterModuleDSP*>(&**it);
-            if (filter) {
+            if ((&**it)->getModuleType() == ModuleType::IIRFilter) {
                 deleteOldAnalyzerFIFO(chainPosition);
             }
             it = DSPmodules.erase(it);
@@ -174,7 +173,7 @@ unsigned int PluginState::getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned 
             found = true;
             continue;
         }
-        if (dynamic_cast<FilterModuleDSP*>(&**it)) {
+        if ((&**it)->getModuleType() == ModuleType::IIRFilter) {
             filterModuleCounter++;
         }
     }

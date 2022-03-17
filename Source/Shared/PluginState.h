@@ -53,18 +53,18 @@ public:
 
     foleys::LevelMeterSource* getMeterSource(juce::String type);
 
-    // TODO : add getStateInformation / setStateInformation methods
-
     //==============================================================================
     
     juce::AudioProcessor& audioProcessor;
     juce::AudioProcessorValueTreeState apvts;
+
     // --------- DSP ---------
     std::vector<std::unique_ptr<DSPModule>> DSPmodules;
     // fft analyzer FIFOs allocated only if a module which needs fft analysis is istantiated
     using BlockType = juce::AudioBuffer<float>;
     std::vector<SingleChannelSampleFifo<BlockType>*> leftAnalyzerFIFOs;
     std::vector<SingleChannelSampleFifo<BlockType>*> rightAnalyzerFIFOs;
+
     // parameters which should not be visible in the DAW
     juce::Value moduleTypes;
     juce::Value moduleChainPositions;
