@@ -30,6 +30,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "../Shared/PluginState.h"
+#include "../Shared/ModuleType.h"
 
 #include "../Module/DSPModule.h"
 #include "../Module/GUIModule.h"
@@ -43,9 +44,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class ModuleFactory {
 public:
 
-    ModuleFactory(PluginState& s);
+    // ADDING A NEW MODULE GUIDE:
+    // - create 2 new classes which extend DSPModule and GUIModule
+    // - add a new entry in the ModuleType enum and in the moduleType_names map
+    // - update the createDSPModule and createGUIModule methods
 
-    // TODO : implementation of a fully-extensible factory
+    ModuleFactory(PluginState& s);
 
     DSPModule* createDSPModule(ModuleType mt);
     GUIModule* createGUIModule(ModuleType type, unsigned int parameterNumber);
@@ -54,6 +58,4 @@ private:
 
     PluginState& pluginState;
 
-    /*const std::unordered_map<ModuleType, juce::String> moduleType_names;
-    const std::unordered_map<ModuleType, DSPModule*> moduleType_DSPobjects;*/
 };
