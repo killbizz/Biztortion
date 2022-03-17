@@ -29,13 +29,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//#include "../Module/BitcrusherModule.h"
-//#include "../Module/WaveshaperModule.h"
-//#include "../Module/FilterModule.h"
-//#include "../Module/MeterModule.h"
-//#include "../Module/OscilloscopeModule.h"
-//#include "../Module/SlewLimiterModule.h"
-
 enum ModuleType {
     Uninstantiated,
     Meter,
@@ -54,12 +47,3 @@ const std::unordered_map<ModuleType, juce::String> moduleType_names({
     {ModuleType::Bitcrusher, "Bitcrusher"},
     {ModuleType::SlewLimiter, "SlewLimiter"}
     });
-
-//const std::unordered_map<ModuleType, DSPModule*> moduleType_DSPobjects({
-//    {ModuleType::Meter, new MeterModuleDSP()},
-//    {ModuleType::IIRFilter, "Filter"},
-//    {ModuleType::Oscilloscope, "Oscilloscope"},
-//    {ModuleType::Waveshaper, "Waveshaper"},
-//    {ModuleType::Bitcrusher, "Bitcrusher"},
-//    {ModuleType::SlewLimiter, "SlewLimiter"}
-//    });
