@@ -129,7 +129,7 @@ MeterModuleGUI::MeterModuleGUI(PluginState& p, juce::String _type, foleys::Level
     meter.setMeterSource(ms);
 
     levelSlider.labels.add({ 0.f, "-60dB" });
-    levelSlider.labels.add({ 1.f, "+10dB" });
+    levelSlider.labels.add({ 1.f, "10dB" });
 
     // tooltips
     levelSlider.setTooltip("Select the amount of gain to be applied to the signal");
