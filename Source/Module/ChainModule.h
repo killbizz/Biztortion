@@ -55,7 +55,7 @@ public:
     void setModuleType(ModuleType mt);
 
     void addNewModule(ModuleType type);
-    void deleteTheCurrentNewModule();
+    void deleteTheCurrentChainModule();
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -96,7 +96,8 @@ public:
 
     // deleteModule
     ModuleLookAndFeel deleteModuleLookAndFeel;
-    juce::TextButton deleteModule{ "X" };
+    /*juce::TextButton deleteModule{ "X" };*/
+    juce::DrawableButton deleteModule{"Delete", juce::DrawableButton::ButtonStyle::ImageOnButtonBackground };
 
     // currentModuleActivator
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
@@ -115,10 +116,11 @@ private:
 
     // UNUSED only by the 8° module
     std::unique_ptr<BizDrawable> rightCable;
-    juce::AffineTransform getTransform();
+    juce::AffineTransform getCableTransform();
     std::unique_ptr<BizDrawable> getRightCable(unsigned int chainPosition);
 
-    std::unique_ptr<BizDrawable> dragIcon;
+    std::unique_ptr<juce::Drawable> dragIcon;
+    juce::AffineTransform getDragIconTransform();
 
     bool somethingIsBeingDraggedOver = false;
 };

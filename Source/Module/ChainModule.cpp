@@ -35,7 +35,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     : GUIModule(), pluginState(ps), guiState(gs), chainPosition(_chainPosition), moduleFactory(pluginState)
 {
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
-    chainPositionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    chainPositionLabel.setFont(Font("Courier New", 14, juce::Font::bold));
     addAndMakeVisible(chainPositionLabel);
 
     // newModule
@@ -49,9 +49,11 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
 
     // deleteModule
     addAndMakeVisible(deleteModule);
-    deleteModule.setClickingTogglesState(true);
-    deleteModule.setToggleState(true, juce::dontSendNotification);
+    deleteModule.setVisible(false);
+    /*deleteModule.setClickingTogglesState(true);
+    deleteModule.setToggleState(true, juce::dontSendNotification);*/
     deleteModule.setTooltip("Delete the current module");
+    deleteModule.setImages(&*juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize));
 
     setupDeleteModuleColours(deleteModuleLookAndFeel);
     deleteModule.setLookAndFeel(&deleteModuleLookAndFeel);
@@ -105,7 +107,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     };
 
     deleteModule.onClick = [this] {
-        deleteTheCurrentNewModule();
+        deleteTheCurrentChainModule();
     };
 
     currentModuleActivator.onClick = [this] {
@@ -118,6 +120,12 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
         guiState.editor.addAndMakeVisible(*rightCable);
         rightCable->setAlwaysOnTop(true);
     }
+
+    // Drag-And-Drop Icon
+    dragIcon = juce::Drawable::createFromImageData(BinaryData::draghorizontal_svg, BinaryData::draghorizontal_svgSize);
+    addAndMakeVisible(*dragIcon);
+    dragIcon->setVisible(false);
+    dragIcon->setAlwaysOnTop(true);
 }
 
 ChainModuleGUI::~ChainModuleGUI()
@@ -155,7 +163,7 @@ void ChainModuleGUI::addNewModule(ModuleType type)
     this->setup(type);
 }
 
-void ChainModuleGUI::deleteTheCurrentNewModule()
+void ChainModuleGUI::deleteTheCurrentChainModule()
 {
     // remove GUI module
     moduleType = ModuleType::Uninstantiated;
@@ -203,11 +211,13 @@ void ChainModuleGUI::resized()
         deleteModule.setCentreRelative(0.5f, 0.75f);
         currentModuleActivator.setBounds(currentModuleActivatorBounds);
         currentModuleActivator.setCentreRelative(0.5f, 0.5f);
+        // Drag-And-Drop Icon
+        dragIcon->setTransform(getDragIconTransform());
     }
 
     // Audio Cables 
     if (chainPosition != 8) {
-        rightCable->setTransform(getTransform());
+        rightCable->setTransform(getCableTransform());
     }
 }
 
@@ -243,11 +253,8 @@ void ChainModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
 
 void ChainModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 {
+    laf.setColour(juce::TextButton::buttonOnColourId, juce::Colours::red);
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
-    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::red);
-
-    laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
-    laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
 }
 
 void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
@@ -262,14 +269,18 @@ void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 void ChainModuleGUI::setup(const ModuleType type)
 {
     moduleType = type;
-    // newModule and deleteModule setup
+    //chainPositionLabel - newModule - deleteModule - dragIcon setup
     if (type == ModuleType::Uninstantiated) {
+        chainPositionLabel.setVisible(true);
         newModule.setVisible(true);
         deleteModule.setVisible(false);
+        dragIcon->setVisible(false);
     }
     else {
+        chainPositionLabel.setVisible(false);
         newModule.setVisible(false);
         deleteModule.setVisible(true);
+        dragIcon->setVisible(true);
     }
     newModuleSelector.setSelectedId(999);
     newModuleSelector.setVisible(false);
@@ -293,9 +304,6 @@ void ChainModuleGUI::setup(const ModuleType type)
 
 bool ChainModuleGUI::isInterestedInDragSource(const SourceDetails& dragSourceDetails)
 {
-    // normally you'd check the sourceDescription value to see if it's the
-    // sort of object that you're interested in before returning true, but for
-    // the demo, we'll say yes to anything..
     auto component = dynamic_cast<ChainModuleGUI*>(dragSourceDetails.sourceComponent.get());
     if (component) {
         if (component->getChainPosition() == getChainPosition()) {
@@ -407,7 +415,7 @@ void ChainModuleGUI::addModuleToGUI(GUIModule* module)
     this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
 }
 
-juce::AffineTransform ChainModuleGUI::getTransform()
+juce::AffineTransform ChainModuleGUI::getCableTransform()
 {
     return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);
 }
@@ -434,4 +442,9 @@ std::unique_ptr<BizDrawable> ChainModuleGUI::getRightCable(unsigned int chainPos
         default: break;
     }
     
+}
+
+juce::AffineTransform ChainModuleGUI::getDragIconTransform()
+{
+    return juce::AffineTransform::scale(0.9f, 0.9f).translated(45.6715f, 18.7671);
 }
