@@ -103,13 +103,15 @@ public:
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
     BizTextButton currentModuleActivator;
 
+    BizLabel chainPositionLabel;
+    std::unique_ptr<juce::Drawable> dragIcon;
+
 private:
 
     PluginState& pluginState;
     GUIState& guiState;
 
     unsigned int chainPosition;
-    BizLabel chainPositionLabel;
 
     ModuleType moduleType = ModuleType::Uninstantiated;
     ModuleFactory moduleFactory;
@@ -119,7 +121,6 @@ private:
     juce::AffineTransform getCableTransform();
     std::unique_ptr<BizDrawable> getRightCable(unsigned int chainPosition);
 
-    std::unique_ptr<juce::Drawable> dragIcon;
     juce::AffineTransform getDragIconTransform();
 
     bool somethingIsBeingDraggedOver = false;

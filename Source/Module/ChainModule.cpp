@@ -50,8 +50,6 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     // deleteModule
     addAndMakeVisible(deleteModule);
     deleteModule.setVisible(false);
-    /*deleteModule.setClickingTogglesState(true);
-    deleteModule.setToggleState(true, juce::dontSendNotification);*/
     deleteModule.setTooltip("Delete the current module");
     deleteModule.setImages(&*juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize));
 
@@ -60,6 +58,8 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
 
     // currentModuleActivator
     addAndMakeVisible(currentModuleActivator);
+    currentModuleActivator.setClickingTogglesState(true);
+    currentModuleActivator.setToggleState(false, juce::dontSendNotification);
     currentModuleActivator.setTooltip("Access the current module");
 
     setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
@@ -112,6 +112,8 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
 
     currentModuleActivator.onClick = [this] {
         addModuleToGUI(moduleFactory.createGUIModule(moduleType, getChainPosition()));
+        dragIcon->setVisible(true);
+        chainPositionLabel.setVisible(false);
     };
 
     // Audio Cables
@@ -169,7 +171,18 @@ void ChainModuleGUI::deleteTheCurrentChainModule()
     moduleType = ModuleType::Uninstantiated;
     // reset the parameter values to default
     guiState.currentGUIModule->resetParameters(getChainPosition());
-    guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
+    // setup GUI
+    bool atLeastOneChainModuleIsPresent = false;
+    for (auto it = guiState.chainModules.begin(); !atLeastOneChainModuleIsPresent && it < guiState.chainModules.end(); ++it) {
+        auto& chainModule = **it;
+        if (chainModule.getModuleType() != ModuleType::Uninstantiated && chainModule.getChainPosition() != getChainPosition()) {
+            atLeastOneChainModuleIsPresent = true;
+            chainModule.addModuleToGUI(moduleFactory.createGUIModule(chainModule.getModuleType(), chainModule.getChainPosition()));
+        }
+    }
+    if (!atLeastOneChainModuleIsPresent) {
+        guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
+    }
     this->setup(moduleType);
     // remove DSP module
     pluginState.removeModuleFromDSPmodules(getChainPosition());
@@ -268,34 +281,31 @@ void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 
 void ChainModuleGUI::setup(const ModuleType type)
 {
+    //chainPositionLabel - newModule - deleteModule - dragIcon - currentModuleActivator setup
     moduleType = type;
-    //chainPositionLabel - newModule - deleteModule - dragIcon setup
     if (type == ModuleType::Uninstantiated) {
         chainPositionLabel.setVisible(true);
         newModule.setVisible(true);
         deleteModule.setVisible(false);
+
         dragIcon->setVisible(false);
+        currentModuleActivator.setVisible(false);
     }
     else {
         chainPositionLabel.setVisible(false);
         newModule.setVisible(false);
         deleteModule.setVisible(true);
-        dragIcon->setVisible(true);
-    }
-    newModuleSelector.setSelectedId(999);
-    newModuleSelector.setVisible(false);
-    newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
 
-    // currentModuleActivator setup
-    if (type != ModuleType::Uninstantiated) {
+        dragIcon->setVisible(true);
         juce::String typeString = moduleType_names.at(type);
         currentModuleActivator.setVisible(true);
         currentModuleActivator.setButtonText(typeString);
         currentModuleActivator.changeWidthToFitText(10);
     }
-    else {
-        currentModuleActivator.setVisible(false);
-    }
+    newModuleSelector.setSelectedId(999);
+    newModuleSelector.setVisible(false);
+    newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+
     resized();
 }
 
@@ -413,6 +423,13 @@ void ChainModuleGUI::addModuleToGUI(GUIModule* module)
     guiState.updateCurrentGUIModule(module);
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
+    for (auto it = guiState.chainModules.begin(); it < guiState.chainModules.end(); ++it) {
+        auto& chainModule = **it;
+        if (chainModule.getChainPosition() != getChainPosition()) {
+            chainModule.dragIcon->setVisible(false);
+            chainModule.chainPositionLabel.setVisible(true);
+        }
+    }
 }
 
 juce::AffineTransform ChainModuleGUI::getCableTransform()
