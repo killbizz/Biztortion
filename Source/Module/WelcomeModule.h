@@ -59,7 +59,7 @@ private:
     std::unique_ptr<juce::Drawable> bigNose;
     juce::Image bigNoseImg;
 
-    juce::Label author, title, version, buildInfo;
+    juce::Label author, title, version;
 
     unsigned int hueCounter = 0;
 };

@@ -77,13 +77,18 @@ void GUIState::setupChainModules()
 
 void GUIState::updateCurrentGUIModule(GUIModule* module)
 {
-    for (auto it = chainModules.begin(); it < chainModules.end(); ++it) {
-        (**it).currentModuleActivator.setToggleState(false, juce::NotificationType::dontSendNotification);
-        (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
-    }
+    updateChainModules();
     currentGUIModule = std::unique_ptr<GUIModule>(module);
     editor.addAndMakeVisible(*currentGUIModule);
     // WARNING: for juce::Component default settings the wantsKeyboardFocus is false
     currentGUIModule->setWantsKeyboardFocus(true);
     editor.resized();
+}
+
+void GUIState::updateChainModules()
+{
+    for (auto it = chainModules.begin(); it < chainModules.end(); ++it) {
+        (**it).currentModuleActivator.setToggleState(false, juce::NotificationType::dontSendNotification);
+        (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+    }
 }

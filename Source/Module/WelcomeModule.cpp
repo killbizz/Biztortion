@@ -33,16 +33,11 @@ WelcomeModuleGUI::WelcomeModuleGUI()
 {
     bigNoseImg = juce::ImageFileFormat::loadFrom(BinaryData::biztortionNoseAlpha_png, BinaryData::biztortionNoseAlpha_pngSize);
 
-    author.setText("(c) 2021 Gabriel Bizzo", juce::dontSendNotification);
+    author.setText("(c) 2021-2022 Gabriel Bizzo", juce::dontSendNotification);
     author.setFont(juce::Font("Courier New", 16, 0));
 
-    version.setText("version: 1.0", juce::dontSendNotification);
+    version.setText("version: 1.1", juce::dontSendNotification);
     version.setFont(juce::Font("Courier New", 16, 0));
-
-    juce::String buildDate = "2022/01/02";
-
-    buildInfo.setText("build: " + buildDate, juce::dontSendNotification);
-    buildInfo.setFont(juce::Font("Courier New", 16, 0));
 
     for (auto* comp : getAllComps())
     {
@@ -81,9 +76,6 @@ void WelcomeModuleGUI::resized()
 
     version.setBounds(topArea);
     version.setJustificationType(juce::Justification::centredRight);
-
-    buildInfo.setBounds(bottomArea);
-    buildInfo.setJustificationType(juce::Justification::centredRight);
     
 }
 
@@ -91,8 +83,7 @@ std::vector<juce::Component*> WelcomeModuleGUI::getAllComps()
 {
     return {
         &author,
-        &version,
-        &buildInfo
+        &version
     };
 }
 

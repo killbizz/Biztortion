@@ -43,6 +43,7 @@ public:
 
     void setupChainModules();
     void updateCurrentGUIModule(GUIModule* module);
+    void updateChainModules();
 
     //==============================================================================
 

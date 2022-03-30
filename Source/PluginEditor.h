@@ -46,13 +46,13 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "Shared/GUIState.h"
 #include "Module/WelcomeModule.h"
 
-class BiztortionAudioProcessorEditor  : public juce::AudioProcessorEditor, public DragAndDropContainer
+class BiztortionAudioProcessorEditor : public juce::AudioProcessorEditor, public DragAndDropContainer
 {
 public:
-    BiztortionAudioProcessorEditor (juce::AudioProcessor& ap, PluginState& ps);
+    BiztortionAudioProcessorEditor(juce::AudioProcessor& ap, PluginState& ps);
     ~BiztortionAudioProcessorEditor() override;
 
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
     //==============================================================================
@@ -77,6 +77,27 @@ private:
         BiztortionAudioProcessorEditor& editor;
     };
 
+    class TitleLabel : public Label
+    {
+    public:
+
+        TitleLabel(juce::String title, BiztortionAudioProcessorEditor& e) : juce::Label(title, title), editor(e) {}
+        void mouseDown(const MouseEvent& event) override {
+            editor.guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
+        }
+        void paint(juce::Graphics& g) override
+        {
+            g.setColour(juce::Colour(132, 135, 138));
+            auto renderArea = getLocalBounds();
+            g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
+        }
+
+    private:
+        BiztortionAudioProcessorEditor& editor;
+    };
+
+    TitleLabel title;
+
     juce::TooltipWindow tooltipWindow;
 
     juce::HyperlinkButton helpButton;
@@ -87,5 +108,5 @@ private:
 
     ModuleLookAndFeel laf;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BiztortionAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BiztortionAudioProcessorEditor)
 };

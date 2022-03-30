@@ -41,10 +41,14 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProcessor& ap, PluginState& ps)
-    : AudioProcessorEditor (&ap), guiState(*this, ps), githubLink("About", {"https://github.com/killbizz"})
+    : AudioProcessorEditor (&ap), guiState(*this, ps), githubLink("About", {"https://github.com/killbizz"}), title("Biztortion", *this)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+
+    title.setFont(juce::Font("Courier New", 30, 0));
+    title.setColour(juce::Label::ColourIds::textColourId, juce::Colours::black);
+    addAndMakeVisible(title);
 
     tooltipWindow.setLookAndFeel(&laf);
 
@@ -128,8 +132,8 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillPath(curve);
 
 
-    g.setColour(juce::Colours::black);
-    g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
+    // g.setColour(juce::Colours::black);
+    // g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
     
 }
 
@@ -139,6 +143,16 @@ void BiztortionAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
     auto bounds = getLocalBounds();
+
+    auto titleBounds = bounds;
+
+    titleBounds.reduce(JUCE_LIVE_CONSTANT(20),
+        JUCE_LIVE_CONSTANT(20));
+    titleBounds.translate(JUCE_LIVE_CONSTANT(10),
+        JUCE_LIVE_CONSTANT(10));
+
+    title.setBounds(titleBounds);
+    title.setJustificationType(juce::Justification::centred);
 
     helpButton.setBoundsRelative(0.15f, 0.01f, 0.1f, 0.05);
     githubLink.setBoundsRelative(0.75f, 0.01f, 0.1f, 0.05);
