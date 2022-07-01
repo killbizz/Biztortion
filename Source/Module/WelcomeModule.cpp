@@ -33,7 +33,7 @@ WelcomeModuleGUI::WelcomeModuleGUI()
 {
     bigNoseImg = juce::ImageFileFormat::loadFrom(BinaryData::biztortionNoseAlpha_png, BinaryData::biztortionNoseAlpha_pngSize);
 
-    author.setText("(c) 2021-2022 Gabriel Bizzo", juce::dontSendNotification);
+    author.setText("(c) 2022 Gabriel Bizzo", juce::dontSendNotification);
     author.setFont(juce::Font("Courier New", 16, 0));
 
     version.setText("version: 1.1", juce::dontSendNotification);
