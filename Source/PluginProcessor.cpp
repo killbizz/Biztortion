@@ -253,8 +253,6 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
     {
         pluginState.apvts.replaceState(tree);
 
-        // TODO : add moduleParameterNumbers
-
         if (!pluginState.apvts.state.hasProperty("moduleTypes")) {
             pluginState.apvts.state.setProperty("moduleTypes", var(juce::Array<juce::var>()), nullptr);
         }
@@ -265,7 +263,12 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         }
         pluginState.moduleChainPositions.referTo(pluginState.apvts.state.getPropertyAsValue("moduleChainPositions", nullptr));
 
-        // modules types and chainPositions to re-create DSPmodules saved in the APVTS
+        if (!pluginState.apvts.state.hasProperty("moduleParameterNumbers")) {
+            pluginState.apvts.state.setProperty("moduleParameterNumbers", var(juce::Array<juce::var>()), nullptr);
+        }
+        pluginState.moduleParameterNumbers.referTo(pluginState.apvts.state.getPropertyAsValue("moduleParameterNumbers", nullptr));
+
+        // moduleTypes, chainPositions and parameterNumbers to re-create DSPmodules saved in the APVTS
 
         auto mt = pluginState.moduleTypes.getValue().getArray();
         if (!pluginState.moduleTypes.getValue().isArray()) {
@@ -275,6 +278,15 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         if (!pluginState.moduleChainPositions.getValue().isArray()) {
             jassertfalse;
         }
+
+
+
+
+        // TODO : add parameterNumber property to DSPModule and GUIModule classes for the drag-and-drop logic
+        //        + finish restoring DSP modules logic adding parameterNumbers
+
+
+
 
         // restoring DSP modules
         auto chainPosition = mcp->begin();

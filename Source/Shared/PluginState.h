@@ -43,7 +43,8 @@ public:
 
     void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
     void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
-    void addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition);
+    // returns the parameter number of the freshly added DSPmodule
+    unsigned int addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition);
     void removeModuleFromDSPmodules(unsigned int chainPosition);
     void removeDSPmoduleFromAPVTS(unsigned int chainPosition);
 
@@ -59,16 +60,18 @@ public:
     juce::AudioProcessorValueTreeState apvts;
 
     // --------- DSP ---------
+
+    // chain positions range : 1 - 8
     std::vector<std::unique_ptr<DSPModule>> DSPmodules;
     // fft analyzer FIFOs allocated only if a module which needs fft analysis is istantiated
     using BlockType = juce::AudioBuffer<float>;
     std::vector<SingleChannelSampleFifo<BlockType>*> leftAnalyzerFIFOs;
     std::vector<SingleChannelSampleFifo<BlockType>*> rightAnalyzerFIFOs;
 
-    // parameters which should not be visible in the DAW
+    // parameters which should not be visible in the DAW, used for storing/retrieving the plugin state
     juce::Value moduleTypes;
     juce::Value moduleChainPositions;
-    // TODO : add moduleParameterNumbers
+    juce::Value moduleParameterNumbers;
 
 private:
 

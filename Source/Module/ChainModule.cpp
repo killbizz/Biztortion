@@ -160,8 +160,8 @@ void ChainModuleGUI::setModuleType(ModuleType mt)
 void ChainModuleGUI::addNewModule(ModuleType type)
 {
     pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(type), getChainPosition());
-    pluginState.addDSPmoduleToAPVTS(type, getChainPosition());
-    addModuleToGUI(moduleGenerator.createGUIModule(type, getChainPosition()));
+    unsigned int parameterNumber = pluginState.addDSPmoduleToAPVTS(type, getChainPosition());
+    addModuleToGUI(moduleGenerator.createGUIModule(type, parameterNumber));
     this->setup(type);
 }
 
@@ -347,6 +347,13 @@ void ChainModuleGUI::itemDragExit(const SourceDetails& /*dragSourceDetails*/)
 // drag-and-drop logic : changes one module position or swap two modules
 void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
 {
+
+
+
+    // TODO : handling parameterNumber to swap 2 modules
+
+
+
     auto component = dynamic_cast<ChainModuleGUI*>(dragSourceDetails.sourceComponent.get());
     auto type = component->getModuleType();
     auto cp = component->getChainPosition();
@@ -394,7 +401,7 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     delete postModuleInOldPosition;
     delete preModuleInNewPosition;
     delete postModuleInNewPosition;
-    // delete the editor currentGUIModule (is mandatory before deleting the DSP modules for the oscilloscope module)
+    // delete the editor.currentGUIModule (is mandatory before deleting the DSP modules for the oscilloscope)
     delete guiState.currentGUIModule.release();
     if (oneModuleIsAllocatedHere) {
         // delete preNewPositionDSPModule

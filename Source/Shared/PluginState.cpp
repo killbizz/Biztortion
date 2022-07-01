@@ -36,12 +36,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/SlewLimiterModule.h"
 #include "../Module/OscilloscopeModule.h"
 
-PluginState::PluginState(juce::AudioProcessor& ap) : 
+PluginState::PluginState(juce::AudioProcessor& ap) :
     audioProcessor(ap),
     apvts(ap, nullptr, "Parameters", createParameterLayout()),
     moduleTypes(var(juce::Array<juce::var>())),
-    moduleChainPositions(var(juce::Array<juce::var>()))
-    // TODO : add moduleParameterNumbers
+    moduleChainPositions(var(juce::Array<juce::var>())),
+    moduleParameterNumbers(var(juce::Array<juce::var>()))
 {
     DSPModule* inputMeter = new MeterModuleDSP(apvts, "Input");
     DSPmodules.push_back(std::unique_ptr<DSPModule>(inputMeter));
@@ -57,7 +57,11 @@ PluginState::PluginState(juce::AudioProcessor& ap) :
         apvts.state.setProperty("moduleChainPositions", var(juce::Array<juce::var>()), nullptr);
     }
     moduleChainPositions.referTo(apvts.state.getPropertyAsValue("moduleChainPositions", nullptr));
-    // TODO : add moduleParameterNumbers
+
+    if (!apvts.state.hasProperty("moduleParameterNumbers")) {
+        apvts.state.setProperty("moduleParameterNumbers", var(juce::Array<juce::var>()), nullptr);
+    }
+    moduleChainPositions.referTo(apvts.state.getPropertyAsValue("moduleParameterNumbers", nullptr));
 }
 
 void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition)
@@ -100,23 +104,52 @@ void PluginState::addAndSetupModuleForDSP(DSPModule* module, unsigned int chainP
     audioProcessor.suspendProcessing(false);
 }
 
-void PluginState::addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition)
+unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned int chainPosition)
 {
     auto mtArray = moduleTypes.getValue().getArray();
+    auto mtSearch = moduleTypes.getValue().getArray();
     if (!moduleTypes.getValue().isArray()) {
         jassertfalse;
     }
+
     auto mcpArray = moduleChainPositions.getValue().getArray();
     if (!moduleChainPositions.getValue().isArray()) {
         jassertfalse;
     }
-    // TODO : add moduleParameterNumbers
 
-    mtArray->add(var((int)mt));
+    auto mpnArray = moduleParameterNumbers.getValue().getArray();
+    auto mpnSearch = moduleParameterNumbers.getValue().getArray();
+    if (!moduleParameterNumbers.getValue().isArray()) {
+        jassertfalse;
+    }
+
+    // assigning the first available number to the parameters of the freshly added DSPmodule
+    unsigned int parameterNumber = 1;
+
+    auto mpn = mpnSearch->begin();
+    auto type = mtSearch->begin();
+
+    while (type < mtSearch->end()) {
+        if (static_cast<ModuleType>(int(*type)) == moduleType && int(*mpn) == parameterNumber) {
+            ++parameterNumber;
+            mpn = mpnSearch->begin();
+            type = mtSearch->begin();
+        }
+        else {
+            ++mpn;
+            ++type;
+        }
+    }
+
+    mtArray->add(var((int)moduleType));
     mcpArray->add(var((int)chainPosition));
+    mpnArray->add(var((int)parameterNumber));
 
     moduleTypes.setValue(*mtArray);
     moduleChainPositions.setValue(*mcpArray);
+    moduleParameterNumbers.setValue(*mpnArray);
+
+    return parameterNumber;
 }
 
 void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
@@ -142,25 +175,36 @@ void PluginState::removeDSPmoduleFromAPVTS(unsigned int chainPosition)
     if (!moduleTypes.getValue().isArray()) {
         jassertfalse;
     }
+
     auto mcp = moduleChainPositions.getValue().getArray();
     if (!moduleChainPositions.getValue().isArray()) {
         jassertfalse;
     }
-    // TODO : add moduleParameterNumbers
 
+    auto mpn = moduleParameterNumbers.getValue().getArray();
+    if (!moduleParameterNumbers.getValue().isArray()) {
+        jassertfalse;
+    }
+
+    auto pn = mpn->begin();
     auto cp = mcp->begin();
     bool found = false;
+
     for (auto type = mt->begin(); !found && type < mt->end(); ++type) {
         if (chainPosition == int(*cp)) {
             found = true;
             mt->remove(type);
             mcp->remove(cp);
+            mpn->remove(pn);
             break;
         }
         ++cp;
+        ++pn;
     }
+
     moduleTypes.setValue(*mt);
     moduleChainPositions.setValue(*mcp);
+    moduleParameterNumbers.setValue(*mpn);
 }
 
 unsigned int PluginState::getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition)

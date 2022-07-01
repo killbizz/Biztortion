@@ -42,9 +42,10 @@
         <FILE id="SrtuIT" name="GUIState.h" compile="0" resource="0" file="Source/Shared/GUIState.h"/>
         <FILE id="szjAV1" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
         <FILE id="wPGj1Y" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
-        <FILE id="c4lIGn" name="ModuleFactory.cpp" compile="1" resource="0"
-              file="Source/Shared/ModuleFactory.cpp"/>
-        <FILE id="Mno5NO" name="ModuleFactory.h" compile="0" resource="0" file="Source/Shared/ModuleFactory.h"/>
+        <FILE id="iZogDi" name="ModuleGenerator.cpp" compile="1" resource="0"
+              file="Source/Shared/ModuleGenerator.cpp"/>
+        <FILE id="ysiY45" name="ModuleGenerator.h" compile="0" resource="0"
+              file="Source/Shared/ModuleGenerator.h"/>
         <FILE id="XHS35Z" name="ModuleType.h" compile="0" resource="0" file="Source/Shared/ModuleType.h"/>
         <FILE id="jE7lxU" name="PluginState.cpp" compile="1" resource="0" file="Source/Shared/PluginState.cpp"/>
         <FILE id="u2PZmA" name="PluginState.h" compile="0" resource="0" file="Source/Shared/PluginState.h"/>
