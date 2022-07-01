@@ -130,10 +130,6 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
     curve.applyTransform(AffineTransform().scaled(-1.01, 1));
     curve.applyTransform(AffineTransform().translated(getWidth(), 0));
     g.fillPath(curve);
-
-
-    // g.setColour(juce::Colours::black);
-    // g.drawFittedText(title, bounds, juce::Justification::centredTop, 1);
     
 }
 
