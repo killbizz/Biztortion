@@ -96,7 +96,6 @@ public:
 
     // deleteModule
     ModuleLookAndFeel deleteModuleLookAndFeel;
-    /*juce::TextButton deleteModule{ "X" };*/
     juce::DrawableButton deleteModule{"Delete", juce::DrawableButton::ButtonStyle::ImageOnButtonBackground };
 
     // currentModuleActivator

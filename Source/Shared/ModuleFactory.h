@@ -44,9 +44,9 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class ModuleFactory {
 public:
 
-    // ADDING A NEW MODULE GUIDE:
+    // SOFTWARE EXTENSIBILITY : guide to add a new chain module:
     // - create 2 new classes which extend DSPModule and GUIModule
-    // - add a new entry in the ModuleType enum and in the moduleType_names map
+    // - add a new entry in the ModuleType enum and in the moduleType_names map (in ../Shared/ModuleType.h file)
     // - update the createDSPModule and createGUIModule methods
 
     ModuleFactory(PluginState& s);
