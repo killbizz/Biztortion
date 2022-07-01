@@ -50,7 +50,7 @@ BiztortionAudioProcessor::BiztortionAudioProcessor()
                      #endif
                        ),
     pluginState(*this),
-    moduleFactory(pluginState)
+    moduleGenerator(pluginState)
 
 #endif
 {}
@@ -279,7 +279,7 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         // restoring DSP modules
         auto chainPosition = mcp->begin();
         for (auto type = mt->begin(); type < mt->end(); ++type) {
-            pluginState.addAndSetupModuleForDSP(moduleFactory.createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
+            pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
             ++chainPosition;
         }
 

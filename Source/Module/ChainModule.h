@@ -35,7 +35,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Shared/GUIState.h"
 #include "../Shared/PluginState.h"
 #include "../Module/WelcomeModule.h"
-#include "../Shared/ModuleFactory.h"
+#include "../Shared/ModuleGenerator.h"
 
 //==============================================================================
 
@@ -113,7 +113,7 @@ private:
     unsigned int chainPosition;
 
     ModuleType moduleType = ModuleType::Uninstantiated;
-    ModuleFactory moduleFactory;
+    ModuleGenerator moduleGenerator;
 
     // UNUSED only by the 8° module
     std::unique_ptr<BizDrawable> rightCable;

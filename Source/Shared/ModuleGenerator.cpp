@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    ModuleFactory.cpp
+    ModuleGenerator.cpp
 
     Copyright (c) 2022 KillBizz - Gabriel Bizzo
 
@@ -27,13 +27,13 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 */
 
-#include "ModuleFactory.h"
+#include "ModuleGenerator.h"
 
-ModuleFactory::ModuleFactory(PluginState& s) : pluginState(s)
+ModuleGenerator::ModuleGenerator(PluginState& s) : pluginState(s)
 {
 }
 
-DSPModule* ModuleFactory::createDSPModule(ModuleType mt)
+DSPModule* ModuleGenerator::createDSPModule(ModuleType mt)
 {
     DSPModule* newModule = nullptr;
     switch (mt) {
@@ -63,7 +63,7 @@ DSPModule* ModuleFactory::createDSPModule(ModuleType mt)
     return newModule;
 }
 
-GUIModule* ModuleFactory::createGUIModule(ModuleType type, unsigned int parameterNumber)
+GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parameterNumber)
 {
     GUIModule* newModule = nullptr;
     switch (type) {

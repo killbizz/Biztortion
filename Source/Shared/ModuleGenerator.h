@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    ModuleFactory.h
+    ModuleGenerator.h
 
     Copyright (c) 2022 KillBizz - Gabriel Bizzo
 
@@ -41,7 +41,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/OscilloscopeModule.h"
 #include "../Module/SlewLimiterModule.h"
 
-class ModuleFactory {
+class ModuleGenerator {
 public:
 
     // SOFTWARE EXTENSIBILITY : guide to add a new chain module:
@@ -49,7 +49,7 @@ public:
     // - add a new entry in the ModuleType enum and in the moduleType_names map (in ../Shared/ModuleType.h file)
     // - update the createDSPModule and createGUIModule methods
 
-    ModuleFactory(PluginState& s);
+    ModuleGenerator(PluginState& s);
 
     DSPModule* createDSPModule(ModuleType mt);
     GUIModule* createGUIModule(ModuleType type, unsigned int parameterNumber);

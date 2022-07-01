@@ -39,7 +39,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "Shared/ModuleFactory.h"
+#include "Shared/moduleGenerator.h"
 #include "Shared/PluginState.h"
 
 class BiztortionAudioProcessor  : public juce::AudioProcessor
@@ -80,7 +80,7 @@ public:
     //==============================================================================
 
     PluginState pluginState;
-    ModuleFactory moduleFactory;
+    ModuleGenerator moduleGenerator;
 
 private:
 
