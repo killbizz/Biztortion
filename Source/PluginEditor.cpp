@@ -146,10 +146,8 @@ void BiztortionAudioProcessorEditor::resized()
 
     auto titleBounds = bounds;
 
-    titleBounds.reduce(JUCE_LIVE_CONSTANT(20),
-        JUCE_LIVE_CONSTANT(20));
-    titleBounds.translate(JUCE_LIVE_CONSTANT(10),
-        JUCE_LIVE_CONSTANT(10));
+    titleBounds.reduce(359, 272);
+    titleBounds.translate(-1, -273);
 
     title.setBounds(titleBounds);
     title.setJustificationType(juce::Justification::centred);

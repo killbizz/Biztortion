@@ -81,15 +81,11 @@ private:
     {
     public:
 
-        TitleLabel(juce::String title, BiztortionAudioProcessorEditor& e) : juce::Label(title, title), editor(e) {}
+        TitleLabel(juce::String title, BiztortionAudioProcessorEditor& e) : juce::Label(title, title), editor(e) {
+            setMouseCursor(MouseCursor::PointingHandCursor);
+        }
         void mouseDown(const MouseEvent& event) override {
             editor.guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
-        }
-        void paint(juce::Graphics& g) override
-        {
-            g.setColour(juce::Colour(132, 135, 138));
-            auto renderArea = getLocalBounds();
-            g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
         }
 
     private:
