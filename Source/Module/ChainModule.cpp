@@ -111,7 +111,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     };
 
     currentModuleActivator.onClick = [this] {
-        addModuleToGUI(moduleGenerator.createGUIModule(moduleType, getChainPosition()));
+        addModuleToGUI(moduleGenerator.createGUIModule(moduleType, pluginState.getParameterNumberFromDSPmodule(moduleType, getChainPosition())));
         dragIcon->setVisible(true);
         chainPositionLabel.setVisible(false);
     };
@@ -159,25 +159,27 @@ void ChainModuleGUI::setModuleType(ModuleType mt)
 
 void ChainModuleGUI::addNewModule(ModuleType type)
 {
-    pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(type), getChainPosition());
     unsigned int parameterNumber = pluginState.addDSPmoduleToAPVTS(type, getChainPosition());
+    pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(type), type, getChainPosition(), parameterNumber);
     addModuleToGUI(moduleGenerator.createGUIModule(type, parameterNumber));
     this->setup(type);
 }
 
 void ChainModuleGUI::deleteTheCurrentChainModule()
 {
+    auto thisParamNumber = pluginState.getParameterNumberFromDSPmodule(moduleType, getChainPosition());
     // remove GUI module
     moduleType = ModuleType::Uninstantiated;
     // reset the parameter values to default
-    guiState.currentGUIModule->resetParameters(getChainPosition());
+    guiState.currentGUIModule->resetParameters(thisParamNumber);
     // setup GUI
     bool atLeastOneChainModuleIsPresent = false;
     for (auto it = guiState.chainModules.begin(); !atLeastOneChainModuleIsPresent && it < guiState.chainModules.end(); ++it) {
         auto& chainModule = **it;
         if (chainModule.getModuleType() != ModuleType::Uninstantiated && chainModule.getChainPosition() != getChainPosition()) {
             atLeastOneChainModuleIsPresent = true;
-            chainModule.addModuleToGUI(moduleGenerator.createGUIModule(chainModule.getModuleType(), chainModule.getChainPosition()));
+            auto paramNumber = pluginState.getParameterNumberFromDSPmodule(chainModule.getModuleType(), chainModule.getChainPosition());
+            chainModule.addModuleToGUI(moduleGenerator.createGUIModule(chainModule.getModuleType(), paramNumber));
         }
     }
     if (!atLeastOneChainModuleIsPresent) {
@@ -186,7 +188,7 @@ void ChainModuleGUI::deleteTheCurrentChainModule()
     this->setup(moduleType);
     // remove DSP module
     pluginState.removeModuleFromDSPmodules(getChainPosition());
-    pluginState.removeDSPmoduleFromAPVTS(getChainPosition());
+    pluginState.removeDSPmoduleFromAPVTS(getChainPosition(), moduleType, thisParamNumber);
 }
 
 void ChainModuleGUI::paint(juce::Graphics& g)
@@ -344,41 +346,40 @@ void ChainModuleGUI::itemDragExit(const SourceDetails& /*dragSourceDetails*/)
     repaint();
 }
 
-// drag-and-drop logic : changes one module position or swap two modules
+// DRAG-AND-DROP LOGIC : changing one module position or swapping between two modules
 void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
 {
-
-
-
-    // TODO : handling parameterNumber to swap 2 modules
-
-
-
     auto component = dynamic_cast<ChainModuleGUI*>(dragSourceDetails.sourceComponent.get());
-    auto type = component->getModuleType();
-    auto cp = component->getChainPosition();
+    auto componentType = component->getModuleType();
+    auto componentChainPosition = component->getChainPosition();
+    auto componentParamNumber = pluginState.getParameterNumberFromDSPmodule(componentType, componentChainPosition);
     auto thisModuleType = moduleType;
+    auto thisChainPosition = chainPosition;
+    auto thisParamNumber = pluginState.getParameterNumberFromDSPmodule(thisModuleType, thisChainPosition);
+    thisParamNumber = thisParamNumber == 0 ? thisChainPosition : thisParamNumber;
+
     bool oneModuleIsAllocatedHere = getModuleType() != ModuleType::Uninstantiated;
+
     // add newPosition DSPModule
-    pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(type), getChainPosition());
-    pluginState.addDSPmoduleToAPVTS(type, getChainPosition());
+    pluginState.addDSPmoduleToAPVTS(componentType, thisChainPosition, componentParamNumber);
+    pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(componentType), componentType, thisChainPosition, componentParamNumber);
     if (oneModuleIsAllocatedHere) {
         // add oldPosition DSPModule
-        pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(getModuleType()), cp);
-        pluginState.addDSPmoduleToAPVTS(getModuleType(), cp);
+        pluginState.addDSPmoduleToAPVTS(thisModuleType, componentChainPosition, thisParamNumber);
+        pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(thisModuleType), thisModuleType, componentChainPosition, thisParamNumber);
     }
     // setup NewModuleGUIs
-    setup(type);
+    setup(componentType);
     if (oneModuleIsAllocatedHere) {
         component->setup(thisModuleType);
     } else {
         component->setup(ModuleType::Uninstantiated);
     }
     // create necessary GUIModules
-    GUIModule* preModuleInOldPosition = moduleGenerator.createGUIModule(type, cp);
-    GUIModule* postModuleInOldPosition = moduleGenerator.createGUIModule(thisModuleType, cp);
-    GUIModule* preModuleInNewPosition = moduleGenerator.createGUIModule(thisModuleType, getChainPosition());
-    GUIModule* postModuleInNewPosition = moduleGenerator.createGUIModule(type, getChainPosition());
+    GUIModule* preModuleInOldPosition = moduleGenerator.createGUIModule(componentType, componentParamNumber);
+    GUIModule* postModuleInOldPosition = moduleGenerator.createGUIModule(thisModuleType, componentParamNumber);
+    GUIModule* preModuleInNewPosition = moduleGenerator.createGUIModule(thisModuleType, thisParamNumber);
+    GUIModule* postModuleInNewPosition = moduleGenerator.createGUIModule(componentType, thisParamNumber);
     auto preModuleOldPositionParamValues = preModuleInOldPosition->getParamValues();
     juce::Array<juce::var> preModuleNewPositionParamValues;
     if (oneModuleIsAllocatedHere) {
@@ -390,10 +391,10 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
         postModuleInOldPosition->updateParameters(preModuleNewPositionParamValues);
     }
     // reset the parameters to default
-    if (type != thisModuleType) {
-        preModuleInOldPosition->resetParameters(cp);
+    if (componentType != thisModuleType) {
+        preModuleInOldPosition->resetParameters(componentParamNumber);
         if (oneModuleIsAllocatedHere) {
-            preModuleInNewPosition->resetParameters(getChainPosition());
+            preModuleInNewPosition->resetParameters(thisParamNumber);
         }
     }
     // delete GUIModules
@@ -405,14 +406,14 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     delete guiState.currentGUIModule.release();
     if (oneModuleIsAllocatedHere) {
         // delete preNewPositionDSPModule
-        pluginState.removeModuleFromDSPmodules(getChainPosition());
-        pluginState.removeDSPmoduleFromAPVTS(getChainPosition());
+        pluginState.removeModuleFromDSPmodules(thisChainPosition);
+        pluginState.removeDSPmoduleFromAPVTS(thisChainPosition, thisModuleType, thisParamNumber);
     }
     // delete preOldPositionDSPModule
-    pluginState.removeModuleFromDSPmodules(cp);
-    pluginState.removeDSPmoduleFromAPVTS(cp);
+    pluginState.removeModuleFromDSPmodules(componentChainPosition);
+    pluginState.removeDSPmoduleFromAPVTS(componentChainPosition, componentType, componentParamNumber);
     // add the fresh GUImodule to the editor (is mandatory to create a new GUIModule after deleting the DSP modules for the filter module)
-    addModuleToGUI(moduleGenerator.createGUIModule(type, getChainPosition()));
+    addModuleToGUI(moduleGenerator.createGUIModule(componentType, componentParamNumber));
     somethingIsBeingDraggedOver = false;
     repaint();
 }
