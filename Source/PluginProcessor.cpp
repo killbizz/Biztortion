@@ -278,21 +278,21 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         if (!pluginState.moduleChainPositions.getValue().isArray()) {
             jassertfalse;
         }
-
-
-
-
-        // TODO : add parameterNumber property to DSPModule and GUIModule classes for the drag-and-drop logic
-        //        + finish restoring DSP modules logic adding parameterNumbers
-
-
-
+        auto mpn = pluginState.moduleParameterNumbers.getValue().getArray();
+        if (!pluginState.moduleParameterNumbers.getValue().isArray()) {
+            jassertfalse;
+        }
 
         // restoring DSP modules
         auto chainPosition = mcp->begin();
+        auto parameterNumber = mpn->begin();
         for (auto type = mt->begin(); type < mt->end(); ++type) {
-            pluginState.addAndSetupModuleForDSP(moduleGenerator.createDSPModule(static_cast<ModuleType>(int(*type))), int(*chainPosition));
+
+            pluginState.addAndSetupModuleForDSP(
+                moduleGenerator.createDSPModule(static_cast<ModuleType>(int(*type))), static_cast<ModuleType>(int(*type)), int(*chainPosition), int(*parameterNumber));
+
             ++chainPosition;
+            ++parameterNumber;
         }
 
         if (getActiveEditor() != nullptr) {
