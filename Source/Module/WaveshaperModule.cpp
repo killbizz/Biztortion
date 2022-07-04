@@ -50,11 +50,6 @@ WaveshaperModuleDSP::WaveshaperModuleDSP(juce::AudioProcessorValueTreeState& _ap
 {
 }
 
-void WaveshaperModuleDSP::setModuleType()
-{
-    moduleType = ModuleType::Waveshaper;
-}
-
 void WaveshaperModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
@@ -157,19 +152,19 @@ void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
     }
 }
 
-WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
+WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber)
 {
     WaveshaperSettings settings;
 
-    settings.drive = apvts.getRawParameterValue("Waveshaper Drive " + std::to_string(chainPosition))->load();
-    settings.mix = apvts.getRawParameterValue("Waveshaper Mix " + std::to_string(chainPosition))->load();
-    settings.symmetry = apvts.getRawParameterValue("Waveshaper Symmetry " + std::to_string(chainPosition))->load();
-    settings.bias = apvts.getRawParameterValue("Waveshaper Bias " + std::to_string(chainPosition))->load();
-    settings.tanhAmp = apvts.getRawParameterValue("Waveshaper Tanh Amp " + std::to_string(chainPosition))->load();
-    settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope " + std::to_string(chainPosition))->load();
-    settings.sinAmp = apvts.getRawParameterValue("Waveshaper Sine Amp " + std::to_string(chainPosition))->load();
-    settings.sinFreq = apvts.getRawParameterValue("Waveshaper Sine Freq " + std::to_string(chainPosition))->load();
-    settings.bypassed = apvts.getRawParameterValue("Waveshaper Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
+    settings.drive = apvts.getRawParameterValue("Waveshaper Drive " + std::to_string(parameterNumber))->load();
+    settings.mix = apvts.getRawParameterValue("Waveshaper Mix " + std::to_string(parameterNumber))->load();
+    settings.symmetry = apvts.getRawParameterValue("Waveshaper Symmetry " + std::to_string(parameterNumber))->load();
+    settings.bias = apvts.getRawParameterValue("Waveshaper Bias " + std::to_string(parameterNumber))->load();
+    settings.tanhAmp = apvts.getRawParameterValue("Waveshaper Tanh Amp " + std::to_string(parameterNumber))->load();
+    settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope " + std::to_string(parameterNumber))->load();
+    settings.sinAmp = apvts.getRawParameterValue("Waveshaper Sine Amp " + std::to_string(parameterNumber))->load();
+    settings.sinFreq = apvts.getRawParameterValue("Waveshaper Sine Freq " + std::to_string(parameterNumber))->load();
+    settings.bypassed = apvts.getRawParameterValue("Waveshaper Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
 }

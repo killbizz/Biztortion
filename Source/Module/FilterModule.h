@@ -136,12 +136,10 @@ public:
     }
     static Coefficients makePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
 
-    static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition);
+    static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
     MonoChain* getOneChain();
-
-    void setModuleType() override;
 
     void updateDSPState(double sampleRate) override;
     void updatePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);

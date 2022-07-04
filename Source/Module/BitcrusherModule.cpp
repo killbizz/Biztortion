@@ -104,11 +104,6 @@ Array<float> BitcrusherModuleDSP::getWhiteNoise(int numSamples) {
 
 }
 
-void BitcrusherModuleDSP::setModuleType()
-{
-    moduleType = ModuleType::Bitcrusher;
-}
-
 void BitcrusherModuleDSP::updateDSPState(double sampleRate)
 {
     auto settings = getSettings(apvts, getChainPosition());
@@ -247,18 +242,18 @@ void BitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
     }
 }
 
-BitcrusherSettings BitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
+BitcrusherSettings BitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber)
 {
     BitcrusherSettings settings;
 
-    settings.drive = apvts.getRawParameterValue("Bitcrusher Drive " + std::to_string(chainPosition))->load();
-    settings.mix = apvts.getRawParameterValue("Bitcrusher Mix " + std::to_string(chainPosition))->load();
-    settings.symmetry = apvts.getRawParameterValue("Bitcrusher Symmetry " + std::to_string(chainPosition))->load();
-    settings.bias = apvts.getRawParameterValue("Bitcrusher Bias " + std::to_string(chainPosition))->load();
-    settings.rateRedux = apvts.getRawParameterValue("Bitcrusher Rate Redux " + std::to_string(chainPosition))->load();
-    settings.bitRedux = apvts.getRawParameterValue("Bitcrusher Bit Redux " + std::to_string(chainPosition))->load();
-    settings.dither = apvts.getRawParameterValue("Bitcrusher Dither " + std::to_string(chainPosition))->load();
-    settings.bypassed = apvts.getRawParameterValue("Bitcrusher Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
+    settings.drive = apvts.getRawParameterValue("Bitcrusher Drive " + std::to_string(parameterNumber))->load();
+    settings.mix = apvts.getRawParameterValue("Bitcrusher Mix " + std::to_string(parameterNumber))->load();
+    settings.symmetry = apvts.getRawParameterValue("Bitcrusher Symmetry " + std::to_string(parameterNumber))->load();
+    settings.bias = apvts.getRawParameterValue("Bitcrusher Bias " + std::to_string(parameterNumber))->load();
+    settings.rateRedux = apvts.getRawParameterValue("Bitcrusher Rate Redux " + std::to_string(parameterNumber))->load();
+    settings.bitRedux = apvts.getRawParameterValue("Bitcrusher Bit Redux " + std::to_string(parameterNumber))->load();
+    settings.dither = apvts.getRawParameterValue("Bitcrusher Dither " + std::to_string(parameterNumber))->load();
+    settings.bypassed = apvts.getRawParameterValue("Bitcrusher Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
 }

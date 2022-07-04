@@ -49,14 +49,11 @@ struct MeterSettings {
 class MeterModuleDSP : public DSPModule {
 public:
     MeterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type);
-    // virtual DSPModule* clone() override;
 
     juce::String getType();
     static MeterSettings getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
     foleys::LevelMeterSource& getMeterSource();
-
-    void setModuleType() override;
 
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;

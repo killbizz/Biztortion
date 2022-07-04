@@ -70,11 +70,6 @@ foleys::LevelMeterSource& MeterModuleDSP::getMeterSource()
     return meterSource;
 }
 
-void MeterModuleDSP::setModuleType()
-{
-    moduleType = ModuleType::Meter;
-}
-
 void MeterModuleDSP::updateDSPState(double)
 {
     auto settings = getSettings(apvts, type);

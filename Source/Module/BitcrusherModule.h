@@ -67,13 +67,12 @@ public:
 
     Array<float> getWhiteNoise(int numSamples);
 
-    void setModuleType() override;
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
-    static BitcrusherSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition);
+    static BitcrusherSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
 
 private:
 

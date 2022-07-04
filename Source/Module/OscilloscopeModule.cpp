@@ -52,12 +52,12 @@ drow::AudioOscilloscope* OscilloscopeModuleDSP::getRightOscilloscope()
     return &rightOscilloscope;
 }
 
-OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
+OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber)
 {
     OscilloscopeSettings settings;
-    settings.hZoom = apvts.getRawParameterValue("Oscilloscope H Zoom " + std::to_string(chainPosition))->load();
-    settings.vZoom = apvts.getRawParameterValue("Oscilloscope V Zoom " + std::to_string(chainPosition))->load();
-    settings.bypassed = apvts.getRawParameterValue("Oscilloscope Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
+    settings.hZoom = apvts.getRawParameterValue("Oscilloscope H Zoom " + std::to_string(parameterNumber))->load();
+    settings.vZoom = apvts.getRawParameterValue("Oscilloscope V Zoom " + std::to_string(parameterNumber))->load();
+    settings.bypassed = apvts.getRawParameterValue("Oscilloscope Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
 }
@@ -75,11 +75,6 @@ void OscilloscopeModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Pa
         layout.add(std::make_unique<AudioParameterBool>("Oscilloscope Bypassed " + std::to_string(i), "Oscilloscope Bypassed " + std::to_string(i), 
             false, "Oscilloscope " + std::to_string(i)));
     }
-}
-
-void OscilloscopeModuleDSP::setModuleType()
-{
-    moduleType = ModuleType::Oscilloscope;
 }
 
 void OscilloscopeModuleDSP::updateDSPState(double sampleRate)

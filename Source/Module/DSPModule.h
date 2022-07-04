@@ -36,17 +36,13 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 class DSPModule {
 public:
     DSPModule(juce::AudioProcessorValueTreeState& _apvts);
-    // virtual ~DSPModule() = default;
-
-    // mandatory for a fully-extensible ModuleFactory
-    // virtual DSPModule* clone() = 0;
 
     unsigned int getChainPosition();
     void setChainPosition(unsigned int cp);
     unsigned int getParameterNumber();
     void setParameterNumber(unsigned int pn);
     ModuleType getModuleType();
-    virtual void setModuleType() = 0;
+    void setModuleType(ModuleType moduleType);
 
     virtual void updateDSPState(double sampleRate) = 0;
     virtual void prepareToPlay(double sampleRate, int samplesPerBlock) = 0;
@@ -55,12 +51,12 @@ public:
 protected:
     juce::AudioProcessorValueTreeState& apvts;
 
-    // range: 0 - 9
-    // mandatory for the correct placement in the DSPmodules
+    // range: 1 - 8
+    // the position of this in the DSPmodules vector
     unsigned int chainPosition;
-    // mandatory for a consistent connection between the module and a specific parameter
+    // number which determines the connection between this module and his parameters set
     unsigned int parameterNumber;
-
+    // the type of this module
     ModuleType moduleType;
 
     /**

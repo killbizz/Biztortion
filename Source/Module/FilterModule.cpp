@@ -60,20 +60,19 @@ Coefficients FilterModuleDSP::makePeakFilter(const FilterChainSettings& chainSet
         juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
 }
 
-FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition) {
+FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber) {
     FilterChainSettings settings;
 
-    settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq " + std::to_string(chainPosition))->load();
-    settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq " + std::to_string(chainPosition))->load();
-    settings.peakFreq = apvts.getRawParameterValue("Peak Freq " + std::to_string(chainPosition))->load();
-    settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain " + std::to_string(chainPosition))->load();
-    settings.peakQuality = apvts.getRawParameterValue("Peak Quality " + std::to_string(chainPosition))->load();
-    settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope " + std::to_string(chainPosition))->load();
-    settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope " + std::to_string(chainPosition))->load();
+    settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq " + std::to_string(parameterNumber))->load();
+    settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq " + std::to_string(parameterNumber))->load();
+    settings.peakFreq = apvts.getRawParameterValue("Peak Freq " + std::to_string(parameterNumber))->load();
+    settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain " + std::to_string(parameterNumber))->load();
+    settings.peakQuality = apvts.getRawParameterValue("Peak Quality " + std::to_string(parameterNumber))->load();
+    settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope " + std::to_string(parameterNumber))->load();
+    settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope " + std::to_string(parameterNumber))->load();
     // bypass
-    settings.bypassed = apvts.getRawParameterValue("Filter Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
-    settings.analyzerBypassed = apvts.getRawParameterValue("Filter Analyzer Enabled " + std::to_string(chainPosition))->load() > 0.5f;
-
+    settings.bypassed = apvts.getRawParameterValue("Filter Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.analyzerBypassed = apvts.getRawParameterValue("Filter Analyzer Enabled " + std::to_string(parameterNumber))->load() > 0.5f;
     return settings;
 }
 
@@ -160,11 +159,6 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
 MonoChain* FilterModuleDSP::getOneChain()
 {
     return &leftChain;
-}
-
-void FilterModuleDSP::setModuleType()
-{
-    moduleType = ModuleType::IIRFilter;
 }
 
 void FilterModuleDSP::updateDSPState(double sampleRate) {

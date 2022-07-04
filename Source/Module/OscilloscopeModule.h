@@ -55,10 +55,8 @@ public:
     drow::AudioOscilloscope* getLeftOscilloscope();
     drow::AudioOscilloscope* getRightOscilloscope();
 
-    static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition);
+    static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
-
-    void setModuleType() override;
 
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;

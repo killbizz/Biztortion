@@ -52,11 +52,6 @@ SlewLimiterModuleDSP::SlewLimiterModuleDSP(juce::AudioProcessorValueTreeState& _
 {
 }
 
-void SlewLimiterModuleDSP::setModuleType()
-{
-    moduleType = ModuleType::SlewLimiter;
-}
-
 void SlewLimiterModuleDSP::updateDSPState(double sampleRate)
 {
     auto settings = getSettings(apvts, getChainPosition());
@@ -197,18 +192,18 @@ void SlewLimiterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Par
     }
 }
 
-SlewLimiterSettings SlewLimiterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int chainPosition)
+SlewLimiterSettings SlewLimiterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber)
 {
     SlewLimiterSettings settings;
 
-    settings.drive = apvts.getRawParameterValue("SlewLimiter Drive " + std::to_string(chainPosition))->load();
-    settings.mix = apvts.getRawParameterValue("SlewLimiter Mix " + std::to_string(chainPosition))->load();
-    settings.symmetry = apvts.getRawParameterValue("SlewLimiter Symmetry " + std::to_string(chainPosition))->load();
-    settings.bias = apvts.getRawParameterValue("SlewLimiter Bias " + std::to_string(chainPosition))->load();
-    settings.rise = apvts.getRawParameterValue("SlewLimiter Rise " + std::to_string(chainPosition))->load();
-    settings.fall = apvts.getRawParameterValue("SlewLimiter Fall " + std::to_string(chainPosition))->load();
-    settings.DCoffsetRemove = apvts.getRawParameterValue("SlewLimiter DCoffset Enabled " + std::to_string(chainPosition))->load() > 0.5f;
-    settings.bypassed = apvts.getRawParameterValue("SlewLimiter Bypassed " + std::to_string(chainPosition))->load() > 0.5f;
+    settings.drive = apvts.getRawParameterValue("SlewLimiter Drive " + std::to_string(parameterNumber))->load();
+    settings.mix = apvts.getRawParameterValue("SlewLimiter Mix " + std::to_string(parameterNumber))->load();
+    settings.symmetry = apvts.getRawParameterValue("SlewLimiter Symmetry " + std::to_string(parameterNumber))->load();
+    settings.bias = apvts.getRawParameterValue("SlewLimiter Bias " + std::to_string(parameterNumber))->load();
+    settings.rise = apvts.getRawParameterValue("SlewLimiter Rise " + std::to_string(parameterNumber))->load();
+    settings.fall = apvts.getRawParameterValue("SlewLimiter Fall " + std::to_string(parameterNumber))->load();
+    settings.DCoffsetRemove = apvts.getRawParameterValue("SlewLimiter DCoffset Enabled " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.bypassed = apvts.getRawParameterValue("SlewLimiter Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
 }
