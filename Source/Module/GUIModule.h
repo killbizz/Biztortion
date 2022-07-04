@@ -46,7 +46,7 @@ public:
     // update the parameters of this GUIModule using the parameter values from values array
     virtual void updateParameters(const juce::Array<juce::var>& values) = 0;
     // reset the parameters of this GUIModule to default values
-    virtual void resetParameters(unsigned int chainPosition) = 0;
+    virtual void resetParameters(unsigned int parameterNumber) = 0;
     // get parameter values of this GUIModule (vars in the array can be bool or double values)
     virtual juce::Array<juce::var> getParamValues() = 0;
 
