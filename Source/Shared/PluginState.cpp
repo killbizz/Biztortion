@@ -90,13 +90,14 @@ void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPos
     }
 }
 
-void PluginState::addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition)
+void PluginState::addAndSetupModuleForDSP(DSPModule* module, ModuleType moduleType, unsigned int chainPosition, unsigned int parameterNumber)
 {
     // suspend audio processing
     audioProcessor.suspendProcessing(true);
     // DSP module setup
     module->setChainPosition(chainPosition);
-    module->setModuleType();
+    module->setParameterNumber(parameterNumber);
+    module->setModuleType(moduleType);
     addModuleToDSPmodules(module, chainPosition);
     // prepare to play the audio chain
     audioProcessor.prepareToPlay(audioProcessor.getSampleRate(), audioProcessor.getBlockSize());
@@ -104,7 +105,7 @@ void PluginState::addAndSetupModuleForDSP(DSPModule* module, unsigned int chainP
     audioProcessor.suspendProcessing(false);
 }
 
-unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned int chainPosition)
+unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned int chainPosition, int parameterNumber)
 {
     auto mtArray = moduleTypes.getValue().getArray();
     auto mtSearch = moduleTypes.getValue().getArray();
@@ -124,14 +125,15 @@ unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned in
     }
 
     // assigning the first available number to the parameters of the freshly added DSPmodule
-    unsigned int parameterNumber = 1;
+    // only if parameterNumber == 0, else I use parameterNumber value 
+    unsigned int parameterNumberToUse = parameterNumber != 0 ? parameterNumber : 1;
 
     auto mpn = mpnSearch->begin();
     auto type = mtSearch->begin();
 
-    while (type < mtSearch->end()) {
-        if (static_cast<ModuleType>(int(*type)) == moduleType && int(*mpn) == parameterNumber) {
-            ++parameterNumber;
+    while (parameterNumber == 0 && type < mtSearch->end()) {
+        if (static_cast<ModuleType>(int(*type)) == moduleType && int(*mpn) == parameterNumberToUse) {
+            ++parameterNumberToUse;
             mpn = mpnSearch->begin();
             type = mtSearch->begin();
         }
@@ -143,13 +145,13 @@ unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned in
 
     mtArray->add(var((int)moduleType));
     mcpArray->add(var((int)chainPosition));
-    mpnArray->add(var((int)parameterNumber));
+    mpnArray->add(var((int)parameterNumberToUse));
 
     moduleTypes.setValue(*mtArray);
     moduleChainPositions.setValue(*mcpArray);
     moduleParameterNumbers.setValue(*mpnArray);
 
-    return parameterNumber;
+    return parameterNumberToUse;
 }
 
 void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
@@ -169,7 +171,7 @@ void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
     }
 }
 
-void PluginState::removeDSPmoduleFromAPVTS(unsigned int chainPosition)
+void PluginState::removeDSPmoduleFromAPVTS(unsigned int chainPosition, ModuleType moduleType, unsigned int parameterNumber)
 {
     auto mt = moduleTypes.getValue().getArray();
     if (!moduleTypes.getValue().isArray()) {
@@ -191,7 +193,7 @@ void PluginState::removeDSPmoduleFromAPVTS(unsigned int chainPosition)
     bool found = false;
 
     for (auto type = mt->begin(); !found && type < mt->end(); ++type) {
-        if (chainPosition == int(*cp)) {
+        if (chainPosition == int(*cp) && int(moduleType) == int(*type) && parameterNumber == int(*pn)) {
             found = true;
             mt->remove(type);
             mcp->remove(cp);
@@ -265,6 +267,20 @@ foleys::LevelMeterSource* PluginState::getMeterSource(juce::String type)
         }
     }
     return source;
+}
+
+unsigned int PluginState::getParameterNumberFromDSPmodule(ModuleType moduleType, unsigned int chainPosition)
+{
+    unsigned int paramNumber = 0;
+    bool found = false;
+    for (auto it = DSPmodules.cbegin(); !found && it < DSPmodules.cend(); ++it) {
+        if (( (*it)->getChainPosition() == chainPosition ) && ( (*it)->getModuleType() == moduleType )) {
+            found = true;
+            paramNumber = (*it)->getParameterNumber();
+            continue;
+        }
+    }
+    return paramNumber;
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameterLayout() {

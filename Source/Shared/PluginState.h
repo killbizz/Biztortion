@@ -42,17 +42,19 @@ public:
     PluginState(juce::AudioProcessor& ap);
 
     void addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition);
-    void addAndSetupModuleForDSP(DSPModule* module, unsigned int chainPosition);
+    void addAndSetupModuleForDSP(DSPModule* module, ModuleType moduleType, unsigned int chainPosition, unsigned int parameterNumber);
     // returns the parameter number of the freshly added DSPmodule
-    unsigned int addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition);
+    unsigned int addDSPmoduleToAPVTS(ModuleType mt, unsigned int chainPosition, int parameterNumber = 0);
     void removeModuleFromDSPmodules(unsigned int chainPosition);
-    void removeDSPmoduleFromAPVTS(unsigned int chainPosition);
+    void removeDSPmoduleFromAPVTS(unsigned int chainPosition, ModuleType moduleType, unsigned int parameterNumber);
 
     unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
     void insertNewAnalyzerFIFO(unsigned int chainPosition);
     void deleteOldAnalyzerFIFO(unsigned int chainPosition);
 
     foleys::LevelMeterSource* getMeterSource(juce::String type);
+
+    unsigned int getParameterNumberFromDSPmodule(ModuleType moduleType, unsigned int chainPosition);
 
     //==============================================================================
     
