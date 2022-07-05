@@ -379,9 +379,9 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
     }
     // create necessary GUIModules
     GUIModule* preModuleInOldPosition = moduleGenerator.createGUIModule(componentType, componentParamNumber);
-    GUIModule* postModuleInOldPosition = moduleGenerator.createGUIModule(thisModuleType, componentParamNumber);
+    GUIModule* postModuleInOldPosition = moduleGenerator.createGUIModule(thisModuleType, thisParamNumber);
     GUIModule* preModuleInNewPosition = moduleGenerator.createGUIModule(thisModuleType, thisParamNumber);
-    GUIModule* postModuleInNewPosition = moduleGenerator.createGUIModule(componentType, thisParamNumber);
+    GUIModule* postModuleInNewPosition = moduleGenerator.createGUIModule(componentType, componentParamNumber);
     auto preModuleOldPositionParamValues = preModuleInOldPosition->getParamValues();
     juce::Array<juce::var> preModuleNewPositionParamValues;
     if (oneModuleIsAllocatedHere) {

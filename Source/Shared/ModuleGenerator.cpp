@@ -77,7 +77,7 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
             bool found = false;
             for (auto it = pluginState.DSPmodules.cbegin(); !found && it < pluginState.DSPmodules.cend(); ++it) {
                 auto temp = dynamic_cast<OscilloscopeModuleDSP*>(&**it);
-                if ((**it).getChainPosition() == parameterNumber && temp) {
+                if ((**it).getParameterNumber() == parameterNumber && temp) {
                     auto next = it;
                     ++next;
                     // [A]
