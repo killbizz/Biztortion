@@ -168,8 +168,6 @@ void ChainModuleGUI::addNewModule(ModuleType type)
 void ChainModuleGUI::deleteTheCurrentChainModule()
 {
     auto thisParamNumber = pluginState.getParameterNumberFromDSPmodule(moduleType, getChainPosition());
-    // remove GUI module
-    moduleType = ModuleType::Uninstantiated;
     // reset the parameter values to default
     guiState.currentGUIModule->resetParameters(thisParamNumber);
     // setup GUI
@@ -180,15 +178,19 @@ void ChainModuleGUI::deleteTheCurrentChainModule()
             atLeastOneChainModuleIsPresent = true;
             auto paramNumber = pluginState.getParameterNumberFromDSPmodule(chainModule.getModuleType(), chainModule.getChainPosition());
             chainModule.addModuleToGUI(moduleGenerator.createGUIModule(chainModule.getModuleType(), paramNumber));
+            chainModule.dragIcon->setVisible(true);
+            chainModule.chainPositionLabel.setVisible(false);
         }
     }
     if (!atLeastOneChainModuleIsPresent) {
         guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
     }
-    this->setup(moduleType);
     // remove DSP module
     pluginState.removeModuleFromDSPmodules(getChainPosition());
     pluginState.removeDSPmoduleFromAPVTS(getChainPosition(), moduleType, thisParamNumber);
+    // setup of the chain module
+    moduleType = ModuleType::Uninstantiated;
+    this->setup(moduleType);
 }
 
 void ChainModuleGUI::paint(juce::Graphics& g)
@@ -391,12 +393,12 @@ void ChainModuleGUI::itemDropped(const SourceDetails& dragSourceDetails)
         postModuleInOldPosition->updateParameters(preModuleNewPositionParamValues);
     }
     // reset the parameters to default
-    if (componentType != thisModuleType) {
+    /*if (componentType != thisModuleType) {
         preModuleInOldPosition->resetParameters(componentParamNumber);
         if (oneModuleIsAllocatedHere) {
             preModuleInNewPosition->resetParameters(thisParamNumber);
         }
-    }
+    }*/
     // delete GUIModules
     delete preModuleInOldPosition;
     delete postModuleInOldPosition;
