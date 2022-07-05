@@ -106,7 +106,7 @@ Array<float> BitcrusherModuleDSP::getWhiteNoise(int numSamples) {
 
 void BitcrusherModuleDSP::updateDSPState(double sampleRate)
 {
-    auto settings = getSettings(apvts, getChainPosition());
+    auto settings = getSettings(apvts, parameterNumber);
 
     bypassed = settings.bypassed;
 

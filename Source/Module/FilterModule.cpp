@@ -162,7 +162,7 @@ MonoChain* FilterModuleDSP::getOneChain()
 }
 
 void FilterModuleDSP::updateDSPState(double sampleRate) {
-    auto settings = getSettings(apvts, getChainPosition());
+    auto settings = getSettings(apvts, parameterNumber);
 
     bypassed = settings.bypassed;
     updateLowCutFilter(settings, sampleRate);

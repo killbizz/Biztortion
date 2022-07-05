@@ -171,7 +171,7 @@ WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTre
 
 void WaveshaperModuleDSP::updateDSPState(double)
 {
-    auto settings = getSettings(apvts, getChainPosition());
+    auto settings = getSettings(apvts, parameterNumber);
 
     bypassed = settings.bypassed;
 

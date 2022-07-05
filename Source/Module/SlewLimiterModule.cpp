@@ -54,7 +54,7 @@ SlewLimiterModuleDSP::SlewLimiterModuleDSP(juce::AudioProcessorValueTreeState& _
 
 void SlewLimiterModuleDSP::updateDSPState(double sampleRate)
 {
-    auto settings = getSettings(apvts, getChainPosition());
+    auto settings = getSettings(apvts, parameterNumber);
 
     bypassed = settings.bypassed;
 

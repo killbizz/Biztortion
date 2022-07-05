@@ -79,7 +79,7 @@ void OscilloscopeModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Pa
 
 void OscilloscopeModuleDSP::updateDSPState(double sampleRate)
 {
-    auto settings = getSettings(apvts, getChainPosition());
+    auto settings = getSettings(apvts, parameterNumber);
     bypassed = settings.bypassed;
     leftOscilloscope.setHorizontalZoom(settings.hZoom);
     leftOscilloscope.setVerticalZoom(settings.vZoom);
