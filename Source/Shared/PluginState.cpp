@@ -283,6 +283,20 @@ unsigned int PluginState::getParameterNumberFromDSPmodule(ModuleType moduleType,
     return paramNumber;
 }
 
+unsigned int PluginState::getChainPositionFromDSPmodule(ModuleType moduleType, unsigned int parameterNumber)
+{
+    unsigned int chainPosition = 0;
+    bool found = false;
+    for (auto it = DSPmodules.cbegin(); !found && it < DSPmodules.cend(); ++it) {
+        if (((*it)->getParameterNumber() == parameterNumber) && ((*it)->getModuleType() == moduleType)) {
+            found = true;
+            chainPosition = (*it)->getChainPosition();
+            continue;
+        }
+    }
+    return chainPosition;
+}
+
 juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 

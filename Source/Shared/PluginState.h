@@ -55,6 +55,7 @@ public:
     foleys::LevelMeterSource* getMeterSource(juce::String type);
 
     unsigned int getParameterNumberFromDSPmodule(ModuleType moduleType, unsigned int chainPosition);
+    unsigned int getChainPositionFromDSPmodule(ModuleType moduleType, unsigned int parameterNumber);
 
     //==============================================================================
     
