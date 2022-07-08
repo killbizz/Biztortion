@@ -48,6 +48,7 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProce
 
     title.setFont(juce::Font("Courier New", 30, 0));
     title.setColour(juce::Label::ColourIds::textColourId, juce::Colours::black);
+    title.setTooltip("Show the Homepage");
     addAndMakeVisible(title);
 
     tooltipWindow.setLookAndFeel(&laf);
