@@ -50,7 +50,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     // deleteModule
     addAndMakeVisible(deleteModule);
     deleteModule.setVisible(false);
-    deleteModule.setTooltip("Delete the current module");
+    deleteModule.setTooltip("Delete this module");
     deleteModule.setImages(&*juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize));
 
     setupDeleteModuleColours(deleteModuleLookAndFeel);
@@ -60,7 +60,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     addAndMakeVisible(currentModuleActivator);
     currentModuleActivator.setClickingTogglesState(true);
     currentModuleActivator.setToggleState(false, juce::dontSendNotification);
-    currentModuleActivator.setTooltip("Access the current module");
+    currentModuleActivator.setTooltip("Access this module");
 
     setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
     currentModuleActivator.setLookAndFeel(&currentModuleActivatorLookAndFeel);
@@ -270,7 +270,7 @@ void ChainModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
 
 void ChainModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::TextButton::buttonOnColourId, juce::Colours::red);
+    laf.setColour(juce::DrawableButton::ColourIds::backgroundOnColourId, juce::Colours::red);
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
 }
 
