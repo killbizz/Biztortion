@@ -169,7 +169,9 @@ void ChainModuleGUI::deleteTheCurrentChainModule()
 {
     auto thisParamNumber = pluginState.getParameterNumberFromDSPmodule(moduleType, getChainPosition());
     // reset the parameter values to default
-    guiState.currentGUIModule->resetParameters(thisParamNumber);
+    GUIModule* guiModule = moduleGenerator.createGUIModule(moduleType, thisParamNumber);
+    guiModule->resetParameters(thisParamNumber);
+    delete guiModule;
     // setup GUI
     bool atLeastOneChainModuleIsPresent = false;
     for (auto it = guiState.chainModules.begin(); !atLeastOneChainModuleIsPresent && it < guiState.chainModules.end(); ++it) {
