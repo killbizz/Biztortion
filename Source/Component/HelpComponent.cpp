@@ -41,7 +41,7 @@ HelpComponent::HelpComponent()
 	two.setFont(juce::Font("Courier New", 22, 0));
 	two.setText("2)", juce::dontSendNotification);
 
-	secondRow.setText("Use the slots below to link modules in series and create your own custom processing chain. You can also drag-and-drop the modules to change their position.", juce::dontSendNotification);
+	secondRow.setText("Use the slots below to link modules in series and create your own custom processing chain. You can also drag-and-drop the modules to change their position", juce::dontSendNotification);
 	secondRow.setFont(juce::Font("Courier New", 18, 0));
 
 	three.setFont(juce::Font("Courier New", 22, 0));
