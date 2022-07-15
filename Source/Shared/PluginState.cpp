@@ -61,7 +61,7 @@ PluginState::PluginState(juce::AudioProcessor& ap) :
     if (!apvts.state.hasProperty("moduleParameterNumbers")) {
         apvts.state.setProperty("moduleParameterNumbers", var(juce::Array<juce::var>()), nullptr);
     }
-    moduleChainPositions.referTo(apvts.state.getPropertyAsValue("moduleParameterNumbers", nullptr));
+    moduleParameterNumbers.referTo(apvts.state.getPropertyAsValue("moduleParameterNumbers", nullptr));
 }
 
 void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition)
@@ -108,7 +108,6 @@ void PluginState::addAndSetupModuleForDSP(DSPModule* module, ModuleType moduleTy
 unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned int chainPosition, int parameterNumber)
 {
     auto mtArray = moduleTypes.getValue().getArray();
-    auto mtSearch = moduleTypes.getValue().getArray();
     if (!moduleTypes.getValue().isArray()) {
         jassertfalse;
     }
@@ -119,7 +118,6 @@ unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned in
     }
 
     auto mpnArray = moduleParameterNumbers.getValue().getArray();
-    auto mpnSearch = moduleParameterNumbers.getValue().getArray();
     if (!moduleParameterNumbers.getValue().isArray()) {
         jassertfalse;
     }
@@ -128,14 +126,14 @@ unsigned int PluginState::addDSPmoduleToAPVTS(ModuleType moduleType, unsigned in
     // only if parameterNumber == 0, else I use parameterNumber value 
     unsigned int parameterNumberToUse = parameterNumber != 0 ? parameterNumber : 1;
 
-    auto mpn = mpnSearch->begin();
-    auto type = mtSearch->begin();
+    auto mpn = mpnArray->begin();
+    auto type = mtArray->begin();
 
-    while (parameterNumber == 0 && type < mtSearch->end()) {
+    while (parameterNumber == 0 && type < mtArray->end()) {
         if (static_cast<ModuleType>(int(*type)) == moduleType && int(*mpn) == parameterNumberToUse) {
             ++parameterNumberToUse;
-            mpn = mpnSearch->begin();
-            type = mtSearch->begin();
+            mpn = mpnArray->begin();
+            type = mtArray->begin();
         }
         else {
             ++mpn;

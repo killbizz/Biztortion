@@ -283,6 +283,15 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
             jassertfalse;
         }
 
+        if (mt->isEmpty() || mcp->isEmpty() || mpn->isEmpty()) {
+            pluginState.moduleTypes = var(juce::Array<juce::var>());
+            mt = pluginState.moduleTypes.getValue().getArray();
+            pluginState.moduleChainPositions = var(juce::Array<juce::var>());
+            auto mcp = pluginState.moduleChainPositions.getValue().getArray();
+            pluginState.moduleParameterNumbers = var(juce::Array<juce::var>());
+            auto mpn = pluginState.moduleParameterNumbers.getValue().getArray();
+        }
+
         // restoring DSP modules
         auto chainPosition = mcp->begin();
         auto parameterNumber = mpn->begin();
