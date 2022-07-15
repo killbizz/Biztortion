@@ -47,7 +47,7 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
 {
 
     static Font getLabelsFont() {
-        return Font("Courier New", 14, 0);
+        return Font("Courier New", 14, Font::bold);
     }
 
     static Font getTitlesFont() {
