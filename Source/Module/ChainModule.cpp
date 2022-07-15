@@ -70,7 +70,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     // 999 id for the default text entry
     newModuleSelector.addItem("Select the module to create", 999);
     newModuleSelector.addSeparator();
-    newModuleSelector.addItem("Oscilloscope", ModuleType::Oscilloscope);
+    newModuleSelector.addItem("Audio Scope", ModuleType::Oscilloscope);
     newModuleSelector.addItem("Filter", ModuleType::IIRFilter);
     newModuleSelector.addSeparator();
     newModuleSelector.addItem("Waveshaper", ModuleType::Waveshaper);
@@ -213,8 +213,8 @@ void ChainModuleGUI::resized()
     juce::Rectangle<int> newModuleBounds, deleteModuleBounds, currentModuleActivatorBounds;
     newModuleBounds = deleteModuleBounds = currentModuleActivatorBounds = bounds;
     newModuleBounds.reduce(20, 40);
-    deleteModuleBounds.reduce(30, 44);
-    currentModuleActivatorBounds.reduce(2, 40);
+    deleteModuleBounds.reduce(30, 46);
+    currentModuleActivatorBounds.reduce(2, 38);
 
     auto chainPositionLabelArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 4.f));
 
