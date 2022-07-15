@@ -52,11 +52,11 @@ protected:
     juce::AudioProcessorValueTreeState& apvts;
 
     // range: 1 - 8
-    // the position of this in the DSPmodules vector
+    // the position of this in the audio processing chain
     unsigned int chainPosition;
     // number which determines the connection between this module and his parameters set
     unsigned int parameterNumber;
-    // the type of this module
+    // the module type of this
     ModuleType moduleType;
 
     /**
