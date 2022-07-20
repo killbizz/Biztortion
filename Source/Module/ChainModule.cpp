@@ -70,12 +70,14 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     // 999 id for the default text entry
     newModuleSelector.addItem("Select the module to create", 999);
     newModuleSelector.addSeparator();
-    newModuleSelector.addItem("Audio Scope", ModuleType::Oscilloscope);
-    newModuleSelector.addItem("Filter", ModuleType::IIRFilter);
-    newModuleSelector.addSeparator();
-    newModuleSelector.addItem("Waveshaper", ModuleType::Waveshaper);
-    newModuleSelector.addItem("Bitcrusher", ModuleType::Bitcrusher);
-    newModuleSelector.addItem("Slew Limiter", ModuleType::SlewLimiter);
+    for (auto type : moduleType_names) {
+        if (type.first != ModuleType::Meter) {
+            newModuleSelector.addItem(moduleType_names.at(type.first), type.first);
+        }
+        if (type.first == ModuleType::IIRFilter) {
+            newModuleSelector.addSeparator();
+        }
+    }
 
     newModuleSelector.setSelectedId(999);
     //newModuleSelector.setTooltip("Select the module to create");
