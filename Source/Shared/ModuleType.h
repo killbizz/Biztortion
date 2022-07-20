@@ -32,19 +32,20 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 enum ModuleType {
     Uninstantiated,
     Meter,
-    IIRFilter,
     Oscilloscope,
+    IIRFilter,
     Waveshaper,
-    Bitcrusher,
+    ClassicBitcrusher,
+    SpectrumBitcrusher,
     SlewLimiter
 };
 
 const std::unordered_map<ModuleType, juce::String> moduleType_names({
     {ModuleType::Meter, "Meter"},
-    {ModuleType::IIRFilter, "Filter"},
     {ModuleType::Oscilloscope, "Audio Scope"},
+    {ModuleType::IIRFilter, "Filter"},
     {ModuleType::Waveshaper, "Waveshaper"},
-    // {ModuleType::TimeBitcrusher, "Time Bitcrusher"},
-    {ModuleType::Bitcrusher, "Bitcrusher"},
+    {ModuleType::ClassicBitcrusher, "Classic Bitcrusher"},
+    {ModuleType::SpectrumBitcrusher, "Spectrum Bitcrusher"},
     {ModuleType::SlewLimiter, "Slew Limiter"}
     });

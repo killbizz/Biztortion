@@ -49,8 +49,12 @@ DSPModule* ModuleGenerator::createDSPModule(ModuleType mt)
         newModule = new WaveshaperModuleDSP(pluginState.apvts);
         break;
     }
-    case ModuleType::Bitcrusher: {
-        newModule = new BitcrusherModuleDSP(pluginState.apvts);
+    case ModuleType::ClassicBitcrusher: {
+        newModule = new ClassicBitcrusherModuleDSP(pluginState.apvts);
+        break;
+    }
+    case ModuleType::SpectrumBitcrusher: {
+        newModule = new SpectrumBitcrusherModuleDSP(pluginState.apvts);
         break;
     }
     case ModuleType::SlewLimiter: {
@@ -67,10 +71,6 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
 {
     GUIModule* newModule = nullptr;
     switch (type) {
-        case ModuleType::IIRFilter: {
-            newModule = new FilterModuleGUI(pluginState, parameterNumber);
-            break;
-        }
         case ModuleType::Oscilloscope: {
             // [A] check : if there are 2 OscilloscopeModuleDSP in the same chainPosition i need the second one (the first is gonna be deleted, used only for changing chain order)
             OscilloscopeModuleDSP* oscilloscopeDSPModule = nullptr;
@@ -93,12 +93,20 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
             newModule = new OscilloscopeModuleGUI(pluginState, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), parameterNumber);
             break;
         }
+        case ModuleType::IIRFilter: {
+            newModule = new FilterModuleGUI(pluginState, parameterNumber);
+            break;
+        }
         case ModuleType::Waveshaper: {
             newModule = new WaveshaperModuleGUI(pluginState, parameterNumber);
             break;
         }
-        case ModuleType::Bitcrusher: {
-            newModule = new BitcrusherModuleGUI(pluginState, parameterNumber);
+        case ModuleType::ClassicBitcrusher: {
+            newModule = new ClassicBitcrusherModuleGUI(pluginState, parameterNumber);
+            break;
+        }
+        case ModuleType::SpectrumBitcrusher: {
+            newModule = new SpectrumBitcrusherModuleGUI(pluginState, parameterNumber);
             break;
         }
         case ModuleType::SlewLimiter: {

@@ -32,7 +32,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/MeterModule.h"
 #include "../Module/FilterModule.h"
 #include "../Module/WaveshaperModule.h"
-#include "../Module/BitcrusherModule.h"
+#include "../Module/ClassicBitcrusherModule.h"
+#include "../Module/SpectrumBitcrusherModule.h"
 #include "../Module/SlewLimiterModule.h"
 #include "../Module/OscilloscopeModule.h"
 
@@ -304,7 +305,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameter
     FilterModuleDSP::addParameters(layout);
     WaveshaperModuleDSP::addParameters(layout);
     OscilloscopeModuleDSP::addParameters(layout);
-    BitcrusherModuleDSP::addParameters(layout);
+    ClassicBitcrusherModuleDSP::addParameters(layout);
+    SpectrumBitcrusherModuleDSP::addParameters(layout);
     SlewLimiterModuleDSP::addParameters(layout);
 
     return layout;

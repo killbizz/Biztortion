@@ -34,7 +34,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "../Module/DSPModule.h"
 #include "../Module/GUIModule.h"
-#include "../Module/BitcrusherModule.h"
+#include "../Module/ClassicBitcrusherModule.h"
+#include "../Module/SpectrumBitcrusherModule.h"
 #include "../Module/WaveshaperModule.h"
 #include "../Module/FilterModule.h"
 #include "../Module/MeterModule.h"
@@ -48,6 +49,7 @@ public:
     // - create 2 new classes which extend DSPModule and GUIModule
     // - add a new entry in the ModuleType enum and in the moduleType_names map (in ../Shared/ModuleType.h file)
     // - update the createDSPModule and createGUIModule methods
+    // - add the addParameters function of the newly created DSPModule in the ../Shared/PluginState::createParameterLayout()
 
     ModuleGenerator(PluginState& s);
 

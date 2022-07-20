@@ -1,19 +1,9 @@
 /*
   ==============================================================================
 
-    BitcrusherModule.cpp
+    SpectrumBitcrusherModule.cpp
 
-    Copyright (c) 2021 KillBizz - Gabriel Bizzo
-
-  ==============================================================================
-*/
-
-/*
-  ==============================================================================
-
-    Copyright (c) 2018 Joshua Hodge
-    Content: the original Time-Domain Bitcrusher Algorithm
-    Source: https://github.com/theaudioprogrammer/bitcrusherDemo
+    Copyright (c) 2022 KillBizz - Gabriel Bizzo
 
   ==============================================================================
 */
@@ -37,21 +27,20 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 */
 
-
-#include "BitcrusherModule.h"
-
-//==============================================================================
-
-/* BitcrusherModule DSP */
+#include "SpectrumBitcrusherModule.h"
 
 //==============================================================================
 
-BitcrusherModuleDSP::BitcrusherModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
+/* SpectrumBitcrusherModule DSP */
+
+//==============================================================================
+
+SpectrumBitcrusherModuleDSP::SpectrumBitcrusherModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
     : DSPModule(_apvts)
 {
 }
 
-Array<float> BitcrusherModuleDSP::getWhiteNoise(int numSamples) {
+Array<float> SpectrumBitcrusherModuleDSP::getWhiteNoise(int numSamples) {
 
     Array<float> noise;
 
@@ -104,7 +93,7 @@ Array<float> BitcrusherModuleDSP::getWhiteNoise(int numSamples) {
 
 }
 
-void BitcrusherModuleDSP::updateDSPState(double sampleRate)
+void SpectrumBitcrusherModuleDSP::updateDSPState(double sampleRate)
 {
     auto settings = getSettings(apvts, parameterNumber);
 
@@ -122,7 +111,7 @@ void BitcrusherModuleDSP::updateDSPState(double sampleRate)
     dither.setTargetValue(settings.dither * 0.01f);
 }
 
-void BitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
+void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     noiseBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
@@ -130,7 +119,7 @@ void BitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
     updateDSPState(sampleRate);
 }
 
-void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
+void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
 {
 
     updateDSPState(sampleRate);
@@ -147,7 +136,7 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         }
 
         // PROCESSING
-        
+
         // Wet Buffer feeding
         for (auto channel = 0; channel < 2; channel++)
             wetBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
@@ -226,64 +215,64 @@ void BitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     }
 }
 
-void BitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
+void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
 {
     using namespace juce;
 
     for (int i = 1; i < 9; ++i) {
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Drive " + std::to_string(i), "Bitcrusher Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Mix " + std::to_string(i), "Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Symmetry " + std::to_string(i), "Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bias " + std::to_string(i), "Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Rate Redux " + std::to_string(i), "Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Bit Redux " + std::to_string(i), "Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Bitcrusher Dither " + std::to_string(i), "Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterBool>("Bitcrusher Bypassed " + std::to_string(i), "Bitcrusher Bypassed " + std::to_string(i), false, "Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(i), "Spectrum Bitcrusher Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(i), "Spectrum Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(i), "Spectrum Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Rate Redux " + std::to_string(i), "Spectrum Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Dither " + std::to_string(i), "Spectrum Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
 }
 
-BitcrusherSettings BitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber)
+SpectrumBitcrusherSettings SpectrumBitcrusherModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber)
 {
-    BitcrusherSettings settings;
+    SpectrumBitcrusherSettings settings;
 
-    settings.drive = apvts.getRawParameterValue("Bitcrusher Drive " + std::to_string(parameterNumber))->load();
-    settings.mix = apvts.getRawParameterValue("Bitcrusher Mix " + std::to_string(parameterNumber))->load();
-    settings.symmetry = apvts.getRawParameterValue("Bitcrusher Symmetry " + std::to_string(parameterNumber))->load();
-    settings.bias = apvts.getRawParameterValue("Bitcrusher Bias " + std::to_string(parameterNumber))->load();
-    settings.rateRedux = apvts.getRawParameterValue("Bitcrusher Rate Redux " + std::to_string(parameterNumber))->load();
-    settings.bitRedux = apvts.getRawParameterValue("Bitcrusher Bit Redux " + std::to_string(parameterNumber))->load();
-    settings.dither = apvts.getRawParameterValue("Bitcrusher Dither " + std::to_string(parameterNumber))->load();
-    settings.bypassed = apvts.getRawParameterValue("Bitcrusher Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.drive = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber))->load();
+    settings.mix = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber))->load();
+    settings.symmetry = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber))->load();
+    settings.bias = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber))->load();
+    settings.rateRedux = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber))->load();
+    settings.bitRedux = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber))->load();
+    settings.dither = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber))->load();
+    settings.bypassed = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
 }
 
 //==============================================================================
 
-/* BitcrusherModule GUI */
+/* SpectrumBitcrusherModule GUI */
 
 //==============================================================================
 
-BitcrusherModuleGUI::BitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber)
+SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber)
     : GUIModule(), pluginState(p),
-    driveSlider(*pluginState.apvts.getParameter("Bitcrusher Drive " + std::to_string(parameterNumber)), "dB"),
-    mixSlider(*pluginState.apvts.getParameter("Bitcrusher Mix " + std::to_string(parameterNumber)), "%"),
-    symmetrySlider(*pluginState.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(parameterNumber)), "%"),
-    biasSlider(*pluginState.apvts.getParameter("Bitcrusher Bias " + std::to_string(parameterNumber)), ""),
-    bitcrusherDitherSlider(*pluginState.apvts.getParameter("Bitcrusher Dither " + std::to_string(parameterNumber)), "%"),
-    bitcrusherRateReduxSlider(*pluginState.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(parameterNumber)), "Hz"),
-    bitcrusherBitReduxSlider(*pluginState.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(parameterNumber)), ""),
-    driveSliderAttachment(pluginState.apvts, "Bitcrusher Drive " + std::to_string(parameterNumber), driveSlider),
-    mixSliderAttachment(pluginState.apvts, "Bitcrusher Mix " + std::to_string(parameterNumber), mixSlider),
-    symmetrySliderAttachment(pluginState.apvts, "Bitcrusher Symmetry " + std::to_string(parameterNumber), symmetrySlider),
-    biasSliderAttachment(pluginState.apvts, "Bitcrusher Bias " + std::to_string(parameterNumber), biasSlider),
-    bitcrusherDitherSliderAttachment(pluginState.apvts, "Bitcrusher Dither " + std::to_string(parameterNumber), bitcrusherDitherSlider),
-    bitcrusherRateReduxSliderAttachment(pluginState.apvts, "Bitcrusher Rate Redux " + std::to_string(parameterNumber), bitcrusherRateReduxSlider),
-    bitcrusherBitReduxSliderAttachment(pluginState.apvts, "Bitcrusher Bit Redux " + std::to_string(parameterNumber), bitcrusherBitReduxSlider),
-    bypassButtonAttachment(pluginState.apvts, "Bitcrusher Bypassed " + std::to_string(parameterNumber), bypassButton)
+    driveSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber)), "dB"),
+    mixSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber)), "%"),
+    symmetrySlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber)), "%"),
+    biasSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber)), ""),
+    bitcrusherDitherSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber)), "%"),
+    bitcrusherRateReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber)), "Hz"),
+    bitcrusherBitReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber)), ""),
+    driveSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber), driveSlider),
+    mixSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber), mixSlider),
+    symmetrySliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber), symmetrySlider),
+    biasSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber), biasSlider),
+    bitcrusherDitherSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber), bitcrusherDitherSlider),
+    bitcrusherRateReduxSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber), bitcrusherRateReduxSlider),
+    bitcrusherBitReduxSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber), bitcrusherBitReduxSlider),
+    bypassButtonAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
-    title.setText("Bitcrusher", juce::dontSendNotification);
+    title.setText("Spectrum Bitcrusher", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     // labels
@@ -319,7 +308,7 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(PluginState& p, unsigned int parameterN
 
     bypassButton.setLookAndFeel(&lnf);
 
-    auto safePtr = juce::Component::SafePointer<BitcrusherModuleGUI>(this);
+    auto safePtr = juce::Component::SafePointer<SpectrumBitcrusherModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
     {
         if (auto* comp = safePtr.getComponent())
@@ -347,12 +336,12 @@ BitcrusherModuleGUI::BitcrusherModuleGUI(PluginState& p, unsigned int parameterN
     handleParamCompsEnablement(bypassButton.getToggleState());
 }
 
-BitcrusherModuleGUI::~BitcrusherModuleGUI()
+SpectrumBitcrusherModuleGUI::~SpectrumBitcrusherModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
 }
 
-std::vector<juce::Component*> BitcrusherModuleGUI::getAllComps()
+std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getAllComps()
 {
     return {
         &title,
@@ -376,7 +365,7 @@ std::vector<juce::Component*> BitcrusherModuleGUI::getAllComps()
     };
 }
 
-std::vector<juce::Component*> BitcrusherModuleGUI::getParamComps()
+std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getParamComps()
 {
     return {
         &driveSlider,
@@ -389,7 +378,7 @@ std::vector<juce::Component*> BitcrusherModuleGUI::getParamComps()
     };
 }
 
-void BitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>& values)
+void SpectrumBitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
     auto value = values.begin();
 
@@ -403,16 +392,16 @@ void BitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     bitcrusherBitReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
-void BitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
+void SpectrumBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
 {
-    auto drive = pluginState.apvts.getParameter("Bitcrusher Drive " + std::to_string(parameterNumber));
-    auto mix = pluginState.apvts.getParameter("Bitcrusher Mix " + std::to_string(parameterNumber));
-    auto symmetry = pluginState.apvts.getParameter("Bitcrusher Symmetry " + std::to_string(parameterNumber));
-    auto bias = pluginState.apvts.getParameter("Bitcrusher Bias " + std::to_string(parameterNumber));
-    auto rateRedux = pluginState.apvts.getParameter("Bitcrusher Rate Redux " + std::to_string(parameterNumber));
-    auto bitRedux = pluginState.apvts.getParameter("Bitcrusher Bit Redux " + std::to_string(parameterNumber));
-    auto dither = pluginState.apvts.getParameter("Bitcrusher Dither " + std::to_string(parameterNumber));
-    auto bypassed = pluginState.apvts.getParameter("Bitcrusher Bypassed " + std::to_string(parameterNumber));
+    auto drive = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber));
+    auto mix = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber));
+    auto symmetry = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber));
+    auto bias = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber));
+    auto rateRedux = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber));
+    auto bitRedux = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber));
+    auto dither = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber));
+    auto bypassed = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());
@@ -424,7 +413,7 @@ void BitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
 }
 
-juce::Array<juce::var> BitcrusherModuleGUI::getParamValues()
+juce::Array<juce::var> SpectrumBitcrusherModuleGUI::getParamValues()
 {
     juce::Array<juce::var> values;
 
@@ -440,7 +429,7 @@ juce::Array<juce::var> BitcrusherModuleGUI::getParamValues()
     return values;
 }
 
-void BitcrusherModuleGUI::resized()
+void SpectrumBitcrusherModuleGUI::resized()
 {
     auto bitcrusherArea = getContentRenderArea();
 

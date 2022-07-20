@@ -1,19 +1,9 @@
 /*
   ==============================================================================
 
-    BitcrusherModule.h
+    SpectrumBitcrusherModule.h
 
-    Copyright (c) 2021 KillBizz - Gabriel Bizzo
-
-  ==============================================================================
-*/
-
-/*
-  ==============================================================================
-
-    Copyright (c) 2018 Joshua Hodge
-    Content: the original Time-Domain Bitcrusher Algorithm
-    Source: https://github.com/theaudioprogrammer/bitcrusherDemo
+    Copyright (c) 2022 KillBizz - Gabriel Bizzo
 
   ==============================================================================
 */
@@ -37,7 +27,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 */
 
-
 #pragma once
 
 #include <JuceHeader.h>
@@ -49,21 +38,23 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 
-/* BitcrusherModule DSP */
+/* SpectrumBitcrusherModule DSP */
 
 //==============================================================================
 
-struct BitcrusherSettings {
+struct SpectrumBitcrusherSettings {
     float mix{ 0 }, drive{ 0 };
     float symmetry{ 0 }, bias{ 0 };
     float rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
     bool bypassed{ false };
 };
 
+const juce::String SPECTRUM_BITCRUSHER_ID = "SBitcrusher ";
 
-class BitcrusherModuleDSP : public DSPModule {
+
+class SpectrumBitcrusherModuleDSP : public DSPModule {
 public:
-    BitcrusherModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
+    SpectrumBitcrusherModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
 
     Array<float> getWhiteNoise(int numSamples);
 
@@ -72,7 +63,7 @@ public:
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
-    static BitcrusherSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
+    static SpectrumBitcrusherSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
 
 private:
 
@@ -86,14 +77,14 @@ private:
 
 //==============================================================================
 
-/* BitcrusherModule GUI */
+/* SpectrumBitcrusherModule GUI */
 
 //==============================================================================
 
-class BitcrusherModuleGUI : public GUIModule {
+class SpectrumBitcrusherModuleGUI : public GUIModule {
 public:
-    BitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber);
-    ~BitcrusherModuleGUI();
+    SpectrumBitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber);
+    ~SpectrumBitcrusherModuleGUI();
 
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;

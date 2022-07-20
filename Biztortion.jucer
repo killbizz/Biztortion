@@ -68,12 +68,12 @@
               resource="0" file="Source/Component/TransferFunctionGraphComponent.h"/>
       </GROUP>
       <GROUP id="{35D8389F-08CD-6D8A-9595-9DAB35801015}" name="Module">
-        <FILE id="oXxXaA" name="BitcrusherModule.cpp" compile="1" resource="0"
-              file="Source/Module/BitcrusherModule.cpp"/>
-        <FILE id="jEJGqC" name="BitcrusherModule.h" compile="0" resource="0"
-              file="Source/Module/BitcrusherModule.h"/>
         <FILE id="YXe7c7" name="ChainModule.cpp" compile="1" resource="0" file="Source/Module/ChainModule.cpp"/>
         <FILE id="y5hFo0" name="ChainModule.h" compile="0" resource="0" file="Source/Module/ChainModule.h"/>
+        <FILE id="pRff4g" name="ClassicBitcrusherModule.cpp" compile="1" resource="0"
+              file="Source/Module/ClassicBitcrusherModule.cpp"/>
+        <FILE id="pG7Arg" name="ClassicBitcrusherModule.h" compile="0" resource="0"
+              file="Source/Module/ClassicBitcrusherModule.h"/>
         <FILE id="yc7UDc" name="DSPModule.cpp" compile="1" resource="0" file="Source/Module/DSPModule.cpp"/>
         <FILE id="qxoPsW" name="DSPModule.h" compile="0" resource="0" file="Source/Module/DSPModule.h"/>
         <FILE id="QGnBgS" name="FilterModule.cpp" compile="1" resource="0"
@@ -91,6 +91,10 @@
               file="Source/Module/SlewLimiterModule.cpp"/>
         <FILE id="vEv7b8" name="SlewLimiterModule.h" compile="0" resource="0"
               file="Source/Module/SlewLimiterModule.h"/>
+        <FILE id="PUdAeU" name="SpectrumBitcrusherModule.cpp" compile="1" resource="0"
+              file="Source/Module/SpectrumBitcrusherModule.cpp"/>
+        <FILE id="cA4CvV" name="SpectrumBitcrusherModule.h" compile="0" resource="0"
+              file="Source/Module/SpectrumBitcrusherModule.h"/>
         <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
               file="Source/Module/WaveshaperModule.cpp"/>
         <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"
