@@ -298,7 +298,8 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         for (auto type = mt->begin(); type < mt->end(); ++type) {
 
             pluginState.addAndSetupModuleForDSP(
-                moduleGenerator.createDSPModule(static_cast<ModuleType>(int(*type))), static_cast<ModuleType>(int(*type)), int(*chainPosition), int(*parameterNumber));
+                moduleGenerator.createDSPModule(static_cast<ModuleType>(int(*type))), static_cast<ModuleType>(int(*type)), int(*chainPosition), int(*parameterNumber)
+            );
 
             ++chainPosition;
             ++parameterNumber;
