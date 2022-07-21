@@ -199,18 +199,18 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         buffer.clear (i, 0, buffer.getNumSamples());
 
     if (!isSuspended()) {
-        // using a filter modules counter to find the right fft analyzer FIFO associated with the current filter
-        unsigned int filterModuleCounter = 0;
+        // using a module counter to find the right fft analyzer FIFO associated with the current module
+        unsigned int moduleCounter = 0;
         // processBlock for all the modules in the chain
         for (auto it = pluginState.DSPmodules.cbegin(); it < pluginState.DSPmodules.cend(); ++it) {
             auto module = &**it;
-            module->processBlock(buffer, midiMessages, getSampleRate());
-            // fft analyzers FIFOs update
-            if (module->getModuleType() == ModuleType::IIRFilter) {
-                auto index = filterModuleCounter++;
+            // fft analyzer FIFOs update
+            if ((module->getModuleType() == ModuleType::IIRFilter) || (module->getModuleType() == ModuleType::SpectrumBitcrusher)) {
+                auto index = moduleCounter++;
                 pluginState.leftAnalyzerFIFOs[index]->update(buffer);
                 pluginState.rightAnalyzerFIFOs[index]->update(buffer);
             }
+            module->processBlock(buffer, midiMessages, getSampleRate());
         }
 
         // test signal

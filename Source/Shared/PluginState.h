@@ -48,7 +48,7 @@ public:
     void removeModuleFromDSPmodules(unsigned int chainPosition);
     void removeDSPmoduleFromAPVTS(unsigned int chainPosition, ModuleType moduleType, unsigned int parameterNumber);
 
-    unsigned int getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition);
+    unsigned int getSampleFifoIndexOfCorrespondingModule(unsigned int chainPosition);
     void insertNewAnalyzerFIFO(unsigned int chainPosition);
     void deleteOldAnalyzerFIFO(unsigned int chainPosition);
 

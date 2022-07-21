@@ -85,8 +85,8 @@ void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPos
         }
         // else continue to iterate to find the right grid position
     }
-    // module is a Filter => FIFO allocation for fft analyzer
-    if (module->getModuleType() == ModuleType::IIRFilter) {
+    // module is a filter or spectrum bitcrusher => FIFO allocation for FFT data
+    if ((module->getModuleType() == ModuleType::IIRFilter) || (module->getModuleType() == ModuleType::SpectrumBitcrusher)) {
         insertNewAnalyzerFIFO(chainPosition);
     }
 }
@@ -160,8 +160,8 @@ void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
         if ((**it).getChainPosition() == chainPosition) {
             found = true;
             audioProcessor.suspendProcessing(true);
-            // remove fft analyzer FIFO associated with **it filter
-            if ((&**it)->getModuleType() == ModuleType::IIRFilter) {
+            // remove fft analyzer FIFO associated with **it if it's a filter or spectrum bitcrusher
+            if (((&**it)->getModuleType() == ModuleType::IIRFilter) || ((&**it)->getModuleType() == ModuleType::SpectrumBitcrusher)) {
                 deleteOldAnalyzerFIFO(chainPosition);
             }
             it = DSPmodules.erase(it);
@@ -208,28 +208,28 @@ void PluginState::removeDSPmoduleFromAPVTS(unsigned int chainPosition, ModuleTyp
     moduleParameterNumbers.setValue(*mpn);
 }
 
-unsigned int PluginState::getFftAnalyzerFifoIndexOfCorrespondingFilter(unsigned int chainPosition)
+unsigned int PluginState::getSampleFifoIndexOfCorrespondingModule(unsigned int chainPosition)
 {
-    // using a filter modules counter to find the right fft analyzer FIFO associated with the current filter
-    unsigned int filterModuleCounter = 0;
+    // using a module counter to find the right fft analyzer FIFO associated with the current filter or spectrum bitcrusher
+    unsigned int moduleCounter = 0;
     bool found = false;
     for (auto it = DSPmodules.cbegin(); !found && it < DSPmodules.cend(); ++it) {
         if ((*it)->getChainPosition() == chainPosition) {
             found = true;
             continue;
         }
-        if ((&**it)->getModuleType() == ModuleType::IIRFilter) {
-            filterModuleCounter++;
+        if (((&**it)->getModuleType() == ModuleType::IIRFilter) || ((&**it)->getModuleType() == ModuleType::SpectrumBitcrusher)) {
+            moduleCounter++;
         }
     }
-    return filterModuleCounter;
+    return moduleCounter;
 }
 
 void PluginState::insertNewAnalyzerFIFO(unsigned int chainPosition)
 {
     auto leftChannelFifo = new SingleChannelSampleFifo<BlockType>{ Channel::Left };
     auto rightChannelFifo = new SingleChannelSampleFifo<BlockType>{ Channel::Right };
-    auto index = getFftAnalyzerFifoIndexOfCorrespondingFilter(chainPosition);
+    auto index = getSampleFifoIndexOfCorrespondingModule(chainPosition);
     if (leftAnalyzerFIFOs.empty()) {
         leftAnalyzerFIFOs.push_back(leftChannelFifo);
     }
@@ -249,7 +249,7 @@ void PluginState::insertNewAnalyzerFIFO(unsigned int chainPosition)
 
 void PluginState::deleteOldAnalyzerFIFO(unsigned int chainPosition)
 {
-    auto index = getFftAnalyzerFifoIndexOfCorrespondingFilter(chainPosition);
+    auto index = getSampleFifoIndexOfCorrespondingModule(chainPosition);
     auto iteratorToDelete = leftAnalyzerFIFOs.begin() + index;
     leftAnalyzerFIFOs.erase(iteratorToDelete);
     auto iteratorToDelete2 = rightAnalyzerFIFOs.begin() + index;
