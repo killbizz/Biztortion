@@ -45,7 +45,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 struct SpectrumBitcrusherSettings {
     float mix{ 0 }, drive{ 0 };
     float symmetry{ 0 }, bias{ 0 };
-    float rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
+    float rateRedux{ 0 }, bitRedux{ 0 };
     bool bypassed{ false };
 };
 
@@ -68,10 +68,15 @@ public:
 private:
 
     bool bypassed = false;
-    juce::AudioBuffer<float> wetBuffer, noiseBuffer, tempBuffer;
+    juce::AudioBuffer<float> wetBuffer, tempBuffer;
     juce::LinearSmoothedValue<float> symmetry, bias;
-    juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain, dither;
+    juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
+
+    SingleChannelSampleFifo<juce::AudioBuffer<float>>* leftChannelSampleFifo;
+    SingleChannelSampleFifo<juce::AudioBuffer<float>>* rightChannelSampleFifo;
+    juce::AudioBuffer<float> monoBuffer;
+    FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
 
 };
 
@@ -108,21 +113,18 @@ private:
         mixLabel,
         symmetryLabel,
         biasLabel,
-        bitcrusherDitherLabel,
         bitcrusherRateReduxLabel,
         bitcrusherBitReduxLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
         symmetrySlider,
         biasSlider,
-        bitcrusherDitherSlider,
         bitcrusherRateReduxSlider,
         bitcrusherBitReduxSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
         symmetrySliderAttachment,
         biasSliderAttachment,
-        bitcrusherDitherSliderAttachment,
         bitcrusherRateReduxSliderAttachment,
         bitcrusherBitReduxSliderAttachment;
 
