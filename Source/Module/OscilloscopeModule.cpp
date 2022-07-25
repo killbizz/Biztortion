@@ -118,7 +118,7 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
     bypassButtonAttachment(pluginState.apvts, "Oscilloscope Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
-    title.setText("Audio Scope", juce::dontSendNotification);
+    title.setText("Scope", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     // labels

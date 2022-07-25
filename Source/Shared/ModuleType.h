@@ -42,7 +42,7 @@ enum ModuleType {
 
 const std::unordered_map<ModuleType, juce::String> moduleType_names({
     {ModuleType::Meter, "Meter"},
-    {ModuleType::Oscilloscope, "Audio Scope"},
+    {ModuleType::Oscilloscope, "Scope"},
     {ModuleType::IIRFilter, "Filter"},
     {ModuleType::Waveshaper, "Waveshaper"},
     {ModuleType::ClassicBitcrusher, "Classic Bitcrusher"},
