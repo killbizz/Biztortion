@@ -40,59 +40,6 @@ SpectrumBitcrusherModuleDSP::SpectrumBitcrusherModuleDSP(juce::AudioProcessorVal
 {
 }
 
-Array<float> SpectrumBitcrusherModuleDSP::getWhiteNoise(int numSamples) {
-
-    Array<float> noise;
-
-    float z0 = 0;
-    float z1 = 0;
-    bool generate = false;
-
-    float mu = 0; // center (0)
-    float sigma = 1; // spread -1 <-> 1
-
-    float output = 0;
-    float u1 = 0;
-    float u2 = 0;
-
-    Random r = Random::getSystemRandom();
-    r.setSeed(Time::getCurrentTime().getMilliseconds());
-    const float epsilon = std::numeric_limits<float>::min();
-
-    for (int s = 0; s < numSamples; s++)
-    {
-        // box muller method
-        // https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
-        generate = !generate;
-
-        if (!generate)
-            output = z1 * sigma + mu;
-        else
-        {
-            do
-            {
-                u1 = r.nextFloat();
-                u2 = r.nextFloat();
-            } while (u1 <= epsilon);
-
-            z0 = sqrtf(-2.0 * logf(u1)) * cosf(2 * float(double_Pi) * u2);
-            z1 = sqrtf(-2.0 * logf(u1)) * sinf(2 * float(double_Pi) * u2);
-
-            output = z0 * sigma + mu;
-        }
-
-        // NAN check
-        jassert(output == output);
-        jassert(output > -50 && output < 50);
-
-        noise.add(output);
-
-    }
-
-    return noise;
-
-}
-
 void SpectrumBitcrusherModuleDSP::updateDSPState(double sampleRate)
 {
     auto settings = getSettings(apvts, parameterNumber);
@@ -114,6 +61,23 @@ void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPe
 {
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
+
+    leftChannelFFTDataGenerator.prepare(FFTOrder::order4096);
+    rightChannelFFTDataGenerator.prepare(FFTOrder::order4096);
+    
+    leftChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
+    rightChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
+
+    leftChannelSampleFifo.prepare(leftChannelFFTDataGenerator.getFFTSize());
+    rightChannelSampleFifo.prepare(rightChannelFFTDataGenerator.getFFTSize());
+
+    leftAudioBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
+    rightAudioBuffer.setSize(1, rightChannelFFTDataGenerator.getFFTSize());
+    leftFFTBuffer.clear();
+    leftFFTBuffer.resize(leftChannelFFTDataGenerator.getFFTSize());
+    rightFFTBuffer.clear();
+    rightFFTBuffer.resize(rightChannelFFTDataGenerator.getFFTSize());
+
     updateDSPState(sampleRate);
 }
 
@@ -126,13 +90,22 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
 
         // SAFETY CHECK :::: since some hosts will change buffer sizes without calling prepToPlay (ex: Bitwig)
         int numSamples = buffer.getNumSamples();
+
         if (wetBuffer.getNumSamples() != numSamples)
-        {
-            wetBuffer.setSize(2, numSamples, false, true, true); // clears
-            tempBuffer.setSize(2, numSamples, false, true, true); // clears
-        }
+            prepareToPlay(sampleRate, numSamples);
 
         // PROCESSING
+
+        // TODO : frequency-domain bitcrushing (and a way to switch between time/frequency-domain)
+        // see FFTAnalyzerComponent for FFT-related stuff 
+        // https://forum.juce.com/t/issue-with-fft-plugin-inverse-transformation/16630/3
+        // https://forum.juce.com/t/fft-amplitude/28574
+        // tips:
+        // - delay iniziale del segnale = aggiunta di 0.f in tutti i sample del buffer in uscita
+        // - nel caso in cui il param mix > 0% devo ritardare la riproduzione anche del segnale dry !!
+        // - minore FFT-order - bufferSize => minor delay del segnale
+        // - outputBuffer[i+(2^fft-order / bufferSIze)] = modifiedBuffer[i] -> considerando outputBuffer e modifiedBuffer come array di buffer
+        // - risorse utili: FFTAnalyzerComponent + https://docs.juce.com/master/tutorial_simple_fft.html
 
         // Wet Buffer feeding
         for (auto channel = 0; channel < 2; channel++)
@@ -141,58 +114,91 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
         // Drive
         driveGain.applyGain(wetBuffer, numSamples);
 
+        leftChannelSampleFifo.update(wetBuffer);
+        rightChannelSampleFifo.update(wetBuffer);
+
+        bool isSomeAudioInformationReady = true;
+
         // Temp Buffer feeding for applying asymmetry
-        for (auto channel = 0; channel < 2; channel++)
-            tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);
+        /*for (auto channel = 0; channel < 2; channel++)
+            tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);*/
 
-        // TODO : frequency-domain bitcrushing (and a way to switch between time/frequency-domain)
-        // parameters: time/freq-domain switch; FFTorder selector; rate/bitRedux performs in the same way in each type of bitcrushing.
-        // see FFTAnalyzerComponent for FFT-related stuff 
-        // https://forum.juce.com/t/issue-with-fft-plugin-inverse-transformation/16630/3
-        // https://forum.juce.com/t/fft-amplitude/28574
-        // tips:
-        // - gestisco analisi FFT come nel FilterModule (possibilità di scelta all'utente tra diversi FFT-order, inizialmente fisso 1024)
-        // - faccio algoritmo che in base al bufferSize e al FFT-order effettui un delay iniziale della riproduzione in quanto non c'è abbastanza informazione per 
-        //   effettuare una corretta analisi FFT
-        // - delay del segnale = aggiunta di 0.f in tutti i sample del buffer in uscita
-        // - nel caso in cui il param mix > 0% devo ritardare la riproduzione anche del segnale dry !!
-        // - minore FFT-order - bufferSize => minor delay del segnale
-        // - outputBuffer[i+(2^fft-order / bufferSIze)] = modifiedBuffer[i] -> considerando outputBuffer e modifiedBuffer come array di buffer
-        // - risorse utili: FFTAnalyzerComponent + https://docs.juce.com/master/tutorial_simple_fft.html
+        // produce fft data information
+        if (leftChannelSampleFifo.getNumCompleteBuffersAvailable() > 0) {
+            if (leftChannelSampleFifo.getAudioBuffer(leftAudioBuffer)) {
+                // generate FFT data from audio buffer
+                leftChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(leftAudioBuffer);
+            }
+        }
+        if (rightChannelSampleFifo.getNumCompleteBuffersAvailable() > 0) {
+            if (rightChannelSampleFifo.getAudioBuffer(rightAudioBuffer)) {
+                // generate FFT data from audio buffer
+                rightChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(rightAudioBuffer);
+            }
+        }
 
+        // SPECTRUM DATA ELABORATION
 
-        // Resampling
+        // produce audio data
+        if (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
+            if (leftChannelFFTDataGenerator.getFFTData(leftFFTBuffer)) {
+                // generate audio data from fft buffer
+                leftChannelAudioDataGenerator.produceAudioDataFromFFTData(leftFFTBuffer);
+            }
+            else {
+                isSomeAudioInformationReady = false;
+            }
+        }
+        else {
+            isSomeAudioInformationReady = false;
+        }
+        if (rightChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
+            if (rightChannelFFTDataGenerator.getFFTData(rightFFTBuffer)) {
+                // generate audio data from fft buffer
+                rightChannelAudioDataGenerator.produceAudioDataFromFFTData(rightFFTBuffer);
+            } else {
+                isSomeAudioInformationReady = false;
+            }
+        } else {
+            isSomeAudioInformationReady = false;
+        }
+
+        // fill wetBuffer with a freshly built audio buffer
         for (int chan = 0; chan < wetBuffer.getNumChannels(); chan++)
         {
             float* data = wetBuffer.getWritePointer(chan);
+            juce::AudioBuffer<float> tempIncomingBuffer;
 
-            for (int i = 0; i < numSamples; i++)
-            {
-                // REDUCE BIT DEPTH
-                float totalQLevels = powf(2.f, bitRedux.getNextValue());
-                float val = data[i];
-                float remainder = fmodf(val, 1.f / totalQLevels);
+            if (isSomeAudioInformationReady) {
+                bool bufferCorrectlyRetrieved = static_cast<Channel>(chan) == Channel::Left ?
+                    leftChannelAudioDataGenerator.getAudioData(tempIncomingBuffer) : rightChannelAudioDataGenerator.getAudioData(tempIncomingBuffer);
+                jassert(bufferCorrectlyRetrieved);
+                auto* readIndex = tempIncomingBuffer.getReadPointer(0);
 
-                // Quantize
-                data[i] = val - remainder;
-
-                // Rate reduction
-                int rateReductionRatio = sampleRate / rateRedux.getNextValue();
-                if (rateReductionRatio > 1)
+                for (int i = 0; i < numSamples; i++)
                 {
-                    if (i % rateReductionRatio != 0) data[i] = data[i - i % rateReductionRatio];
+                    data[i] = readIndex[i];
+                }
+            }
+            else {
+                for (int i = 0; i < numSamples; i++)
+                {
+                    data[i] = 0.f;
                 }
             }
         }
 
-        applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
+        // applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
 
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
-        wetGain.applyGain(tempBuffer, numSamples);
+        // wetGain.applyGain(tempBuffer, numSamples);
+        wetGain.applyGain(wetBuffer, numSamples);
 
+        /*for (auto channel = 0; channel < 2; channel++)
+            buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);*/
         for (auto channel = 0; channel < 2; channel++)
-            buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+            buffer.addFrom(channel, 0, wetBuffer, channel, 0, numSamples);
     }
 }
 

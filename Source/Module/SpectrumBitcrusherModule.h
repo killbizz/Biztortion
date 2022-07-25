@@ -56,8 +56,6 @@ class SpectrumBitcrusherModuleDSP : public DSPModule {
 public:
     SpectrumBitcrusherModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
 
-    Array<float> getWhiteNoise(int numSamples);
-
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
@@ -67,16 +65,24 @@ public:
 
 private:
 
+    // parameters
     bool bypassed = false;
     juce::AudioBuffer<float> wetBuffer, tempBuffer;
     juce::LinearSmoothedValue<float> symmetry, bias;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
 
-    SingleChannelSampleFifo<juce::AudioBuffer<float>>* leftChannelSampleFifo;
-    SingleChannelSampleFifo<juce::AudioBuffer<float>>* rightChannelSampleFifo;
-    juce::AudioBuffer<float> monoBuffer;
+    // FFT elaboration stuff
+    SingleChannelSampleFifo<juce::AudioBuffer<float>> leftChannelSampleFifo { Channel::Left };
+    SingleChannelSampleFifo<juce::AudioBuffer<float>> rightChannelSampleFifo { Channel::Right };
+    juce::AudioBuffer<float> leftAudioBuffer;
+    juce::AudioBuffer<float> rightAudioBuffer;
     FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
+    FFTDataGenerator<std::vector<float>> rightChannelFFTDataGenerator;
+    AudioDataGenerator<std::vector<float>> leftChannelAudioDataGenerator;
+    AudioDataGenerator<std::vector<float>> rightChannelAudioDataGenerator;
+    std::vector<float> leftFFTBuffer;
+    std::vector<float> rightFFTBuffer;
 
 };
 
