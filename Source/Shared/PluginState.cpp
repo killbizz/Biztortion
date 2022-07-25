@@ -85,8 +85,8 @@ void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPos
         }
         // else continue to iterate to find the right grid position
     }
-    // module is a filter or spectrum bitcrusher => FIFO allocation for FFT data
-    if ((module->getModuleType() == ModuleType::IIRFilter) || (module->getModuleType() == ModuleType::SpectrumBitcrusher)) {
+    // module is a filter => FIFO allocation for FFT data
+    if (module->getModuleType() == ModuleType::IIRFilter) {
         insertNewAnalyzerFIFO(chainPosition);
     }
 }
@@ -160,8 +160,8 @@ void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
         if ((**it).getChainPosition() == chainPosition) {
             found = true;
             audioProcessor.suspendProcessing(true);
-            // remove fft analyzer FIFO associated with **it if it's a filter or spectrum bitcrusher
-            if (((&**it)->getModuleType() == ModuleType::IIRFilter) || ((&**it)->getModuleType() == ModuleType::SpectrumBitcrusher)) {
+            // remove fft analyzer FIFO associated with **it if it's a filter
+            if ((&**it)->getModuleType() == ModuleType::IIRFilter) {
                 deleteOldAnalyzerFIFO(chainPosition);
             }
             it = DSPmodules.erase(it);
@@ -210,7 +210,7 @@ void PluginState::removeDSPmoduleFromAPVTS(unsigned int chainPosition, ModuleTyp
 
 unsigned int PluginState::getSampleFifoIndexOfCorrespondingModule(unsigned int chainPosition)
 {
-    // using a module counter to find the right fft analyzer FIFO associated with the current filter or spectrum bitcrusher
+    // using a module counter to find the right fft analyzer FIFO associated with the current filter
     unsigned int moduleCounter = 0;
     bool found = false;
     for (auto it = DSPmodules.cbegin(); !found && it < DSPmodules.cend(); ++it) {
