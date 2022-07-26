@@ -356,7 +356,7 @@ struct FFTDataGenerator {
     /**
      produces the FFT data from an audio buffer to elaborate its spectrum.
      */
-    void produceFFTDataForSpectrumElaboration(const juce::AudioBuffer<float>& audioData)
+    void produceFFTDataForSpectrumElaboration(juce::AudioBuffer<float>& audioData)
     {
         const auto fftSize = getFFTSize();
         auto numSamples = audioData.getNumSamples();
@@ -369,15 +369,14 @@ struct FFTDataGenerator {
         spectrumData.resize(fftSize);
 
         fftData.assign(fftData.size(), 0);
-        auto* readIndex = audioData.getReadPointer(0);
-        // std::copy(readIndex, readIndex + fftSize, fftData.begin());
+        auto* writeIndex = audioData.getWritePointer(0);
+        
+        // first apply a windowing function to our data
+        window->multiplyWithWindowingTable(writeIndex, fftSize);
 
         for (int i = 0; i < numSamples; i++){
-            timeData[i] = std::complex<float>(readIndex[i], 0.f);
+            timeData[i] = std::complex<float>(writeIndex[i], 0.f);
         }
-
-        // first apply a windowing function to our data
-        // window->multiplyWithWindowingTable(fftData.data(), fftSize);
 
         // then render our FFT data..
         forwardFFT->perform(timeData.data(), spectrumData.data(), false);
@@ -441,7 +440,7 @@ struct AudioDataGenerator
         const auto fftSize = getFFTSize();
         auto numSamples = fftData.size();
 
-        // jassert(fftSize == (numSamples / 2));
+        jassert(fftSize == numSamples);
 
         std::vector<std::complex<float>> timeData;
         timeData.resize(fftSize);
@@ -462,16 +461,16 @@ struct AudioDataGenerator
         // then render our FFT data..
         reverseFFT->perform(spectrumData.data(), timeData.data(), true);
 
-        int numBins = (int)fftSize / 2;
+        int numBins = (int)fftSize;
         float* data = audioData.getWritePointer(0);
 
-        // normalize the fft values.
         for (int i = 0; i < numBins; ++i)
         {
             data[i] = timeData[i].real();
         }
 
-        audioDataFifo.push(audioData);
+        // splicing audioData in multiple audio buffers
+        monoChannelSampleFifo.update(audioData);
     }
 
     void prepare(int samplesPerBlock, FFTOrder newOrder)
@@ -487,20 +486,20 @@ struct AudioDataGenerator
         window = std::make_unique<juce::dsp::WindowingFunction<float>>(fftSize, juce::dsp::WindowingFunction<float>::blackmanHarris);
 
         audioData.clear();
-        audioData.setSize(1, samplesPerBlock, false, true, true);
+        audioData.setSize(1, fftSize, false, true, true);
 
-        audioDataFifo.prepare(1, samplesPerBlock);
+        monoChannelSampleFifo.prepare(samplesPerBlock);
     }
     //==============================================================================
     int getFFTSize() const { return 1 << order; }
-    int getNumAvailableFFTDataBlocks() const { return audioDataFifo.getNumAvailableForReading(); }
+    int getNumAvailablAudioDataBlocks() const { return monoChannelSampleFifo.getNumCompleteBuffersAvailable(); }
     //==============================================================================
-    bool getAudioData(juce::AudioBuffer<float>& audioData) { return audioDataFifo.pull(audioData); }
+    bool getAudioData(juce::AudioBuffer<float>& audioData) { return monoChannelSampleFifo.getAudioBuffer(audioData); }
 private:
     FFTOrder order;
     juce::AudioBuffer<float> audioData;
     std::unique_ptr<juce::dsp::FFT> reverseFFT;
     std::unique_ptr<juce::dsp::WindowingFunction<float>> window;
 
-    Fifo<juce::AudioBuffer<float>> audioDataFifo;
+    SingleChannelSampleFifo<juce::AudioBuffer<float>> monoChannelSampleFifo{ Channel::Right };
 };

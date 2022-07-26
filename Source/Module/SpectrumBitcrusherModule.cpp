@@ -117,8 +117,6 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
         leftChannelSampleFifo.update(wetBuffer);
         rightChannelSampleFifo.update(wetBuffer);
 
-        bool isSomeAudioInformationReady = true;
-
         // Temp Buffer feeding for applying asymmetry
         /*for (auto channel = 0; channel < 2; channel++)
             tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);*/
@@ -145,22 +143,12 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
                 // generate audio data from fft buffer
                 leftChannelAudioDataGenerator.produceAudioDataFromFFTData(leftFFTBuffer);
             }
-            else {
-                isSomeAudioInformationReady = false;
-            }
-        }
-        else {
-            isSomeAudioInformationReady = false;
         }
         if (rightChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
             if (rightChannelFFTDataGenerator.getFFTData(rightFFTBuffer)) {
                 // generate audio data from fft buffer
                 rightChannelAudioDataGenerator.produceAudioDataFromFFTData(rightFFTBuffer);
-            } else {
-                isSomeAudioInformationReady = false;
             }
-        } else {
-            isSomeAudioInformationReady = false;
         }
 
         // fill wetBuffer with a freshly built audio buffer
@@ -169,9 +157,11 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
             float* data = wetBuffer.getWritePointer(chan);
             juce::AudioBuffer<float> tempIncomingBuffer;
 
-            if (isSomeAudioInformationReady) {
-                bool bufferCorrectlyRetrieved = static_cast<Channel>(chan) == Channel::Left ?
-                    leftChannelAudioDataGenerator.getAudioData(tempIncomingBuffer) : rightChannelAudioDataGenerator.getAudioData(tempIncomingBuffer);
+            AudioDataGenerator<std::vector<float>>& generatorRef = static_cast<Channel>(chan) == Channel::Left ?
+                leftChannelAudioDataGenerator : rightChannelAudioDataGenerator;
+
+            if (leftChannelAudioDataGenerator.getNumAvailablAudioDataBlocks() > 0) {
+                bool bufferCorrectlyRetrieved = generatorRef.getAudioData(tempIncomingBuffer);
                 jassert(bufferCorrectlyRetrieved);
                 auto* readIndex = tempIncomingBuffer.getReadPointer(0);
 
