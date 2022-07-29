@@ -67,22 +67,20 @@ private:
 
     // parameters
     bool bypassed = false;
-    juce::AudioBuffer<float> wetBuffer, tempBuffer;
+    juce::AudioBuffer<float> wetBuffer, tempBuffer, tempIncomingBuffer;
     juce::LinearSmoothedValue<float> symmetry, bias;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
 
     // FFT elaboration stuff
-    SingleChannelSampleFifo<juce::AudioBuffer<float>> leftChannelSampleFifo { Channel::Left };
-    SingleChannelSampleFifo<juce::AudioBuffer<float>> rightChannelSampleFifo { Channel::Right };
-    juce::AudioBuffer<float> leftAudioBuffer;
-    juce::AudioBuffer<float> rightAudioBuffer;
     FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
     FFTDataGenerator<std::vector<float>> rightChannelFFTDataGenerator;
     AudioDataGenerator<std::vector<float>> leftChannelAudioDataGenerator;
     AudioDataGenerator<std::vector<float>> rightChannelAudioDataGenerator;
     std::vector<float> leftFFTBuffer;
     std::vector<float> rightFFTBuffer;
+    juce::AudioBuffer<float> leftAudioBuffer;
+    juce::AudioBuffer<float> rightAudioBuffer;
 
 };
 

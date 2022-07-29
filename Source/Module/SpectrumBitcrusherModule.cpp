@@ -9,6 +9,16 @@
 */
 
 /*
+  ==============================================================================
+
+    Copyright (c) 2022 Jan Wilczek
+    Content: Overlap-Save method for a FFT-based convolution
+    Source: https://thewolfsound.com/fast-convolution-fft-based-overlap-add-overlap-save-partitioned/
+
+  ==============================================================================
+*/
+
+/*
 
 This file is part of Biztortion software.
 
@@ -62,17 +72,21 @@ void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPe
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
 
-    leftChannelFFTDataGenerator.prepare(FFTOrder::order4096);
-    rightChannelFFTDataGenerator.prepare(FFTOrder::order4096);
+    tempIncomingBuffer.setSize(1, samplesPerBlock);
+
+    FFTOrder order = FFTOrder::order2048;
+
+    leftChannelFFTDataGenerator.prepare(order, Channel::Left);
+    rightChannelFFTDataGenerator.prepare(order, Channel::Right);
     
-    leftChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
-    rightChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
+    leftChannelAudioDataGenerator.prepare(order);
+    rightChannelAudioDataGenerator.prepare(order);
 
-    leftChannelSampleFifo.prepare(leftChannelFFTDataGenerator.getFFTSize());
-    rightChannelSampleFifo.prepare(rightChannelFFTDataGenerator.getFFTSize());
+    leftAudioBuffer.clear();
+    leftAudioBuffer.setSize(1, samplesPerBlock);
+    rightAudioBuffer.clear();
+    rightAudioBuffer.setSize(1, samplesPerBlock);
 
-    leftAudioBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
-    rightAudioBuffer.setSize(1, rightChannelFFTDataGenerator.getFFTSize());
     leftFFTBuffer.clear();
     leftFFTBuffer.resize(leftChannelFFTDataGenerator.getFFTSize());
     rightFFTBuffer.clear();
@@ -96,17 +110,6 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
 
         // PROCESSING
 
-        // TODO : frequency-domain bitcrushing (and a way to switch between time/frequency-domain)
-        // see FFTAnalyzerComponent for FFT-related stuff 
-        // https://forum.juce.com/t/issue-with-fft-plugin-inverse-transformation/16630/3
-        // https://forum.juce.com/t/fft-amplitude/28574
-        // tips:
-        // - delay iniziale del segnale = aggiunta di 0.f in tutti i sample del buffer in uscita
-        // - nel caso in cui il param mix > 0% devo ritardare la riproduzione anche del segnale dry !!
-        // - minore FFT-order - bufferSize => minor delay del segnale
-        // - outputBuffer[i+(2^fft-order / bufferSIze)] = modifiedBuffer[i] -> considerando outputBuffer e modifiedBuffer come array di buffer
-        // - risorse utili: FFTAnalyzerComponent + https://docs.juce.com/master/tutorial_simple_fft.html
-
         // Wet Buffer feeding
         for (auto channel = 0; channel < 2; channel++)
             wetBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
@@ -114,67 +117,39 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
         // Drive
         driveGain.applyGain(wetBuffer, numSamples);
 
-        leftChannelSampleFifo.update(wetBuffer);
-        rightChannelSampleFifo.update(wetBuffer);
-
         // Temp Buffer feeding for applying asymmetry
         /*for (auto channel = 0; channel < 2; channel++)
             tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);*/
 
-        // produce fft data information
-        if (leftChannelSampleFifo.getNumCompleteBuffersAvailable() > 0) {
-            if (leftChannelSampleFifo.getAudioBuffer(leftAudioBuffer)) {
-                // generate FFT data from audio buffer
-                leftChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(leftAudioBuffer);
-            }
-        }
-        if (rightChannelSampleFifo.getNumCompleteBuffersAvailable() > 0) {
-            if (rightChannelSampleFifo.getAudioBuffer(rightAudioBuffer)) {
-                // generate FFT data from audio buffer
-                rightChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(rightAudioBuffer);
-            }
-        }
+        // generate FFT data from audio buffer
+        leftChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(wetBuffer);
+        rightChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(wetBuffer);
 
         // SPECTRUM DATA ELABORATION
+        // ...
 
-        // produce audio data
-        if (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
-            if (leftChannelFFTDataGenerator.getFFTData(leftFFTBuffer)) {
-                // generate audio data from fft buffer
-                leftChannelAudioDataGenerator.produceAudioDataFromFFTData(leftFFTBuffer);
-            }
-        }
-        if (rightChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
-            if (rightChannelFFTDataGenerator.getFFTData(rightFFTBuffer)) {
-                // generate audio data from fft buffer
-                rightChannelAudioDataGenerator.produceAudioDataFromFFTData(rightFFTBuffer);
-            }
-        }
+        // generate AUDIO data from fft buffer
+        if (!leftChannelFFTDataGenerator.getFFTData(leftFFTBuffer) || !rightChannelFFTDataGenerator.getFFTData(rightFFTBuffer))
+            jassertfalse;
+
+        leftChannelAudioDataGenerator.produceAudioDataFromFFTData(leftFFTBuffer);
+        rightChannelAudioDataGenerator.produceAudioDataFromFFTData(rightFFTBuffer);
 
         // fill wetBuffer with a freshly built audio buffer
         for (int chan = 0; chan < wetBuffer.getNumChannels(); chan++)
         {
             float* data = wetBuffer.getWritePointer(chan);
-            juce::AudioBuffer<float> tempIncomingBuffer;
+            tempIncomingBuffer.clear();
 
             AudioDataGenerator<std::vector<float>>& generatorRef = static_cast<Channel>(chan) == Channel::Left ?
                 leftChannelAudioDataGenerator : rightChannelAudioDataGenerator;
 
-            if (leftChannelAudioDataGenerator.getNumAvailablAudioDataBlocks() > 0) {
-                bool bufferCorrectlyRetrieved = generatorRef.getAudioData(tempIncomingBuffer);
-                jassert(bufferCorrectlyRetrieved);
-                auto* readIndex = tempIncomingBuffer.getReadPointer(0);
+            generatorRef.getAudioData(tempIncomingBuffer);
 
-                for (int i = 0; i < numSamples; i++)
-                {
-                    data[i] = readIndex[i];
-                }
-            }
-            else {
-                for (int i = 0; i < numSamples; i++)
-                {
-                    data[i] = 0.f;
-                }
+            auto* readIndex = tempIncomingBuffer.getReadPointer(0);
+            for (int i = 0; i < numSamples; i++)
+            {
+                data[i] = readIndex[i];
             }
         }
 
