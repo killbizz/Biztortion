@@ -218,7 +218,7 @@ unsigned int PluginState::getSampleFifoIndexOfCorrespondingModule(unsigned int c
             found = true;
             continue;
         }
-        if (((&**it)->getModuleType() == ModuleType::IIRFilter) || ((&**it)->getModuleType() == ModuleType::SpectrumBitcrusher)) {
+        if ((&**it)->getModuleType() == ModuleType::IIRFilter) {
             moduleCounter++;
         }
     }
