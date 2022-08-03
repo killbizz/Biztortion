@@ -62,21 +62,28 @@ void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPe
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
 
-    leftChannelFFTDataGenerator.prepare(FFTOrder::order4096);
-    rightChannelFFTDataGenerator.prepare(FFTOrder::order4096);
+    fftDataGenerator.prepare(FFTOrder::order4096);
     
     leftChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
     rightChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
 
-    leftChannelSampleFifo.prepare(leftChannelFFTDataGenerator.getFFTSize());
-    rightChannelSampleFifo.prepare(rightChannelFFTDataGenerator.getFFTSize());
+    /*leftChannelSampleFifo.prepare(leftChannelFFTDataGenerator.getFFTSize());
+    rightChannelSampleFifo.prepare(rightChannelFFTDataGenerator.getFFTSize());*/
 
-    leftAudioBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
-    rightAudioBuffer.setSize(1, rightChannelFFTDataGenerator.getFFTSize());
+    /*audioBuffer.clear();
+    audioBuffer.setSize(2, leftChannelFFTDataGenerator.getFFTSize(), false, true, true);
+    nextOverlappingAudioFrame.clear();
+    nextOverlappingAudioFrame.setSize(2, leftChannelFFTDataGenerator.getHopSize(), false, true, true);
+    previousAudioBuffer.clear();
+    previousAudioBuffer.setSize(2, leftChannelFFTDataGenerator.getFFTSize(), false, true, true);*/
+    
+
+    leftAudioBuffer.setSize(1, fftDataGenerator.getFFTSize());
+    rightAudioBuffer.setSize(1, fftDataGenerator.getFFTSize());
     leftFFTBuffer.clear();
-    leftFFTBuffer.resize(leftChannelFFTDataGenerator.getFFTSize());
+    leftFFTBuffer.resize(fftDataGenerator.getFFTSize());
     rightFFTBuffer.clear();
-    rightFFTBuffer.resize(rightChannelFFTDataGenerator.getFFTSize());
+    rightFFTBuffer.resize(fftDataGenerator.getFFTSize());
 
     updateDSPState(sampleRate);
 }
@@ -114,38 +121,30 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
         // Drive
         driveGain.applyGain(wetBuffer, numSamples);
 
-        leftChannelSampleFifo.update(wetBuffer);
-        rightChannelSampleFifo.update(wetBuffer);
+        /*leftChannelSampleFifo.update(wetBuffer);
+        rightChannelSampleFifo.update(wetBuffer);*/
 
         // Temp Buffer feeding for applying asymmetry
         /*for (auto channel = 0; channel < 2; channel++)
             tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);*/
 
         // produce fft data information
-        if (leftChannelSampleFifo.getNumCompleteBuffersAvailable() > 0) {
-            if (leftChannelSampleFifo.getAudioBuffer(leftAudioBuffer)) {
-                // generate FFT data from audio buffer
-                leftChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(leftAudioBuffer);
-            }
-        }
-        if (rightChannelSampleFifo.getNumCompleteBuffersAvailable() > 0) {
-            if (rightChannelSampleFifo.getAudioBuffer(rightAudioBuffer)) {
-                // generate FFT data from audio buffer
-                rightChannelFFTDataGenerator.produceFFTDataForSpectrumElaboration(rightAudioBuffer);
-            }
-        }
+        fftDataGenerator.addAudioDataForProcessing(wetBuffer);
+
+        if (fftDataGenerator.enoughAudioDataForProcessing())
+            fftDataGenerator.produceFFTDataForSpectrumElaboration();
 
         // SPECTRUM DATA ELABORATION
 
         // produce audio data
-        if (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
-            if (leftChannelFFTDataGenerator.getFFTData(leftFFTBuffer)) {
+        if (fftDataGenerator.getNumAvailableLeftFFTDataBlocks() > 0) {
+            if (fftDataGenerator.getLeftFFTData(leftFFTBuffer)) {
                 // generate audio data from fft buffer
                 leftChannelAudioDataGenerator.produceAudioDataFromFFTData(leftFFTBuffer);
             }
         }
-        if (rightChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
-            if (rightChannelFFTDataGenerator.getFFTData(rightFFTBuffer)) {
+        if (fftDataGenerator.getNumAvailableRightFFTDataBlocks() > 0) {
+            if (fftDataGenerator.getRightFFTData(rightFFTBuffer)) {
                 // generate audio data from fft buffer
                 rightChannelAudioDataGenerator.produceAudioDataFromFFTData(rightFFTBuffer);
             }

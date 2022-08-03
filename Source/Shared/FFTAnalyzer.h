@@ -354,55 +354,74 @@ template<typename BlockType>
 struct FFTDataGenerator {
 
     /**
-     produces the FFT data from an audio buffer to elaborate its spectrum.
+     produces the FFT data from the audioBuffer to elaborate its spectrum.
      */
-    void produceFFTDataForSpectrumElaboration(juce::AudioBuffer<float>& audioData)
+    void produceFFTDataForSpectrumElaboration()
     {
         auto fftSize = getFFTSize();
-        auto numSamples = audioData.getNumSamples();
-        auto hopSize = fftSize / OVERLAP_FACTOR;
+        auto numSamples = audioFrame.getNumSamples();
+        auto hopSize = getHopSize();
 
         jassert(numSamples == fftSize);
 
-        std::vector<std::complex<float>> timeData;
-        timeData.resize(fftSize);
-        std::vector<std::complex<float>> spectrumData;
-        spectrumData.resize(fftSize);
+        for (int chan = 0; chan < audioFrame.getNumChannels(); chan++) {
 
-        fftData.assign(fftData.size(), 0);
-        auto* writeIndex = audioData.getWritePointer(0);
-        auto* readIndex = latestAudioData.getReadPointer(0);
-        
-        // applying a windowing function to our data
-        window->multiplyWithWindowingTable(writeIndex, fftSize);
+            fftData.assign(fftData.size(), 0);
+            tempNextOverlappingFrame.makeCopyOf(nextOverlappingAudioFrame, true);
 
-        for (int i = 0; i < numSamples; i++){
-            float x = writeIndex[i];
-            // x = (i < hopSize ? x + readIndex[fftSize - hopSize + i] : x);
-            timeData[i] = std::complex<float>(x, 0.f);
-        }
+            std::vector<std::complex<float>> timeData;
+            timeData.resize(fftSize);
+            std::vector<std::complex<float>> spectrumData;
+            spectrumData.resize(fftSize);
 
-        // rendering the FFT data
-        forwardFFT->perform(timeData.data(), spectrumData.data(), false);
+            auto* audioFrameWriteIndex = audioFrame.getWritePointer(chan);
+            auto* nextOverlappingAudioFrameWriteIndex = tempNextOverlappingFrame.getWritePointer(chan);
+            auto* previousAudioFrameReadIndex = previousAudioFrame.getReadPointer(chan);
 
-        int numBins = (int)fftSize / 2;
+            // applying a windowing function to the audio data
+            window->multiplyWithWindowingTable(audioFrameWriteIndex, fftSize);
+            window->multiplyWithWindowingTable(nextOverlappingAudioFrameWriteIndex, fftSize);
 
-        // normalizing the fft values
-        for (int i = 0; i < fftSize; ++i)
-        {
-            auto magnitude = std::abs(spectrumData[i]);
-            if (!std::isinf(magnitude) && !std::isnan(magnitude)) {
-                magnitude /= float(numBins);
-            } else {
-                magnitude = 0.f;
+            for (int i = 0; i < numSamples; i++) {
+                float x = audioFrameWriteIndex[i];
+                // overlapping with the last part of the previous audio frame
+                if (i < hopSize) {
+                    x += previousAudioFrameReadIndex[(fftSize - hopSize) + i];
+                }
+                // overlapping with the first part of the next audio frame
+                if (i > fftSize - hopSize) {
+                    x += nextOverlappingAudioFrameWriteIndex[i - (fftSize - hopSize)];
+                }
+                timeData[i] = std::complex<float>(x, 0.f);
             }
-            fftData[i] = magnitude;
+
+            // rendering the FFT data
+            forwardFFT->perform(timeData.data(), spectrumData.data(), false);
+
+            int numBins = (int)fftSize / 2;
+
+            // normalizing the fft values
+            for (int i = 0; i < fftSize; ++i)
+            {
+                auto magnitude = std::abs(spectrumData[i]);
+                if (!std::isinf(magnitude) && !std::isnan(magnitude)) {
+                    magnitude /= float(numBins);
+                }
+                else {
+                    magnitude = 0.f;
+                }
+                fftData[i] = magnitude;
+            }
+
+            static_cast<Channel>(chan) == Channel::Left ? leftFftDataFifo.push(fftData) : rightFftDataFifo.push(fftData);
         }
 
-        /*latestAudioData.clear();
-        latestAudioData.addFrom(0, 0, writeIndex, fftSize);*/
+        previousAudioFrame.makeCopyOf(audioFrame, true);
+        audioFrame.makeCopyOf(nextOverlappingAudioFrame, true);
+        nextOverlappingAudioFrame.clear();
 
-        fftDataFifo.push(fftData);
+        audioFrameIndex = nextOverlappingAudioFrameIndex;
+        nextOverlappingAudioFrameIndex = 0;
     }
 
     void prepare(FFTOrder newOrder)
@@ -420,29 +439,84 @@ struct FFTDataGenerator {
         fftData.clear();
         fftData.resize(fftSize, 0);
 
-        latestAudioData.clear();
-        latestAudioData.setSize(1, fftSize, false, true, true);
+        audioFrame.clear();
+        audioFrame.setSize(2, fftSize, false, true, true);
+        audioFrameIndex = 0;
+        nextOverlappingAudioFrame.clear();
+        nextOverlappingAudioFrame.setSize(2, fftSize, false, true, true);
+        nextOverlappingAudioFrameIndex = 0;
+        tempNextOverlappingFrame.clear();
+        tempNextOverlappingFrame.setSize(2, fftSize, false, true, true);
+        previousAudioFrame.clear();
+        previousAudioFrame.setSize(2, fftSize, false, true, true);
 
-        fftDataFifo.prepare(fftData.size());
+        leftFftDataFifo.prepare(fftData.size());
+        rightFftDataFifo.prepare(fftData.size());
     }
+
+    bool enoughAudioDataForProcessing() {
+        return (audioFrameIndex == audioFrame.getNumSamples()) && (nextOverlappingAudioFrameIndex >= getHopSize());
+    }
+
+    void addAudioDataForProcessing(const juce::AudioBuffer<float>& audioData) {
+
+        // jassert(audioFrame.getNumChannels == audioData.getNumChannels() == nextOverlappingAudioFrame.getNumChannels());
+
+        auto audioDataNumSamples = audioData.getNumSamples();
+
+        for (int chan = 0; chan < audioData.getNumChannels(); chan++) {
+
+            auto* audioDataIndex = audioData.getReadPointer(chan);
+
+            for (int i = 0; i < audioDataNumSamples; i++){
+
+                if (audioFrameIndex < audioFrame.getNumSamples()) {
+                    audioFrame.setSample(chan, audioFrameIndex, audioDataIndex[i]);
+                    ++audioFrameIndex;
+                }
+                else {
+                    nextOverlappingAudioFrame.setSample(chan, nextOverlappingAudioFrameIndex, audioDataIndex[i]);
+                    ++nextOverlappingAudioFrameIndex;
+                }
+
+            }
+
+        }
+
+        
+
+    }
+
     //==============================================================================
+
     int getFFTSize() const { return 1 << order; }
-    int getNumAvailableFFTDataBlocks() const { return fftDataFifo.getNumAvailableForReading(); }
+    const int getHopSize() const{ return getFFTSize() / OVERLAP_FACTOR; }
+    int getNumAvailableLeftFFTDataBlocks() const { return leftFftDataFifo.getNumAvailableForReading(); }
+    int getNumAvailableRightFFTDataBlocks() const { return rightFftDataFifo.getNumAvailableForReading(); }
+
     //==============================================================================
-    bool getFFTData(BlockType& fftData) { return fftDataFifo.pull(fftData); }
+
+    bool getLeftFFTData(BlockType& fftData) { return leftFftDataFifo.pull(fftData); }
+    bool getRightFFTData(BlockType& fftData) { return rightFftDataFifo.pull(fftData); }
+
 private:
 
-    const int OVERLAP_FACTOR = 4;
+    const int OVERLAP_FACTOR = 2;
 
     FFTOrder order;
     BlockType fftData;
     
-    juce::AudioBuffer<float> latestAudioData;
+    juce::AudioBuffer<float> audioFrame;
+    int audioFrameIndex = 0;
+    juce::AudioBuffer<float> nextOverlappingAudioFrame, tempNextOverlappingFrame;
+    int nextOverlappingAudioFrameIndex = 0;
+    juce::AudioBuffer<float> previousAudioFrame;
 
     std::unique_ptr<juce::dsp::FFT> forwardFFT;
     std::unique_ptr<juce::dsp::WindowingFunction<float>> window;
 
-    Fifo<BlockType> fftDataFifo;
+    Fifo<BlockType> leftFftDataFifo;
+    Fifo<BlockType> rightFftDataFifo;
 };
 
 template<typename BlockType>

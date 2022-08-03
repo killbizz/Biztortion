@@ -73,12 +73,11 @@ private:
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
 
     // FFT elaboration stuff
-    SingleChannelSampleFifo<juce::AudioBuffer<float>> leftChannelSampleFifo { Channel::Left };
-    SingleChannelSampleFifo<juce::AudioBuffer<float>> rightChannelSampleFifo { Channel::Right };
+    /*SingleChannelSampleFifo<juce::AudioBuffer<float>> leftChannelSampleFifo { Channel::Left };
+    SingleChannelSampleFifo<juce::AudioBuffer<float>> rightChannelSampleFifo { Channel::Right };*/
     juce::AudioBuffer<float> leftAudioBuffer;
     juce::AudioBuffer<float> rightAudioBuffer;
-    FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
-    FFTDataGenerator<std::vector<float>> rightChannelFFTDataGenerator;
+    FFTDataGenerator<std::vector<float>> fftDataGenerator;
     AudioDataGenerator<std::vector<float>> leftChannelAudioDataGenerator;
     AudioDataGenerator<std::vector<float>> rightChannelAudioDataGenerator;
     std::vector<float> leftFFTBuffer;
