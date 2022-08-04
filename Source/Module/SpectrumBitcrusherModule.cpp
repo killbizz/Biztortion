@@ -62,28 +62,7 @@ void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPe
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
 
-    fftDataGenerator.prepare(FFTOrder::order4096);
-    
-    leftChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
-    rightChannelAudioDataGenerator.prepare(samplesPerBlock, FFTOrder::order4096);
-
-    /*leftChannelSampleFifo.prepare(leftChannelFFTDataGenerator.getFFTSize());
-    rightChannelSampleFifo.prepare(rightChannelFFTDataGenerator.getFFTSize());*/
-
-    /*audioBuffer.clear();
-    audioBuffer.setSize(2, leftChannelFFTDataGenerator.getFFTSize(), false, true, true);
-    nextOverlappingAudioFrame.clear();
-    nextOverlappingAudioFrame.setSize(2, leftChannelFFTDataGenerator.getHopSize(), false, true, true);
-    previousAudioBuffer.clear();
-    previousAudioBuffer.setSize(2, leftChannelFFTDataGenerator.getFFTSize(), false, true, true);*/
-    
-
-    leftAudioBuffer.setSize(1, fftDataGenerator.getFFTSize());
-    rightAudioBuffer.setSize(1, fftDataGenerator.getFFTSize());
-    leftFFTBuffer.clear();
-    leftFFTBuffer.resize(fftDataGenerator.getFFTSize());
-    rightFFTBuffer.clear();
-    rightFFTBuffer.resize(fftDataGenerator.getFFTSize());
+    spectrumProcessor.prepare(sampleRate, samplesPerBlock, 2, 2);
 
     updateDSPState(sampleRate);
 }
@@ -121,61 +100,13 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
         // Drive
         driveGain.applyGain(wetBuffer, numSamples);
 
-        /*leftChannelSampleFifo.update(wetBuffer);
-        rightChannelSampleFifo.update(wetBuffer);*/
-
         // Temp Buffer feeding for applying asymmetry
         /*for (auto channel = 0; channel < 2; channel++)
             tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);*/
 
-        // produce fft data information
-        fftDataGenerator.addAudioDataForProcessing(wetBuffer);
-
-        if (fftDataGenerator.enoughAudioDataForProcessing())
-            fftDataGenerator.produceFFTDataForSpectrumElaboration();
-
-        // SPECTRUM DATA ELABORATION
-
-        // produce audio data
-        if (fftDataGenerator.getNumAvailableLeftFFTDataBlocks() > 0) {
-            if (fftDataGenerator.getLeftFFTData(leftFFTBuffer)) {
-                // generate audio data from fft buffer
-                leftChannelAudioDataGenerator.produceAudioDataFromFFTData(leftFFTBuffer);
-            }
-        }
-        if (fftDataGenerator.getNumAvailableRightFFTDataBlocks() > 0) {
-            if (fftDataGenerator.getRightFFTData(rightFFTBuffer)) {
-                // generate audio data from fft buffer
-                rightChannelAudioDataGenerator.produceAudioDataFromFFTData(rightFFTBuffer);
-            }
-        }
-
-        // fill wetBuffer with a freshly built audio buffer
-        for (int chan = 0; chan < wetBuffer.getNumChannels(); chan++)
-        {
-            float* data = wetBuffer.getWritePointer(chan);
-            juce::AudioBuffer<float> tempIncomingBuffer;
-
-            AudioDataGenerator<std::vector<float>>& generatorRef = static_cast<Channel>(chan) == Channel::Left ?
-                leftChannelAudioDataGenerator : rightChannelAudioDataGenerator;
-
-            if (leftChannelAudioDataGenerator.getNumAvailablAudioDataBlocks() > 0) {
-                bool bufferCorrectlyRetrieved = generatorRef.getAudioData(tempIncomingBuffer);
-                jassert(bufferCorrectlyRetrieved);
-                auto* readIndex = tempIncomingBuffer.getReadPointer(0);
-
-                for (int i = 0; i < numSamples; i++)
-                {
-                    data[i] = readIndex[i];
-                }
-            }
-            else {
-                for (int i = 0; i < numSamples; i++)
-                {
-                    data[i] = 0.f;
-                }
-            }
-        }
+        dsp::AudioBlock<float> ab(wetBuffer);
+        dsp::ProcessContextReplacing<float> context(ab);
+        spectrumProcessor.process(context);
 
         // applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
 

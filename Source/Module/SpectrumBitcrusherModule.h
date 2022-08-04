@@ -35,6 +35,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/DSPModule.h"
 #include "../Module/GUIModule.h"
 #include "../Shared/PluginState.h"
+#include "../Shared/SpectrumBitcrusherProcessor.h"
 
 //==============================================================================
 
@@ -72,16 +73,7 @@ private:
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
 
-    // FFT elaboration stuff
-    /*SingleChannelSampleFifo<juce::AudioBuffer<float>> leftChannelSampleFifo { Channel::Left };
-    SingleChannelSampleFifo<juce::AudioBuffer<float>> rightChannelSampleFifo { Channel::Right };*/
-    juce::AudioBuffer<float> leftAudioBuffer;
-    juce::AudioBuffer<float> rightAudioBuffer;
-    FFTDataGenerator<std::vector<float>> fftDataGenerator;
-    AudioDataGenerator<std::vector<float>> leftChannelAudioDataGenerator;
-    AudioDataGenerator<std::vector<float>> rightChannelAudioDataGenerator;
-    std::vector<float> leftFFTBuffer;
-    std::vector<float> rightFFTBuffer;
+    SpectrumBitcrusherProcessor spectrumProcessor;
 
 };
 

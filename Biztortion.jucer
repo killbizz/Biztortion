@@ -47,8 +47,14 @@
         <FILE id="ysiY45" name="ModuleGenerator.h" compile="0" resource="0"
               file="Source/Shared/ModuleGenerator.h"/>
         <FILE id="XHS35Z" name="ModuleType.h" compile="0" resource="0" file="Source/Shared/ModuleType.h"/>
+        <FILE id="xL7u1f" name="OverlappingFFTProcessor.h" compile="0" resource="0"
+              file="Source/Shared/OverlappingFFTProcessor.h"/>
         <FILE id="jE7lxU" name="PluginState.cpp" compile="1" resource="0" file="Source/Shared/PluginState.cpp"/>
         <FILE id="u2PZmA" name="PluginState.h" compile="0" resource="0" file="Source/Shared/PluginState.h"/>
+        <FILE id="YgrkDe" name="SpectrumBitcrusherProcessor.cpp" compile="1"
+              resource="0" file="Source/Shared/SpectrumBitcrusherProcessor.cpp"/>
+        <FILE id="P33EhN" name="SpectrumBitcrusherProcessor.h" compile="0"
+              resource="0" file="Source/Shared/SpectrumBitcrusherProcessor.h"/>
       </GROUP>
       <GROUP id="{D0A202A6-9C7E-68CA-1A7B-EA022F0173D3}" name="Component">
         <FILE id="vB1U6r" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
