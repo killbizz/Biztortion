@@ -99,6 +99,10 @@ public:
 
     void reset() {}
 
+    void setSpectrumProcessingCallback(std::function<void(juce::AudioSampleBuffer&)> const& callbackToAssign) {
+        spectrumProcessingCallback = callbackToAssign;
+    }
+
     void prepare(const double sampleRate, const int maximumBlockSize, const int numInputChannels, const int numOutputChannels)
     {
         nChIn = numInputChannels;
@@ -275,13 +279,17 @@ private:
     }
 
 protected:
+
     dsp::FFT fft;
     std::vector<float> window;
     AudioBuffer<float> fftInOutBuffer;
     const int fftSize;
     const int hopSize;
 
+    std::function<void(juce::AudioSampleBuffer&)> spectrumProcessingCallback;
+
 private:
+
     int nChIn;
     int nChOut;
 

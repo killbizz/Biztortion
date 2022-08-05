@@ -38,6 +38,35 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 SpectrumBitcrusherModuleDSP::SpectrumBitcrusherModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
     : DSPModule(_apvts)
 {
+    spectrumProcessingLambda = [this](juce::AudioSampleBuffer& fftBuffer) {
+
+        auto numSamples = fftBuffer.getNumSamples();
+        auto numBins = numSamples / 4;
+
+        // Resampling
+        for (int chan = 0; chan < fftBuffer.getNumChannels(); chan++)
+        {
+            float* data = fftBuffer.getWritePointer(chan);
+
+            for (int i = 0; i < numBins; i++)
+            {
+                // REDUCE BIT DEPTH
+                float totalQLevels = powf(2.f, bitRedux.getNextValue());
+                float val = data[i];
+                float remainder = fmodf(val, 1.f / totalQLevels);
+
+                // Quantize
+                data[i] = val - remainder;
+
+                // Rate reduction
+                int binsReductionRatio = numBins / rateRedux.getNextValue();
+                if (binsReductionRatio > 1)
+                {
+                    if (i % binsReductionRatio != 0) data[i] = data[i - i % binsReductionRatio];
+                }
+            }
+        }
+    };
 }
 
 void SpectrumBitcrusherModuleDSP::updateDSPState(double sampleRate)
@@ -63,6 +92,7 @@ void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPe
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
 
     spectrumProcessor.prepare(sampleRate, samplesPerBlock, 2, 2);
+    spectrumProcessor.setSpectrumProcessingCallback(spectrumProcessingLambda);
 
     updateDSPState(sampleRate);
 }
@@ -80,19 +110,6 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
         if (wetBuffer.getNumSamples() != numSamples)
             prepareToPlay(sampleRate, numSamples);
 
-        // PROCESSING
-
-        // TODO : frequency-domain bitcrushing (and a way to switch between time/frequency-domain)
-        // see FFTAnalyzerComponent for FFT-related stuff 
-        // https://forum.juce.com/t/issue-with-fft-plugin-inverse-transformation/16630/3
-        // https://forum.juce.com/t/fft-amplitude/28574
-        // tips:
-        // - delay iniziale del segnale = aggiunta di 0.f in tutti i sample del buffer in uscita
-        // - nel caso in cui il param mix > 0% devo ritardare la riproduzione anche del segnale dry !!
-        // - minore FFT-order - bufferSize => minor delay del segnale
-        // - outputBuffer[i+(2^fft-order / bufferSIze)] = modifiedBuffer[i] -> considerando outputBuffer e modifiedBuffer come array di buffer
-        // - risorse utili: FFTAnalyzerComponent + https://docs.juce.com/master/tutorial_simple_fft.html
-
         // Wet Buffer feeding
         for (auto channel = 0; channel < 2; channel++)
             wetBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
@@ -101,24 +118,21 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
         driveGain.applyGain(wetBuffer, numSamples);
 
         // Temp Buffer feeding for applying asymmetry
-        /*for (auto channel = 0; channel < 2; channel++)
-            tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);*/
+        for (auto channel = 0; channel < 2; channel++)
+            tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);
 
         dsp::AudioBlock<float> ab(wetBuffer);
         dsp::ProcessContextReplacing<float> context(ab);
         spectrumProcessor.process(context);
 
-        // applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
+        applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
 
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
-        // wetGain.applyGain(tempBuffer, numSamples);
-        wetGain.applyGain(wetBuffer, numSamples);
+        wetGain.applyGain(tempBuffer, numSamples);
 
-        /*for (auto channel = 0; channel < 2; channel++)
-            buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);*/
         for (auto channel = 0; channel < 2; channel++)
-            buffer.addFrom(channel, 0, wetBuffer, channel, 0, numSamples);
+            buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
     }
 }
 
@@ -131,8 +145,8 @@ void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeSta
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(i), "Spectrum Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(i), "Spectrum Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(64.f, 2048.f, 2.f, 0.25f), 2048.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(32.f, 2048.f, 2.f, 0.25f), 2048.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(0.1f, 16.f, 0.01f, 0.25f), 16.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
 }

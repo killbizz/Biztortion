@@ -21,7 +21,7 @@ void SpectrumBitcrusherProcessor::processFrameInBuffer(const int maxNumChannels)
         FloatVectorOperations::clear(fftInOutBuffer.getWritePointer(ch, fftSize / 2), fftSize / 2);
 
     // SPECTRUM DATA ELABORATION
-    // ...
+    spectrumProcessingCallback(fftInOutBuffer);
 
     // IFFT
     for (int ch = 0; ch < maxNumChannels; ++ch)

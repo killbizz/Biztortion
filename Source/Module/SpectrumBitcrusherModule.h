@@ -73,6 +73,8 @@ private:
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
 
+    std::function<void(juce::AudioSampleBuffer&)> spectrumProcessingLambda;
+
     SpectrumBitcrusherProcessor spectrumProcessor;
 
 };
