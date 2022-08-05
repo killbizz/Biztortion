@@ -1,4 +1,4 @@
-/*
+﻿/*
   ==============================================================================
 
     SpectrumBitcrusherModule.cpp
@@ -28,6 +28,10 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "SpectrumBitcrusherModule.h"
+#include <complex>
+#include <cmath>
+
+using namespace std::complex_literals;
 
 //==============================================================================
 
@@ -46,17 +50,24 @@ SpectrumBitcrusherModuleDSP::SpectrumBitcrusherModuleDSP(juce::AudioProcessorVal
         // Resampling
         for (int chan = 0; chan < fftBuffer.getNumChannels(); chan++)
         {
-            float* data = fftBuffer.getWritePointer(chan);
+            float* floatData = fftBuffer.getWritePointer(chan);
+
+            auto* data = reinterpret_cast<std::complex<float>*>(floatData);
 
             for (int i = 0; i < numBins; i++)
             {
                 // REDUCE BIT DEPTH
                 float totalQLevels = powf(2.f, bitRedux.getNextValue());
-                float val = data[i];
-                float remainder = fmodf(val, 1.f / totalQLevels);
+
+                double magnitude = std::abs(data[i]);
+                double phase = std::arg(data[i]);
+
+                float remainder = fmodf(magnitude, 1.f / totalQLevels);
 
                 // Quantize
-                data[i] = val - remainder;
+                double newMagnitude = magnitude - remainder;
+
+                data[i] = newMagnitude * ( std::cos(phase) + (1i * std::sin(phase) ) );
 
                 // Rate reduction
                 int binsReductionRatio = numBins / rateRedux.getNextValue();
@@ -145,7 +156,7 @@ void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeSta
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(i), "Spectrum Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(i), "Spectrum Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(32.f, 2048.f, 2.f, 0.25f), 2048.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(2.f, 1024.f, 1.f, 0.25f), 1024.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(0.1f, 16.f, 0.01f, 0.25f), 16.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
