@@ -46,35 +46,36 @@ SpectrumBitcrusherModuleDSP::SpectrumBitcrusherModuleDSP(juce::AudioProcessorVal
 
         auto numSamples = fftBuffer.getNumSamples();
         auto numBins = numSamples / 4;
+        int binsReductionRatio = numBins / rateRedux.getNextValue();
 
-        // Resampling
         for (int chan = 0; chan < fftBuffer.getNumChannels(); chan++)
         {
             float* floatData = fftBuffer.getWritePointer(chan);
-
             auto* data = reinterpret_cast<std::complex<float>*>(floatData);
 
             for (int i = 0; i < numBins; i++)
             {
-                // REDUCE BIT DEPTH
-                float totalQLevels = powf(2.f, bitRedux.getNextValue());
+                // Frequency Resolution Reduction
+                if (i % binsReductionRatio != 0) {
+                    if (binsReductionRatio > 1) {
+                        double previousBinMagnitude = std::abs(data[i - i % binsReductionRatio]);
+                        double currentBinPhase = std::arg(data[i]);
 
-                double magnitude = std::abs(data[i]);
-                double phase = std::arg(data[i]);
-
-                float remainder = fmodf(magnitude, 1.f / totalQLevels);
-
-                // Quantize
-                double newMagnitude = magnitude - remainder;
-
-                data[i] = newMagnitude * ( std::cos(phase) + (1i * std::sin(phase) ) );
-
-                // Rate reduction
-                int binsReductionRatio = numBins / rateRedux.getNextValue();
-                if (binsReductionRatio > 1)
-                {
-                    if (i % binsReductionRatio != 0) data[i] = data[i - i % binsReductionRatio];
+                        data[i] = previousBinMagnitude * (std::cos(currentBinPhase) + (1i * std::sin(currentBinPhase)));
+                    }
                 }
+                // Quantization
+                else {
+                    float totalQLevels = powf(2.f, bitRedux.getNextValue());
+                    double magnitude = std::abs(data[i]);
+                    double phase = std::arg(data[i]);
+                    float remainder = fmodf(magnitude, 1.f / totalQLevels);
+                    double newMagnitude = magnitude - remainder;
+
+                    data[i] = newMagnitude * (std::cos(phase) + (1i * std::sin(phase)));
+                }
+                //double varValue = std::abs(data[i]);
+                //auto x = 2;
             }
         }
     };
@@ -156,8 +157,8 @@ void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeSta
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(i), "Spectrum Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(i), "Spectrum Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(2.f, 1024.f, 1.f, 0.25f), 1024.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(0.1f, 16.f, 0.01f, 0.25f), 16.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(16.f, 1024.f, 1.f, 0.25f), 1024.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 1.f, 0.25f), 16.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
 }
@@ -189,7 +190,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     mixSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber)), "%"),
     symmetrySlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber)), "%"),
     biasSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber)), ""),
-    bitcrusherRateReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber)), "Hz"),
+    bitcrusherRateReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber)), ""),
     bitcrusherBitReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber)), ""),
     driveSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber), driveSlider),
     mixSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber), mixSlider),
@@ -225,8 +226,8 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     symmetrySlider.labels.add({ 1.f, "+100%" });
     biasSlider.labels.add({ 0.f, "-0.9" });
     biasSlider.labels.add({ 1.f, "+0.9" });
-    bitcrusherRateReduxSlider.labels.add({ 0.f, "64" });
-    bitcrusherRateReduxSlider.labels.add({ 1.f, "2048" });
+    bitcrusherRateReduxSlider.labels.add({ 0.f, "16" });
+    bitcrusherRateReduxSlider.labels.add({ 1.f, "1024" });
     bitcrusherBitReduxSlider.labels.add({ 0.f, "1" });
     bitcrusherBitReduxSlider.labels.add({ 1.f, "16" });
 
