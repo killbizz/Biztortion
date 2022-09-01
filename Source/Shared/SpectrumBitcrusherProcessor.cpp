@@ -10,6 +10,10 @@
 
 #include "SpectrumBitcrusherProcessor.h"
 
+SpectrumBitcrusherProcessor::SpectrumBitcrusherProcessor() : OverlappingFFTProcessor(FFTOrder::order2048, 2) {}
+
+SpectrumBitcrusherProcessor::~SpectrumBitcrusherProcessor() {}
+
 void SpectrumBitcrusherProcessor::processFrameInBuffer(const int maxNumChannels)
 {
     // FFT

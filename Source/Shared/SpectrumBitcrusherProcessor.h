@@ -16,9 +16,8 @@
 class SpectrumBitcrusherProcessor : public OverlappingFFTProcessor
 {
 public:
-    SpectrumBitcrusherProcessor() : OverlappingFFTProcessor(FFTOrder::order2048, 2)
-    {}
-    ~SpectrumBitcrusherProcessor() {}
+    SpectrumBitcrusherProcessor();
+    ~SpectrumBitcrusherProcessor();
 
 private:
     void processFrameInBuffer(const int maxNumChannels) override;
