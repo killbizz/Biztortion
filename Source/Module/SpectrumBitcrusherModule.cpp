@@ -48,34 +48,30 @@ SpectrumBitcrusherModuleDSP::SpectrumBitcrusherModuleDSP(juce::AudioProcessorVal
         auto numBins = numSamples / 4;
         int binsReductionRatio = numBins / rateRedux.getNextValue();
 
-        for (int chan = 0; chan < fftBuffer.getNumChannels(); chan++)
-        {
+        for (int chan = 0; chan < fftBuffer.getNumChannels(); chan++) {
+
             float* floatData = fftBuffer.getWritePointer(chan);
             auto* data = reinterpret_cast<std::complex<float>*>(floatData);
 
-            for (int i = 0; i < numBins; i++)
-            {
-                // Frequency Resolution Reduction
-                if (i % binsReductionRatio != 0) {
-                    if (binsReductionRatio > 1) {
-                        double previousBinMagnitude = std::abs(data[i - i % binsReductionRatio]);
-                        double currentBinPhase = std::arg(data[i]);
+            for (int i = 0; i < numBins; i++) {
 
-                        data[i] = previousBinMagnitude * (std::cos(currentBinPhase) + (1i * std::sin(currentBinPhase)));
-                    }
-                }
-                // Quantization
-                else {
-                    float totalQLevels = powf(2.f, bitRedux.getNextValue());
-                    double magnitude = std::abs(data[i]);
-                    double phase = std::arg(data[i]);
-                    float remainder = fmodf(magnitude, 1.f / totalQLevels);
-                    double newMagnitude = magnitude - remainder;
+                // Spectrum Resolution Reduction
+                if ((binsReductionRatio > 1) && (i % binsReductionRatio != 0)) {
+                    double previousBinMagnitude = std::abs(data[i - i % binsReductionRatio]);
+                    double currentBinPhase = std::arg(data[i]);
 
-                    data[i] = newMagnitude * (std::cos(phase) + (1i * std::sin(phase)));
+                    data[i] = previousBinMagnitude * (std::cos(currentBinPhase) + (1i * std::sin(currentBinPhase)));
                 }
-                //double varValue = std::abs(data[i]);
-                //auto x = 2;
+
+                // Robotisation
+                double robotisationMix = bitRedux.getNextValue();
+                double currentBinMagnitude = std::abs(data[i]);
+                // phase = 0 => constant pitch determined by the hopSize
+                double currentBinPhase = std::arg(data[i]);
+                double newPhase = currentBinPhase - ( currentBinPhase * robotisationMix );
+
+                data[i] = currentBinMagnitude * (std::cos(newPhase) + (1i * std::sin(newPhase)));
+
             }
         }
     };
@@ -158,7 +154,7 @@ void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeSta
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(i), "Spectrum Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(16.f, 1024.f, 1.f, 0.25f), 1024.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 1.f, 0.25f), 16.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(0.f, 1.f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
 }
