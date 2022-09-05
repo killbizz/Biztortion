@@ -64,7 +64,7 @@ SpectrumBitcrusherModuleDSP::SpectrumBitcrusherModuleDSP(juce::AudioProcessorVal
                 }
 
                 // Robotisation
-                double robotisationMix = bitRedux.getNextValue();
+                double robotisationMix = robotisation.getNextValue();
                 double currentBinMagnitude = std::abs(data[i]);
                 // phase = 0 => constant pitch determined by the hopSize
                 double currentBinPhase = std::arg(data[i]);
@@ -91,7 +91,7 @@ void SpectrumBitcrusherModuleDSP::updateDSPState(double sampleRate)
     bias.setTargetValue(settings.bias);
 
     rateRedux.setTargetValue(settings.rateRedux);
-    bitRedux.setTargetValue(settings.bitRedux);
+    robotisation.setTargetValue(settings.robotisation * 0.01f);
 }
 
 void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
@@ -154,7 +154,7 @@ void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeSta
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(i), "Spectrum Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(16.f, 1024.f, 1.f, 0.25f), 1024.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Spectrum Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(0.f, 1.f, 0.01f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(i), "Spectrum Bitcrusher Robotisation " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
 }
@@ -168,7 +168,7 @@ SpectrumBitcrusherSettings SpectrumBitcrusherModuleDSP::getSettings(juce::AudioP
     settings.symmetry = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber))->load();
     settings.bias = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber))->load();
     settings.rateRedux = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber))->load();
-    settings.bitRedux = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber))->load();
+    settings.robotisation = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(parameterNumber))->load();
     settings.bypassed = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
@@ -186,14 +186,14 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     mixSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber)), "%"),
     symmetrySlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber)), "%"),
     biasSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber)), ""),
-    bitcrusherRateReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber)), ""),
-    bitcrusherBitReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber)), ""),
+    binsReduxSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber)), ""),
+    robotisationSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(parameterNumber)), ""),
     driveSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber), driveSlider),
     mixSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber), mixSlider),
     symmetrySliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber), symmetrySlider),
     biasSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber), biasSlider),
-    bitcrusherRateReduxSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber), bitcrusherRateReduxSlider),
-    bitcrusherBitReduxSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber), bitcrusherBitReduxSlider),
+    binsReduxSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber), binsReduxSlider),
+    robotisationSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(parameterNumber), robotisationSlider),
     bypassButtonAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
@@ -209,10 +209,10 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     biasLabel.setText("Bias", juce::dontSendNotification);
     biasLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    bitcrusherRateReduxLabel.setText("Bins Rate Redux", juce::dontSendNotification);
-    bitcrusherRateReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
-    bitcrusherBitReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    binsReduxLabel.setText("Freq Resolution", juce::dontSendNotification);
+    binsReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    robotisationLabel.setText("Robotisation", juce::dontSendNotification);
+    robotisationLabel.setFont(ModuleLookAndFeel::getLabelsFont());
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -222,10 +222,10 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     symmetrySlider.labels.add({ 1.f, "+100%" });
     biasSlider.labels.add({ 0.f, "-0.9" });
     biasSlider.labels.add({ 1.f, "+0.9" });
-    bitcrusherRateReduxSlider.labels.add({ 0.f, "16" });
-    bitcrusherRateReduxSlider.labels.add({ 1.f, "1024" });
-    bitcrusherBitReduxSlider.labels.add({ 0.f, "1" });
-    bitcrusherBitReduxSlider.labels.add({ 1.f, "16" });
+    binsReduxSlider.labels.add({ 0.f, "16" });
+    binsReduxSlider.labels.add({ 1.f, "1024" });
+    robotisationSlider.labels.add({ 0.f, "0%" });
+    robotisationSlider.labels.add({ 1.f, "100%" });
 
     bypassButton.setLookAndFeel(&lnf);
 
@@ -245,8 +245,8 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
     symmetrySlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
     biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
-    bitcrusherRateReduxSlider.setTooltip("Set the bins rate for the reduction of the spectrum resolution");
-    bitcrusherBitReduxSlider.setTooltip("Set the bit depth for the reduction of the spectrum resolution");
+    binsReduxSlider.setTooltip("Set the bins rate for the reduction of the spectrum resolution");
+    robotisationSlider.setTooltip("Select the amount of robotisation of the input signal");
 
     for (auto* comp : getAllComps())
     {
@@ -269,15 +269,15 @@ std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getAllComps()
         &mixSlider,
         &symmetrySlider,
         &biasSlider,
-        &bitcrusherRateReduxSlider,
-        &bitcrusherBitReduxSlider,
+        &binsReduxSlider,
+        &robotisationSlider,
         // labels
         &driveLabel,
         &mixLabel,
         &symmetryLabel,
         &biasLabel,
-        &bitcrusherRateReduxLabel,
-        &bitcrusherBitReduxLabel,
+        &binsReduxLabel,
+        &robotisationLabel,
         // bypass
         &bypassButton
     };
@@ -290,8 +290,8 @@ std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getParamComps()
         &mixSlider,
         &symmetrySlider,
         &biasSlider,
-        &bitcrusherRateReduxSlider,
-        &bitcrusherBitReduxSlider
+        &binsReduxSlider,
+        &robotisationSlider
     };
 }
 
@@ -304,8 +304,8 @@ void SpectrumBitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>&
     mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     biasSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
-    bitcrusherRateReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
-    bitcrusherBitReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    binsReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    robotisationSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void SpectrumBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
@@ -314,16 +314,16 @@ void SpectrumBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
     auto mix = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber));
     auto symmetry = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber));
     auto bias = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber));
-    auto rateRedux = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber));
-    auto bitRedux = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber));
+    auto binsRedux = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber));
+    auto robotisation = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(parameterNumber));
     auto bypassed = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());
     symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
     bias->setValueNotifyingHost(bias->getDefaultValue());
-    rateRedux->setValueNotifyingHost(rateRedux->getDefaultValue());
-    bitRedux->setValueNotifyingHost(bitRedux->getDefaultValue());
+    binsRedux->setValueNotifyingHost(binsRedux->getDefaultValue());
+    robotisation->setValueNotifyingHost(robotisation->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
 }
 
@@ -336,8 +336,8 @@ juce::Array<juce::var> SpectrumBitcrusherModuleGUI::getParamValues()
     values.add(juce::var(mixSlider.getValue()));
     values.add(juce::var(symmetrySlider.getValue()));
     values.add(juce::var(biasSlider.getValue()));
-    values.add(juce::var(bitcrusherRateReduxSlider.getValue()));
-    values.add(juce::var(bitcrusherBitReduxSlider.getValue()));
+    values.add(juce::var(binsReduxSlider.getValue()));
+    values.add(juce::var(robotisationSlider.getValue()));
 
     return values;
 }
@@ -419,14 +419,14 @@ void SpectrumBitcrusherModuleGUI::resized()
 
     renderArea.setCentre(rateArea.getCentre());
     renderArea.setY(rateArea.getTopLeft().getY());
-    bitcrusherRateReduxSlider.setBounds(renderArea);
-    bitcrusherRateReduxLabel.setBounds(rateLabelArea);
-    bitcrusherRateReduxLabel.setJustificationType(juce::Justification::centred);
+    binsReduxSlider.setBounds(renderArea);
+    binsReduxLabel.setBounds(rateLabelArea);
+    binsReduxLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(bitArea.getCentre());
     renderArea.setY(bitArea.getTopLeft().getY());
-    bitcrusherBitReduxSlider.setBounds(renderArea);
-    bitcrusherBitReduxLabel.setBounds(bitLabelArea);
-    bitcrusherBitReduxLabel.setJustificationType(juce::Justification::centred);
+    robotisationSlider.setBounds(renderArea);
+    robotisationLabel.setBounds(bitLabelArea);
+    robotisationLabel.setJustificationType(juce::Justification::centred);
 
 }

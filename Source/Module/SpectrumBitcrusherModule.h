@@ -46,7 +46,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 struct SpectrumBitcrusherSettings {
     float mix{ 0 }, drive{ 0 };
     float symmetry{ 0 }, bias{ 0 };
-    float rateRedux{ 0 }, bitRedux{ 0 };
+    float rateRedux{ 0 }, robotisation{ 0 };
     bool bypassed{ false };
 };
 
@@ -71,7 +71,7 @@ private:
     juce::AudioBuffer<float> wetBuffer, tempBuffer;
     juce::LinearSmoothedValue<float> symmetry, bias;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
-    juce::LinearSmoothedValue<float> rateRedux, bitRedux;
+    juce::LinearSmoothedValue<float> rateRedux, robotisation;
 
     std::function<void(juce::AudioSampleBuffer&)> spectrumProcessingLambda;
 
@@ -112,20 +112,20 @@ private:
         mixLabel,
         symmetryLabel,
         biasLabel,
-        bitcrusherRateReduxLabel,
-        bitcrusherBitReduxLabel;
+        binsReduxLabel,
+        robotisationLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
         symmetrySlider,
         biasSlider,
-        bitcrusherRateReduxSlider,
-        bitcrusherBitReduxSlider;
+        binsReduxSlider,
+        robotisationSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
         symmetrySliderAttachment,
         biasSliderAttachment,
-        bitcrusherRateReduxSliderAttachment,
-        bitcrusherBitReduxSliderAttachment;
+        binsReduxSliderAttachment,
+        robotisationSliderAttachment;
 
     PowerButton bypassButton;
 
