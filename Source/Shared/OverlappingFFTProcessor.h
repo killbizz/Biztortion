@@ -113,6 +113,7 @@ public:
 
         notYetUsedAudioData.setSize(nChIn, fftSize - 1);
         fftInOutBuffer.setSize(maxCh, 2 * fftSize);
+        supportBuffer.setSize(nChIn, fftSize - 1);
 
         const int k = floor(1.0f + ((float)(bufferSize - 1)) / hopSize);
         const int M = k * hopSize + (fftSize - hopSize);
@@ -272,8 +273,24 @@ private:
     {
         for (int ch = 0; ch < nChOut; ++ch)
         {
-            outputBuffer.addFrom(ch, outputOffset, fftInOutBuffer, ch, 0, fftSize - hopSize);
-            outputBuffer.copyFrom(ch, outputOffset + fftSize - hopSize, fftInOutBuffer, ch, fftSize - hopSize, hopSize);
+            // outputBuffer.addFrom(ch, outputOffset, fftInOutBuffer, ch, 0, fftSize - hopSize);
+            // outputBuffer.copyFrom(ch, outputOffset + fftSize - hopSize, fftInOutBuffer, ch, fftSize - hopSize, hopSize);
+
+            FloatVectorOperations::multiply(
+                supportBuffer.getWritePointer(ch, 0), // destination
+                fftInOutBuffer.getWritePointer(ch, 0), // source 1 (audio data)
+                window.data(), // source 2 (window)
+                fftSize - hopSize // number of samples
+            );
+            outputBuffer.addFrom(ch, outputOffset, supportBuffer, ch, 0, fftSize - hopSize, 2.f);
+
+            FloatVectorOperations::multiply(
+                outputBuffer.getWritePointer(ch, outputOffset + fftSize - hopSize), // destination
+                fftInOutBuffer.getWritePointer(ch, fftSize - hopSize), // source 1 (audio data)
+                window.data() + fftSize - hopSize, // source 2 (window)
+                hopSize // number of samples
+            );
+
         }
         outputOffset += hopSize;
     }
@@ -298,6 +315,8 @@ private:
     int outputOffset;
 
     int notYetUsedAudioDataCount = 0;
+
+    AudioBuffer<float> supportBuffer;
 
     JUCE_DECLARE_NON_COPYABLE(OverlappingFFTProcessor)
 };
