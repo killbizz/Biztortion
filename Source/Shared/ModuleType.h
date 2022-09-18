@@ -37,7 +37,8 @@ enum ModuleType {
     Waveshaper,
     ClassicBitcrusher,
     SpectrumBitcrusher,
-    SlewLimiter
+    SlewLimiter,
+	AnalogClipper
 };
 
 const std::unordered_map<ModuleType, juce::String> moduleType_names({
@@ -47,5 +48,6 @@ const std::unordered_map<ModuleType, juce::String> moduleType_names({
     {ModuleType::Waveshaper, "Waveshaper"},
     {ModuleType::ClassicBitcrusher, "Classic Bitcrusher"},
     {ModuleType::SpectrumBitcrusher, "Spectrum Bitcrusher"},
-    {ModuleType::SlewLimiter, "Slew Limiter"}
+	{ModuleType::SlewLimiter, "Slew Limiter"},
+	{ModuleType::AnalogClipper, "Analog Clipper"}
     });
