@@ -36,6 +36,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/SpectrumBitcrusherModule.h"
 #include "../Module/SlewLimiterModule.h"
 #include "../Module/OscilloscopeModule.h"
+#include "../Module/AnalogClipperModule/AnalogClipperModule.h"
 
 PluginState::PluginState(juce::AudioProcessor& ap) :
     audioProcessor(ap),
@@ -307,7 +308,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameter
     OscilloscopeModuleDSP::addParameters(layout);
     ClassicBitcrusherModuleDSP::addParameters(layout);
     SpectrumBitcrusherModuleDSP::addParameters(layout);
-    SlewLimiterModuleDSP::addParameters(layout);
+	SlewLimiterModuleDSP::addParameters(layout);
+	AnalogClipperModuleDSP::addParameters(layout);
 
     return layout;
 }

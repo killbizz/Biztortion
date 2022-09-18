@@ -61,6 +61,10 @@ DSPModule* ModuleGenerator::createDSPModule(ModuleType mt)
         newModule = new SlewLimiterModuleDSP(pluginState.apvts);
         break;
     }
+	case ModuleType::AnalogClipper: {
+		newModule = new AnalogClipperModuleDSP(pluginState.apvts);
+		break;
+	}
     default:
         break;
     }
@@ -113,6 +117,10 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
             newModule = new SlewLimiterModuleGUI(pluginState, parameterNumber);
             break;
         }
+		case ModuleType::AnalogClipper: {
+			newModule = new AnalogClipperModuleGUI(pluginState, parameterNumber);
+			break;
+		}
         default:
             break;
     }
