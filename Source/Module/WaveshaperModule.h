@@ -54,7 +54,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 //==============================================================================
 
 struct WaveshaperSettings {
-    float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 };
+    float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
     float tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
     bool bypassed{ false };
 };
@@ -119,7 +119,7 @@ private:
 
     bool bypassed = false;
     juce::AudioBuffer<float> wetBuffer, tempBuffer;
-    juce::LinearSmoothedValue<float> fxDistribution, bias;
+    juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> tanhAmp, tanhSlope, sineAmp, sineFreq;
 
@@ -166,6 +166,7 @@ private:
         mixLabel,
         fxDistributionLabel,
         biasLabel,
+        symmetryLabel,
         tanhAmpLabel,
         tanhSlopeLabel,
         sineAmpLabel,
@@ -174,6 +175,7 @@ private:
         mixSlider,
         fxDistributionSlider,
         biasSlider,
+        symmetrySlider,
         tanhAmpSlider,
         tanhSlopeSlider,
         sineAmpSlider,
@@ -182,6 +184,7 @@ private:
         mixSliderAttachment,
         fxDistributionSliderAttachment,
         biasSliderAttachment,
+        symmetrySliderAttachment,
         tanhAmpSliderAttachment,
         tanhSlopeSliderAttachment,
         sineAmpSliderAttachment,
