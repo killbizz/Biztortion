@@ -90,7 +90,7 @@ void WaveshaperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         // Drive
         driveGain.applyGain(wetBuffer, numSamples);
 
-        // Temp Buffer feeding for applying asymmetry
+        // Temp Buffer feeding for applying afxDistribution
         for (auto channel = 0; channel < 2; channel++)
             tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);
 
@@ -115,7 +115,7 @@ void WaveshaperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         for (auto i = 0; i < numSamples; i++)
             channelData[i] = rightContext.getOutputBlock().getSample(0, i);*/
 
-        applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
+        effectDistribution(tempBuffer, wetBuffer, fxDistribution.getNextValue(), bias.getNextValue(), numSamples);
 
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
@@ -142,7 +142,7 @@ void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
     for (int i = 1; i < 9; ++i) {
         layout.add(std::make_unique<juce::AudioParameterFloat>("Waveshaper Drive " + std::to_string(i), "Waveshaper Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Mix " + std::to_string(i), "Waveshaper Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Symmetry " + std::to_string(i), "Waveshaper Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Fx Distribution " + std::to_string(i), "Waveshaper Fx Distribution " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Bias " + std::to_string(i), "Waveshaper Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Amp " + std::to_string(i), "Waveshaper Tanh Amp " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope " + std::to_string(i), "Waveshaper Tanh Slope " + std::to_string(i), NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
@@ -158,7 +158,7 @@ WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTre
 
     settings.drive = apvts.getRawParameterValue("Waveshaper Drive " + std::to_string(parameterNumber))->load();
     settings.mix = apvts.getRawParameterValue("Waveshaper Mix " + std::to_string(parameterNumber))->load();
-    settings.symmetry = apvts.getRawParameterValue("Waveshaper Symmetry " + std::to_string(parameterNumber))->load();
+    settings.fxDistribution = apvts.getRawParameterValue("Waveshaper Fx Distribution " + std::to_string(parameterNumber))->load();
     settings.bias = apvts.getRawParameterValue("Waveshaper Bias " + std::to_string(parameterNumber))->load();
     settings.tanhAmp = apvts.getRawParameterValue("Waveshaper Tanh Amp " + std::to_string(parameterNumber))->load();
     settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope " + std::to_string(parameterNumber))->load();
@@ -179,7 +179,7 @@ void WaveshaperModuleDSP::updateDSPState(double)
     dryGain.setTargetValue(1.f - mix);
     wetGain.setTargetValue(mix);
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
-    symmetry.setTargetValue(settings.symmetry * 0.01f);
+    fxDistribution.setTargetValue(settings.fxDistribution * 0.01f);
     bias.setTargetValue(settings.bias);
 
     tanhAmp.setTargetValue(settings.tanhAmp * 0.01f);
@@ -198,7 +198,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     : GUIModule(), pluginState(p),
     driveSlider(*pluginState.apvts.getParameter("Waveshaper Drive " + std::to_string(parameterNumber)), "dB"),
     mixSlider(*pluginState.apvts.getParameter("Waveshaper Mix " + std::to_string(parameterNumber)), "%"),
-    symmetrySlider(*pluginState.apvts.getParameter("Waveshaper Symmetry " + std::to_string(parameterNumber)), "%"),
+    fxDistributionSlider(*pluginState.apvts.getParameter("Waveshaper Fx Distribution " + std::to_string(parameterNumber)), "%"),
     biasSlider(*pluginState.apvts.getParameter("Waveshaper Bias " + std::to_string(parameterNumber)), ""),
     tanhAmpSlider(*pluginState.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(parameterNumber)), ""),
     tanhSlopeSlider(*pluginState.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(parameterNumber)), ""),
@@ -207,7 +207,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     transferFunctionGraph(p, parameterNumber),
     driveSliderAttachment(pluginState.apvts, "Waveshaper Drive " + std::to_string(parameterNumber), driveSlider),
     mixSliderAttachment(pluginState.apvts, "Waveshaper Mix " + std::to_string(parameterNumber), mixSlider),
-    symmetrySliderAttachment(pluginState.apvts, "Waveshaper Symmetry " + std::to_string(parameterNumber), symmetrySlider),
+    fxDistributionSliderAttachment(pluginState.apvts, "Waveshaper Fx Distribution " + std::to_string(parameterNumber), fxDistributionSlider),
     biasSliderAttachment(pluginState.apvts, "Waveshaper Bias " + std::to_string(parameterNumber), biasSlider),
     tanhAmpSliderAttachment(pluginState.apvts, "Waveshaper Tanh Amp " + std::to_string(parameterNumber), tanhAmpSlider),
     tanhSlopeSliderAttachment(pluginState.apvts, "Waveshaper Tanh Slope " + std::to_string(parameterNumber), tanhSlopeSlider),
@@ -224,8 +224,8 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     mixLabel.setText("Mix", juce::dontSendNotification);
     mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    symmetryLabel.setText("Symmetry", juce::dontSendNotification);
-    symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    fxDistributionLabel.setText("Fx Distribution", juce::dontSendNotification);
+    fxDistributionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     biasLabel.setText("Bias", juce::dontSendNotification);
     biasLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     tanhAmpLabel.setText("Tanh Amp", juce::dontSendNotification);
@@ -241,8 +241,8 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     driveSlider.labels.add({ 1.f, "40dB" });
     mixSlider.labels.add({ 0.f, "0%" });
     mixSlider.labels.add({ 1.f, "100%" });
-    symmetrySlider.labels.add({ 0.f, "-100%" });
-    symmetrySlider.labels.add({ 1.f, "+100%" });
+    fxDistributionSlider.labels.add({ 0.f, "-100%" });
+    fxDistributionSlider.labels.add({ 1.f, "+100%" });
     biasSlider.labels.add({ 0.f, "-0.9" });
     biasSlider.labels.add({ 1.f, "+0.9" });
     tanhAmpSlider.labels.add({ 0.f, "0" });
@@ -270,7 +270,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     bypassButton.setTooltip("Bypass this module");
     driveSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
-    symmetrySlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
+    fxDistributionSlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
     biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
     tanhAmpSlider.setTooltip("Set the hyperbolic tangent function amplitude");
     tanhSlopeSlider.setTooltip("Set the hyperbolic tangent function slope");
@@ -297,7 +297,7 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()
         &transferFunctionGraph,
         &driveSlider,
         &mixSlider,
-        &symmetrySlider,
+        &fxDistributionSlider,
         &biasSlider,
         &tanhAmpSlider,
         &tanhSlopeSlider,
@@ -306,7 +306,7 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()
         // labels
         &driveLabel,
         &mixLabel,
-        &symmetryLabel,
+        &fxDistributionLabel,
         &biasLabel,
         &tanhAmpLabel,
         &tanhSlopeLabel,
@@ -322,7 +322,7 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getParamComps()
     return {
         &driveSlider,
         &mixSlider,
-        &symmetrySlider,
+        &fxDistributionSlider,
         &biasSlider,
         &tanhAmpSlider,
         &tanhSlopeSlider,
@@ -338,7 +338,7 @@ void WaveshaperModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     driveSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
-    symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    fxDistributionSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     biasSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     tanhAmpSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     tanhSlopeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
@@ -350,7 +350,7 @@ void WaveshaperModuleGUI::resetParameters(unsigned int parameterNumber)
 {
     auto drive = pluginState.apvts.getParameter("Waveshaper Drive " + std::to_string(parameterNumber));
     auto mix = pluginState.apvts.getParameter("Waveshaper Mix " + std::to_string(parameterNumber));
-    auto symmetry = pluginState.apvts.getParameter("Waveshaper Symmetry " + std::to_string(parameterNumber));
+    auto fxDistribution = pluginState.apvts.getParameter("Waveshaper Fx Distribution " + std::to_string(parameterNumber));
     auto bias = pluginState.apvts.getParameter("Waveshaper Bias " + std::to_string(parameterNumber));
     auto tanhAmp = pluginState.apvts.getParameter("Waveshaper Tanh Amp " + std::to_string(parameterNumber));
     auto tanhSlope = pluginState.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(parameterNumber));
@@ -360,7 +360,7 @@ void WaveshaperModuleGUI::resetParameters(unsigned int parameterNumber)
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());
-    symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
+    fxDistribution->setValueNotifyingHost(fxDistribution->getDefaultValue());
     bias->setValueNotifyingHost(bias->getDefaultValue());
     tanhAmp->setValueNotifyingHost(tanhAmp->getDefaultValue());
     tanhSlope->setValueNotifyingHost(tanhSlope->getDefaultValue());
@@ -376,7 +376,7 @@ juce::Array<juce::var> WaveshaperModuleGUI::getParamValues()
     values.add(juce::var(bypassButton.getToggleState()));
     values.add(juce::var(driveSlider.getValue()));
     values.add(juce::var(mixSlider.getValue()));
-    values.add(juce::var(symmetrySlider.getValue()));
+    values.add(juce::var(fxDistributionSlider.getValue()));
     values.add(juce::var(biasSlider.getValue()));
     values.add(juce::var(tanhAmpSlider.getValue()));
     values.add(juce::var(tanhSlopeSlider.getValue()));
@@ -418,7 +418,7 @@ void WaveshaperModuleGUI::resized()
     temp = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
     auto driveLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
     auto mixLabelArea = temp;
-    auto symmetryLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
     auto biasLabelArea = topLabelsArea;
     temp = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
     auto tanhAmpLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
@@ -430,7 +430,7 @@ void WaveshaperModuleGUI::resized()
     temp = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
     auto driveArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
     auto mixArea = temp;
-    auto symmetryArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
     auto biasArea = topArea;
     temp = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
     auto tanhAmpArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
@@ -458,11 +458,11 @@ void WaveshaperModuleGUI::resized()
     mixLabel.setBounds(mixLabelArea);
     mixLabel.setJustificationType(juce::Justification::centred);
 
-    renderArea.setCentre(symmetryArea.getCentre());
-    renderArea.setY(symmetryArea.getTopLeft().getY());
-    symmetrySlider.setBounds(renderArea);
-    symmetryLabel.setBounds(symmetryLabelArea);
-    symmetryLabel.setJustificationType(juce::Justification::centred);
+    renderArea.setCentre(fxDistributionArea.getCentre());
+    renderArea.setY(fxDistributionArea.getTopLeft().getY());
+    fxDistributionSlider.setBounds(renderArea);
+    fxDistributionLabel.setBounds(fxDistributionLabelArea);
+    fxDistributionLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(biasArea.getCentre());
     renderArea.setY(biasArea.getTopLeft().getY());

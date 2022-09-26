@@ -54,7 +54,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 //==============================================================================
 
 struct WaveshaperSettings {
-    float mix{ 0 }, drive{ 0 }, symmetry{ 0 }, bias{ 0 };
+    float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 };
     float tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
     bool bypassed{ false };
 };
@@ -119,7 +119,7 @@ private:
 
     bool bypassed = false;
     juce::AudioBuffer<float> wetBuffer, tempBuffer;
-    juce::LinearSmoothedValue<float> symmetry, bias;
+    juce::LinearSmoothedValue<float> fxDistribution, bias;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> tanhAmp, tanhSlope, sineAmp, sineFreq;
 
@@ -164,7 +164,7 @@ private:
 
     juce::Label driveLabel,
         mixLabel,
-        symmetryLabel,
+        fxDistributionLabel,
         biasLabel,
         tanhAmpLabel,
         tanhSlopeLabel,
@@ -172,7 +172,7 @@ private:
         sineFreqLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
-        symmetrySlider,
+        fxDistributionSlider,
         biasSlider,
         tanhAmpSlider,
         tanhSlopeSlider,
@@ -180,7 +180,7 @@ private:
         sineFreqSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
-        symmetrySliderAttachment,
+        fxDistributionSliderAttachment,
         biasSliderAttachment,
         tanhAmpSliderAttachment,
         tanhSlopeSliderAttachment,
