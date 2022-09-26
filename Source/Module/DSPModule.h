@@ -60,16 +60,24 @@ protected:
     ModuleType moduleType;
 
     /**
-    * Use this function only in distortion modules to apply asymmetry (if symmetryBias !=0, else is normal symmetry)
-    * symmetryBias range is -0.9/+0.9 so select carefully your bias in order to apply the desired asymmetry effect
+    * Use this function to apply the module processing to the positive or negative section of the waveform, moving the waveform center point with the bias parameter
     * 
-    * @param    drySignal the original signal before processing [WARNING: the function does side effect to this buffer!]
+    * @param    inOutDrySignal the original signal before processing [WARNING: the function does side effect to this buffer!]
     * @param    wetSignal the signal after being processed
-    * @param    symmetryAmount determines the percentage of wet signal in the positive or negative part of the waveform
-    * @param    symmetryBias determines the threshold to determine the separation between positive and negative phase of the waveform
+    * @param    amount determines the percentage of wet signal in the positive and negative section of the waveform ; range = -1.f/+1.f
+    * @param    bias determines the threshold to determine the separation between positive and negative section of the waveform ; range = -0.9f/+0.9f
+    * @param    numSamples determines the number of samples in the buffers
+    */
+    void effectDistribution(juce::AudioBuffer<float>& inOutDrySignal, juce::AudioBuffer<float>& wetSignal, float amount, float bias, int numSamples);
+
+    /**
+    * Use this function to apply symmetry to the input buffer
+    *
+    * @param    signal : the input signal [WARNING: the function does side effect to this buffer!]
+    * @param    amount determines the amount of asymmetry to apply [if amount == 0 => the signal is uneffected] ; range = 0.f/+2.f
     * @param    numSamples determines the number of samples in the buffer
     */
-    void applyAsymmetry(juce::AudioBuffer<float>& drySignal, juce::AudioBuffer<float>& wetSignal, float symmetryAmount, float symmetryBias, int numSamples);
+    void applySymmetry(juce::AudioBuffer<float>& signal, float amount, int numSamples);
 
 private:
     float sumSignals(float drySignal, float dryGain, float wetSignal, float wetGain);
