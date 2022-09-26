@@ -44,8 +44,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 //==============================================================================
 
 struct SpectrumBitcrusherSettings {
-    float mix{ 0 }, drive{ 0 };
-    float symmetry{ 0 }, bias{ 0 };
+    float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
     float rateRedux{ 0 }, robotisation{ 0 };
     bool bypassed{ false };
 };
@@ -69,7 +68,7 @@ private:
     // parameters
     bool bypassed = false;
     juce::AudioBuffer<float> wetBuffer, tempBuffer;
-    juce::LinearSmoothedValue<float> symmetry, bias;
+    juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rateRedux, robotisation;
 
@@ -110,20 +109,23 @@ private:
 
     juce::Label driveLabel,
         mixLabel,
-        symmetryLabel,
+        fxDistributionLabel,
         biasLabel,
+        symmetryLabel,
         binsReduxLabel,
         robotisationLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
-        symmetrySlider,
+        fxDistributionSlider,
         biasSlider,
+        symmetrySlider,
         binsReduxSlider,
         robotisationSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
-        symmetrySliderAttachment,
+        fxDistributionSliderAttachment,
         biasSliderAttachment,
+        symmetrySliderAttachment,
         binsReduxSliderAttachment,
         robotisationSliderAttachment;
 
