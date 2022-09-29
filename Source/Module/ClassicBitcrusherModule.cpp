@@ -110,11 +110,14 @@ void ClassicBitcrusherModuleDSP::updateDSPState(double sampleRate)
 
     bypassed = settings.bypassed;
 
+    auto symmetryValue = juce::jmap(settings.symmetry, -100.f, 100.f, 0.f, 2.f);
+
     auto mix = settings.mix * 0.01f;
     dryGain.setTargetValue(1.f - mix);
     wetGain.setTargetValue(mix);
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
-    symmetry.setTargetValue(settings.symmetry * 0.01f);
+    fxDistribution.setTargetValue(settings.fxDistribution * 0.01f);
+    symmetry.setTargetValue(symmetryValue);
     bias.setTargetValue(settings.bias);
 
     rateRedux.setTargetValue(settings.rateRedux);
@@ -155,7 +158,7 @@ void ClassicBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, 
         // Drive
         driveGain.applyGain(wetBuffer, numSamples);
 
-        // Temp Buffer feeding for applying asymmetry
+        // Temp Buffer feeding for applying fxDistribution
         for (auto channel = 0; channel < 2; channel++)
             tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);
 
@@ -199,7 +202,9 @@ void ClassicBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, 
         wetBuffer.addFrom(0, 0, noiseBuffer.getReadPointer(0), numSamples);
         wetBuffer.addFrom(1, 0, noiseBuffer.getReadPointer(1), numSamples);
 
-        applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
+        effectDistribution(tempBuffer, wetBuffer, fxDistribution.getNextValue(), bias.getNextValue(), numSamples);
+
+        applySymmetry(tempBuffer, symmetry.getNextValue(), numSamples);
 
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
@@ -215,14 +220,15 @@ void ClassicBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeStat
     using namespace juce;
 
     for (int i = 1; i < 9; ++i) {
-        layout.add(std::make_unique<AudioParameterFloat>("CBitcrusher Drive " + std::to_string(i), "Classic Bitcrusher Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("CBitcrusher Mix " + std::to_string(i), "Classic Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Classic Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("CBitcrusher Symmetry " + std::to_string(i), "Classic Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("CBitcrusher Bias " + std::to_string(i), "Classic Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("CBitcrusher Rate Redux " + std::to_string(i), "Classic Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Classic Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("CBitcrusher Bit Redux " + std::to_string(i), "Classic Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Classic Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterFloat>("CBitcrusher Dither " + std::to_string(i), "Classic Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterBool>("CBitcrusher Bypassed " + std::to_string(i), "Classic Bitcrusher Bypassed " + std::to_string(i), false, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Drive " + std::to_string(i), "Classic Bitcrusher Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Mix " + std::to_string(i), "Classic Bitcrusher Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Fx Distribution " + std::to_string(i), "Classic Bitcrusher Fx Distribution " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Classic Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Bias " + std::to_string(i), "Classic Bitcrusher Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Rate Redux " + std::to_string(i), "Classic Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Classic Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(i), "Classic Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>(CLASSIC_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Classic Bitcrusher Bypassed " + std::to_string(i), false, "Classic Bitcrusher " + std::to_string(i)));
     }
 }
 
@@ -230,14 +236,15 @@ ClassicBitcrusherSettings ClassicBitcrusherModuleDSP::getSettings(juce::AudioPro
 {
     ClassicBitcrusherSettings settings;
 
-    settings.drive = apvts.getRawParameterValue("CBitcrusher Drive " + std::to_string(parameterNumber))->load();
-    settings.mix = apvts.getRawParameterValue("CBitcrusher Mix " + std::to_string(parameterNumber))->load();
-    settings.symmetry = apvts.getRawParameterValue("CBitcrusher Symmetry " + std::to_string(parameterNumber))->load();
-    settings.bias = apvts.getRawParameterValue("CBitcrusher Bias " + std::to_string(parameterNumber))->load();
-    settings.rateRedux = apvts.getRawParameterValue("CBitcrusher Rate Redux " + std::to_string(parameterNumber))->load();
-    settings.bitRedux = apvts.getRawParameterValue("CBitcrusher Bit Redux " + std::to_string(parameterNumber))->load();
-    settings.dither = apvts.getRawParameterValue("CBitcrusher Dither " + std::to_string(parameterNumber))->load();
-    settings.bypassed = apvts.getRawParameterValue("CBitcrusher Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.drive = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber))->load();
+    settings.mix = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber))->load();
+    settings.fxDistribution = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Fx Distribution " + std::to_string(parameterNumber))->load();
+    settings.symmetry = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber))->load();
+    settings.bias = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber))->load();
+    settings.rateRedux = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber))->load();
+    settings.bitRedux = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber))->load();
+    settings.dither = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber))->load();
+    settings.bypassed = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
 }
@@ -252,6 +259,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     : GUIModule(), pluginState(p),
     driveSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber)), "dB"),
     mixSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber)), "%"),
+    fxDistributionSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Fx Distribution " + std::to_string(parameterNumber)), "%"),
     symmetrySlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber)), "%"),
     biasSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber)), ""),
     bitcrusherDitherSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber)), "%"),
@@ -259,6 +267,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bitcrusherBitReduxSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber)), ""),
     driveSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber), driveSlider),
     mixSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber), mixSlider),
+    fxDistributionSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Fx Distribution " + std::to_string(parameterNumber), fxDistributionSlider),
     symmetrySliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber), symmetrySlider),
     biasSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber), biasSlider),
     bitcrusherDitherSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber), bitcrusherDitherSlider),
@@ -275,6 +284,8 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     mixLabel.setText("Mix", juce::dontSendNotification);
     mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    fxDistributionLabel.setText("Fx Distribution", juce::dontSendNotification);
+    fxDistributionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
     symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     biasLabel.setText("Bias", juce::dontSendNotification);
@@ -290,6 +301,8 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     driveSlider.labels.add({ 1.f, "40dB" });
     mixSlider.labels.add({ 0.f, "0%" });
     mixSlider.labels.add({ 1.f, "100%" });
+    fxDistributionSlider.labels.add({ 0.f, "-100%" });
+    fxDistributionSlider.labels.add({ 1.f, "+100%" });
     symmetrySlider.labels.add({ 0.f, "-100%" });
     symmetrySlider.labels.add({ 1.f, "+100%" });
     biasSlider.labels.add({ 0.f, "-0.9" });
@@ -317,7 +330,8 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bypassButton.setTooltip("Bypass this module");
     driveSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
-    symmetrySlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
+    fxDistributionSlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
+    symmetrySlider.setTooltip("Apply symmetry to the waveform moving it from the center");
     biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
     bitcrusherDitherSlider.setTooltip("Set the amount of white noise applied to the processed signal to add dithering or further noisy distortion");
     bitcrusherRateReduxSlider.setTooltip("Set the sampling rate for the reduction of signal resolution");
@@ -342,6 +356,7 @@ std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getAllComps()
         &title,
         &driveSlider,
         &mixSlider,
+        &fxDistributionSlider,
         &symmetrySlider,
         &biasSlider,
         &bitcrusherDitherSlider,
@@ -350,6 +365,7 @@ std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getAllComps()
         // labels
         &driveLabel,
         &mixLabel,
+        &fxDistributionLabel,
         &symmetryLabel,
         &biasLabel,
         &bitcrusherDitherLabel,
@@ -365,6 +381,7 @@ std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getParamComps()
     return {
         &driveSlider,
         &mixSlider,
+        &fxDistributionSlider,
         &symmetrySlider,
         &biasSlider,
         &bitcrusherDitherSlider,
@@ -380,6 +397,7 @@ void ClassicBitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>& 
     bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     driveSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    fxDistributionSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     biasSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     bitcrusherDitherSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
@@ -391,6 +409,7 @@ void ClassicBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
 {
     auto drive = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber));
     auto mix = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber));
+    auto fxDistribution = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Fx Distribution " + std::to_string(parameterNumber));
     auto symmetry = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber));
     auto bias = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber));
     auto rateRedux = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber));
@@ -400,6 +419,7 @@ void ClassicBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());
+    fxDistribution->setValueNotifyingHost(fxDistribution->getDefaultValue());
     symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
     bias->setValueNotifyingHost(bias->getDefaultValue());
     rateRedux->setValueNotifyingHost(rateRedux->getDefaultValue());
@@ -415,6 +435,7 @@ juce::Array<juce::var> ClassicBitcrusherModuleGUI::getParamValues()
     values.add(juce::var(bypassButton.getToggleState()));
     values.add(juce::var(driveSlider.getValue()));
     values.add(juce::var(mixSlider.getValue()));
+    values.add(juce::var(fxDistributionSlider.getValue()));
     values.add(juce::var(symmetrySlider.getValue()));
     values.add(juce::var(biasSlider.getValue()));
     values.add(juce::var(bitcrusherDitherSlider.getValue()));

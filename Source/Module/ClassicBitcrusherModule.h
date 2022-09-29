@@ -54,8 +54,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 //==============================================================================
 
 struct ClassicBitcrusherSettings {
-    float mix{ 0 }, drive{ 0 };
-    float symmetry{ 0 }, bias{ 0 };
+    float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
     float rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
     bool bypassed{ false };
 };
@@ -80,7 +79,7 @@ private:
 
     bool bypassed = false;
     juce::AudioBuffer<float> wetBuffer, noiseBuffer, tempBuffer;
-    juce::LinearSmoothedValue<float> symmetry, bias;
+    juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain, dither;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
 
@@ -117,22 +116,25 @@ private:
 
     juce::Label driveLabel,
         mixLabel,
-        symmetryLabel,
+        fxDistributionLabel,
         biasLabel,
+        symmetryLabel,
         bitcrusherDitherLabel,
         bitcrusherRateReduxLabel,
         bitcrusherBitReduxLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
-        symmetrySlider,
+        fxDistributionSlider,
         biasSlider,
+        symmetrySlider,
         bitcrusherDitherSlider,
         bitcrusherRateReduxSlider,
         bitcrusherBitReduxSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
-        symmetrySliderAttachment,
+        fxDistributionSliderAttachment,
         biasSliderAttachment,
+        symmetrySliderAttachment,
         bitcrusherDitherSliderAttachment,
         bitcrusherRateReduxSliderAttachment,
         bitcrusherBitReduxSliderAttachment;
