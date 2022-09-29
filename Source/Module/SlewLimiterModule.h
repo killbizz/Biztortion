@@ -53,7 +53,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 //==============================================================================
 
 struct SlewLimiterSettings {
-    float symmetry{ 0 }, bias{ 0 }, drive{ 0 }, mix{ 0 };
+    float drive{ 0 }, mix{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
     float rise{ 0 }, fall{ 0 };
     bool bypassed{ false }, DCoffsetRemove{ false };
 };
@@ -75,7 +75,7 @@ public:
 private:
 
     bool bypassed = false;
-    juce::LinearSmoothedValue<float> symmetry, bias;
+    juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rise, fall;
     juce::AudioBuffer<float> wetBuffer, tempBuffer;
@@ -133,20 +133,23 @@ private:
 
     juce::Label driveLabel,
         mixLabel,
-        symmetryLabel,
+        fxDistributionLabel,
         biasLabel,
+        symmetryLabel,
         slewLimiterRiseLabel,
         slewLimiterFallLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
-        symmetrySlider,
+        fxDistributionSlider,
         biasSlider,
+        symmetrySlider,
         slewLimiterRiseSlider,
         slewLimiterFallSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
-        symmetrySliderAttachment,
+        fxDistributionSliderAttachment,
         biasSliderAttachment,
+        symmetrySliderAttachment,
         slewLimiterRiseSliderAttachment,
         slewLimiterFallSliderAttachment;
 

@@ -58,11 +58,14 @@ void SlewLimiterModuleDSP::updateDSPState(double sampleRate)
 
     bypassed = settings.bypassed;
 
+    auto symmetryValue = juce::jmap(settings.symmetry, -100.f, 100.f, 0.f, 2.f);
+
     auto mix = settings.mix * 0.01f;
     dryGain.setTargetValue(1.f - mix);
     wetGain.setTargetValue(mix);
     driveGain.setTargetValue(juce::Decibels::decibelsToGain(settings.drive));
-    symmetry.setTargetValue(settings.symmetry * 0.01f);
+    fxDistribution.setTargetValue(settings.fxDistribution * 0.01f);
+    symmetry.setTargetValue(symmetryValue);
     bias.setTargetValue(settings.bias);
 
     rise.setTargetValue(settings.rise * 0.01f);
@@ -114,7 +117,7 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
         // Drive
         driveGain.applyGain(wetBuffer, numSamples);
 
-        // Temp Buffer feeding for applying asymmetry
+        // Temp Buffer feeding for applying fxDistribution
         for (auto channel = 0; channel < 2; channel++)
             tempBuffer.copyFrom(channel, 0, wetBuffer, channel, 0, numSamples);
 
@@ -155,7 +158,9 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
         }
         lastOutput = temp;
 
-        applyAsymmetry(tempBuffer, wetBuffer, symmetry.getNextValue(), bias.getNextValue(), numSamples);
+        effectDistribution(tempBuffer, wetBuffer, fxDistribution.getNextValue(), bias.getNextValue(), numSamples);
+
+        applySymmetry(tempBuffer, symmetry.getNextValue(), numSamples);
         
         if (DCoffsetRemoveEnabled) {
             juce::dsp::AudioBlock<float> block(tempBuffer);
@@ -183,6 +188,7 @@ void SlewLimiterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Par
     for (int i = 1; i < 9; ++i) {
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Drive " + std::to_string(i), "SlewLimiter Drive " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Mix " + std::to_string(i), "SlewLimiter Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "SlewLimiter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Fx Distribution " + std::to_string(i), "SlewLimiter Fx Distribution " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Symmetry " + std::to_string(i), "SlewLimiter Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Bias " + std::to_string(i), "SlewLimiter Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Rise " + std::to_string(i), "SlewLimiter Rise " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
@@ -198,6 +204,7 @@ SlewLimiterSettings SlewLimiterModuleDSP::getSettings(juce::AudioProcessorValueT
 
     settings.drive = apvts.getRawParameterValue("SlewLimiter Drive " + std::to_string(parameterNumber))->load();
     settings.mix = apvts.getRawParameterValue("SlewLimiter Mix " + std::to_string(parameterNumber))->load();
+    settings.fxDistribution = apvts.getRawParameterValue("SlewLimiter Fx Distribution " + std::to_string(parameterNumber))->load();
     settings.symmetry = apvts.getRawParameterValue("SlewLimiter Symmetry " + std::to_string(parameterNumber))->load();
     settings.bias = apvts.getRawParameterValue("SlewLimiter Bias " + std::to_string(parameterNumber))->load();
     settings.rise = apvts.getRawParameterValue("SlewLimiter Rise " + std::to_string(parameterNumber))->load();
@@ -218,12 +225,14 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     : GUIModule(), pluginState(p),
     driveSlider(*pluginState.apvts.getParameter("SlewLimiter Drive " + std::to_string(parameterNumber)), "dB"),
     mixSlider(*pluginState.apvts.getParameter("SlewLimiter Mix " + std::to_string(parameterNumber)), "%"),
+    fxDistributionSlider(*pluginState.apvts.getParameter("SlewLimiter Fx Distribution " + std::to_string(parameterNumber)), "%"),
     symmetrySlider(*pluginState.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(parameterNumber)), "%"),
     biasSlider(*pluginState.apvts.getParameter("SlewLimiter Bias " + std::to_string(parameterNumber)), ""),
     slewLimiterRiseSlider(*pluginState.apvts.getParameter("SlewLimiter Rise " + std::to_string(parameterNumber)), "%"),
     slewLimiterFallSlider(*pluginState.apvts.getParameter("SlewLimiter Fall " + std::to_string(parameterNumber)), "%"),
     driveSliderAttachment(pluginState.apvts, "SlewLimiter Drive " + std::to_string(parameterNumber), driveSlider),
     mixSliderAttachment(pluginState.apvts, "SlewLimiter Mix " + std::to_string(parameterNumber), mixSlider),
+    fxDistributionSliderAttachment(pluginState.apvts, "SlewLimiter Fx Distribution " + std::to_string(parameterNumber), fxDistributionSlider),
     symmetrySliderAttachment(pluginState.apvts, "SlewLimiter Symmetry " + std::to_string(parameterNumber), symmetrySlider),
     biasSliderAttachment(pluginState.apvts, "SlewLimiter Bias " + std::to_string(parameterNumber), biasSlider),
     slewLimiterRiseSliderAttachment(pluginState.apvts, "SlewLimiter Rise " + std::to_string(parameterNumber), slewLimiterRiseSlider),
@@ -240,6 +249,8 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     mixLabel.setText("Mix", juce::dontSendNotification);
     mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    fxDistributionLabel.setText("FxDistribution", juce::dontSendNotification);
+    fxDistributionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
     symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     biasLabel.setText("Bias", juce::dontSendNotification);
@@ -255,6 +266,8 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     driveSlider.labels.add({ 1.f, "40dB" });
     mixSlider.labels.add({ 0.f, "0%" });
     mixSlider.labels.add({ 1.f, "100%" });
+    fxDistributionSlider.labels.add({ 0.f, "-100%" });
+    fxDistributionSlider.labels.add({ 1.f, "+100%" });
     symmetrySlider.labels.add({ 0.f, "-100%" });
     symmetrySlider.labels.add({ 1.f, "+100%" });
     biasSlider.labels.add({ 0.f, "-0.9" });
@@ -280,7 +293,8 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     bypassButton.setTooltip("Bypass this module");
     driveSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
-    symmetrySlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
+    fxDistributionSlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
+    symmetrySlider.setTooltip("Apply symmetry to the waveform moving it from the center");
     biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
     slewLimiterRiseSlider.setTooltip("Set the maximum change speed of the waveform during the rising phase");
     slewLimiterFallSlider.setTooltip("Set the maximum change speed of the waveform during the falling phase");
@@ -305,6 +319,7 @@ std::vector<juce::Component*> SlewLimiterModuleGUI::getAllComps()
         &title,
         &driveSlider,
         &mixSlider,
+        &fxDistributionSlider,
         &symmetrySlider,
         &biasSlider,
         &slewLimiterRiseSlider,
@@ -313,6 +328,7 @@ std::vector<juce::Component*> SlewLimiterModuleGUI::getAllComps()
         // labels
         &driveLabel,
         &mixLabel,
+        &fxDistributionLabel,
         &symmetryLabel,
         &biasLabel,
         &slewLimiterRiseLabel,
@@ -328,6 +344,7 @@ std::vector<juce::Component*> SlewLimiterModuleGUI::getParamComps()
     return {
         &driveSlider,
         &mixSlider,
+        &fxDistributionSlider,
         &symmetrySlider,
         &biasSlider,
         &slewLimiterRiseSlider,
@@ -343,6 +360,7 @@ void SlewLimiterModuleGUI::updateParameters(const juce::Array<juce::var>& values
     bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     driveSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    fxDistributionSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     biasSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     slewLimiterRiseSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
@@ -354,6 +372,7 @@ void SlewLimiterModuleGUI::resetParameters(unsigned int parameterNumber)
 {
     auto drive = pluginState.apvts.getParameter("SlewLimiter Drive " + std::to_string(parameterNumber));
     auto mix = pluginState.apvts.getParameter("SlewLimiter Mix " + std::to_string(parameterNumber));
+    auto fxDistribution = pluginState.apvts.getParameter("SlewLimiter Fx Distribution " + std::to_string(parameterNumber));
     auto symmetry = pluginState.apvts.getParameter("SlewLimiter Symmetry " + std::to_string(parameterNumber));
     auto bias = pluginState.apvts.getParameter("SlewLimiter Bias " + std::to_string(parameterNumber));
     auto rise = pluginState.apvts.getParameter("SlewLimiter Rise " + std::to_string(parameterNumber));
@@ -363,6 +382,7 @@ void SlewLimiterModuleGUI::resetParameters(unsigned int parameterNumber)
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
     mix->setValueNotifyingHost(mix->getDefaultValue());
+    fxDistribution->setValueNotifyingHost(fxDistribution->getDefaultValue());
     symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
     bias->setValueNotifyingHost(bias->getDefaultValue());
     rise->setValueNotifyingHost(rise->getDefaultValue());
@@ -378,6 +398,7 @@ juce::Array<juce::var> SlewLimiterModuleGUI::getParamValues()
     values.add(juce::var(bypassButton.getToggleState()));
     values.add(juce::var(driveSlider.getValue()));
     values.add(juce::var(mixSlider.getValue()));
+    values.add(juce::var(fxDistributionSlider.getValue()));
     values.add(juce::var(symmetrySlider.getValue()));
     values.add(juce::var(biasSlider.getValue()));
     values.add(juce::var(slewLimiterRiseSlider.getValue()));
