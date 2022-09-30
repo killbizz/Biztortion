@@ -70,6 +70,7 @@ void SlewLimiterModuleDSP::updateDSPState(double sampleRate)
 
     rise.setTargetValue(settings.rise * 0.01f);
     fall.setTargetValue(settings.fall * 0.01f);
+
     DCoffsetRemoveEnabled = settings.DCoffsetRemove;
 }
 
