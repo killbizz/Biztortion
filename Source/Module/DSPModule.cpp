@@ -103,11 +103,10 @@ void DSPModule::applySymmetry(juce::AudioBuffer<float>& signal, float amount, in
     {
         auto* bufferData = signal.getWritePointer(channel);
         for (auto i = 0; i < numSamples; ++i) {
-            float sample = bufferData[i];
-            if (sample < 0.0f) {
-                sample *= (2.0f - amount);
+            if (bufferData[i] > 0.0f) {
+                bufferData[i] *= (2.0f - amount);
             } else {
-                sample *= amount;
+                bufferData[i] *= amount;
             }
         }
     }
