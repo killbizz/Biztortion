@@ -56,10 +56,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 struct ClassicBitcrusherSettings {
     float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
     float rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
-    bool bypassed{ false };
+    bool bypassed{ false }, DCoffsetRemove{ false };
 };
 
 const juce::String CLASSIC_BITCRUSHER_ID = "CBitcrusher ";
+
+using Filter = juce::dsp::IIR::Filter<float>;
 
 
 class ClassicBitcrusherModuleDSP : public DSPModule {
@@ -82,6 +84,8 @@ private:
     juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain, dither;
     juce::LinearSmoothedValue<float> rateRedux, bitRedux;
+    Filter leftDCoffsetRemoveHPF, rightDCoffsetRemoveHPF;
+    bool DCoffsetRemoveEnabled = false;
 
 };
 
@@ -144,5 +148,11 @@ private:
     ButtonAttachment bypassButtonAttachment;
 
     ButtonsLookAndFeel lnf;
+
+    juce::ToggleButton DCoffsetEnabledButton;
+
+    ButtonAttachment DCoffsetEnabledButtonAttachment;
+
+    juce::Label DCoffsetEnabledButtonLabel;
 
 };

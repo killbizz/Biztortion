@@ -40,6 +40,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "ClassicBitcrusherModule.h"
 
+#include "FilterModule.h"
+
 //==============================================================================
 
 /* ClassicBitcrusherModule DSP */
@@ -123,10 +125,26 @@ void ClassicBitcrusherModuleDSP::updateDSPState(double sampleRate)
     rateRedux.setTargetValue(settings.rateRedux);
     bitRedux.setTargetValue(settings.bitRedux);
     dither.setTargetValue(settings.dither * 0.01f);
+
+    DCoffsetRemoveEnabled = settings.DCoffsetRemove;
 }
 
 void ClassicBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+    juce::dsp::ProcessSpec spec;
+
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = 1;
+    spec.sampleRate = sampleRate;
+
+    leftDCoffsetRemoveHPF.prepare(spec);
+    rightDCoffsetRemoveHPF.prepare(spec);
+
+    // create a 1pole HPF at 5Hz in order to remove DC offset
+    auto filterCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(5, sampleRate, 1);
+    updateCoefficients(leftDCoffsetRemoveHPF.coefficients, filterCoefficients[0]);
+    updateCoefficients(rightDCoffsetRemoveHPF.coefficients, filterCoefficients[0]);
+
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     noiseBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
@@ -206,6 +224,16 @@ void ClassicBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, 
 
         applySymmetry(tempBuffer, symmetry.getNextValue(), numSamples);
 
+        if (DCoffsetRemoveEnabled) {
+            juce::dsp::AudioBlock<float> block(tempBuffer);
+            auto leftBlock = block.getSingleChannelBlock(0);
+            auto rightBlock = block.getSingleChannelBlock(1);
+            juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+            juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
+            leftDCoffsetRemoveHPF.process(leftContext);
+            rightDCoffsetRemoveHPF.process(rightContext);
+        }
+
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
         wetGain.applyGain(tempBuffer, numSamples);
@@ -228,6 +256,7 @@ void ClassicBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeStat
         layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Rate Redux " + std::to_string(i), "Classic Bitcrusher Rate Redux " + std::to_string(i), NormalisableRange<float>(100.f, 44100.f, 10.f, 0.25f), 44100.f, "Classic Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Bit Redux " + std::to_string(i), "Classic Bitcrusher Bit Redux " + std::to_string(i), NormalisableRange<float>(1.f, 16.f, 0.01f, 0.25f), 16.f, "Classic Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(i), "Classic Bitcrusher Dither " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Classic Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>(CLASSIC_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(i), "Classic Bitcrusher DCoffset Enabled " + std::to_string(i), false, "Classic Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(CLASSIC_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Classic Bitcrusher Bypassed " + std::to_string(i), false, "Classic Bitcrusher " + std::to_string(i)));
     }
 }
@@ -244,6 +273,7 @@ ClassicBitcrusherSettings ClassicBitcrusherModuleDSP::getSettings(juce::AudioPro
     settings.rateRedux = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber))->load();
     settings.bitRedux = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber))->load();
     settings.dither = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber))->load();
+    settings.DCoffsetRemove = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(parameterNumber))->load() > 0.5f;
     settings.bypassed = apvts.getRawParameterValue(CLASSIC_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
@@ -273,6 +303,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bitcrusherDitherSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber), bitcrusherDitherSlider),
     bitcrusherRateReduxSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber), bitcrusherRateReduxSlider),
     bitcrusherBitReduxSliderAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber), bitcrusherBitReduxSlider),
+    DCoffsetEnabledButtonAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(parameterNumber), DCoffsetEnabledButton),
     bypassButtonAttachment(pluginState.apvts, CLASSIC_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
@@ -296,6 +327,8 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bitcrusherRateReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
     bitcrusherBitReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    DCoffsetEnabledButtonLabel.setText("DC Filter", juce::dontSendNotification);
+    DCoffsetEnabledButtonLabel.setFont(ModuleLookAndFeel::getLabelsFont());
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -336,6 +369,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bitcrusherDitherSlider.setTooltip("Set the amount of white noise applied to the processed signal to add dithering or further noisy distortion");
     bitcrusherRateReduxSlider.setTooltip("Set the sampling rate for the reduction of signal resolution");
     bitcrusherBitReduxSlider.setTooltip("Set the bit depth for the reduction of signal resolution");
+    DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())
     {
@@ -362,6 +396,7 @@ std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getAllComps()
         &bitcrusherDitherSlider,
         &bitcrusherRateReduxSlider,
         &bitcrusherBitReduxSlider,
+        &DCoffsetEnabledButton,
         // labels
         &driveLabel,
         &mixLabel,
@@ -371,6 +406,7 @@ std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getAllComps()
         &bitcrusherDitherLabel,
         &bitcrusherRateReduxLabel,
         &bitcrusherBitReduxLabel,
+        &DCoffsetEnabledButtonLabel,
         // bypass
         &bypassButton
     };
@@ -386,7 +422,8 @@ std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getParamComps()
         &biasSlider,
         &bitcrusherDitherSlider,
         &bitcrusherRateReduxSlider,
-        &bitcrusherBitReduxSlider
+        &bitcrusherBitReduxSlider,
+        &DCoffsetEnabledButton
     };
 }
 
@@ -403,6 +440,7 @@ void ClassicBitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>& 
     bitcrusherDitherSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     bitcrusherRateReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     bitcrusherBitReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    DCoffsetEnabledButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void ClassicBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
@@ -415,6 +453,7 @@ void ClassicBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
     auto rateRedux = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Rate Redux " + std::to_string(parameterNumber));
     auto bitRedux = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Bit Redux " + std::to_string(parameterNumber));
     auto dither = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Dither " + std::to_string(parameterNumber));
+    auto dcOffset = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(parameterNumber));
     auto bypassed = pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
@@ -425,6 +464,7 @@ void ClassicBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
     rateRedux->setValueNotifyingHost(rateRedux->getDefaultValue());
     bitRedux->setValueNotifyingHost(bitRedux->getDefaultValue());
     dither->setValueNotifyingHost(dither->getDefaultValue());
+    dcOffset->setValueNotifyingHost(dcOffset->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
 }
 
@@ -441,6 +481,7 @@ juce::Array<juce::var> ClassicBitcrusherModuleGUI::getParamValues()
     values.add(juce::var(bitcrusherDitherSlider.getValue()));
     values.add(juce::var(bitcrusherRateReduxSlider.getValue()));
     values.add(juce::var(bitcrusherBitReduxSlider.getValue()));
+    values.add(juce::var(DCoffsetEnabledButton.getToggleState()));
 
     return values;
 }
