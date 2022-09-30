@@ -56,8 +56,10 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 struct WaveshaperSettings {
     float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
     float tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
-    bool bypassed{ false };
+    bool bypassed{ false }, DCoffsetRemove{ false };
 };
+
+using Filter = juce::dsp::IIR::Filter<float>;
 
 // TODO : implementing oversampling
 //class Waveshaper : public juce::dsp::ProcessorBase
@@ -122,6 +124,9 @@ private:
     juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> tanhAmp, tanhSlope, sineAmp, sineFreq;
+
+    Filter leftDCoffsetRemoveHPF, rightDCoffsetRemoveHPF;
+    bool DCoffsetRemoveEnabled = false;
 
     /*static const size_t numChannels = 2;
     static const size_t oversamplingOrder = 4;
@@ -195,5 +200,11 @@ private:
     ButtonAttachment bypassButtonAttachment;
 
     ButtonsLookAndFeel lnf;
+
+    juce::ToggleButton DCoffsetEnabledButton;
+
+    ButtonAttachment DCoffsetEnabledButtonAttachment;
+
+    juce::Label DCoffsetEnabledButtonLabel;
 
 };

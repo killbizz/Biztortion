@@ -39,6 +39,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "WaveshaperModule.h"
 
+#include "FilterModule.h"
+
 //==============================================================================
 
 /* WaveshaperModule DSP */
@@ -52,8 +54,23 @@ WaveshaperModuleDSP::WaveshaperModuleDSP(juce::AudioProcessorValueTreeState& _ap
 
 void WaveshaperModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+    juce::dsp::ProcessSpec spec;
+
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = 1;
+    spec.sampleRate = sampleRate;
+
+    leftDCoffsetRemoveHPF.prepare(spec);
+    rightDCoffsetRemoveHPF.prepare(spec);
+
+    // create a 1pole HPF at 5Hz in order to remove DC offset
+    auto filterCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(5, sampleRate, 1);
+    updateCoefficients(leftDCoffsetRemoveHPF.coefficients, filterCoefficients[0]);
+    updateCoefficients(rightDCoffsetRemoveHPF.coefficients, filterCoefficients[0]);
+
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
+
     updateDSPState(sampleRate);
     /*oversampler.initProcessing(samplesPerBlock);
     oversampler.reset();*/
@@ -119,6 +136,16 @@ void WaveshaperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::M
 
         applySymmetry(tempBuffer, symmetry.getNextValue(), numSamples);
 
+        if (DCoffsetRemoveEnabled) {
+            juce::dsp::AudioBlock<float> block(tempBuffer);
+            auto leftBlock = block.getSingleChannelBlock(0);
+            auto rightBlock = block.getSingleChannelBlock(1);
+            juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+            juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
+            leftDCoffsetRemoveHPF.process(leftContext);
+            rightDCoffsetRemoveHPF.process(rightContext);
+        }
+
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
         wetGain.applyGain(tempBuffer, numSamples);
@@ -151,6 +178,7 @@ void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope " + std::to_string(i), "Waveshaper Tanh Slope " + std::to_string(i), NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp " + std::to_string(i), "Waveshaper Sin Amp " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq " + std::to_string(i), "Waveshaper Sin Freq " + std::to_string(i), NormalisableRange<float>(0.5f, 100.f, 0.01f), 0.5f, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("Waveshaper DCoffset Enabled " + std::to_string(i), "Waveshaper DCoffset Enabled " + std::to_string(i), false, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>("Waveshaper Bypassed " + std::to_string(i), "Waveshaper Bypassed " + std::to_string(i), false, "Waveshaper " + std::to_string(i)));
     }
 }
@@ -168,6 +196,7 @@ WaveshaperSettings WaveshaperModuleDSP::getSettings(juce::AudioProcessorValueTre
     settings.tanhSlope = apvts.getRawParameterValue("Waveshaper Tanh Slope " + std::to_string(parameterNumber))->load();
     settings.sinAmp = apvts.getRawParameterValue("Waveshaper Sine Amp " + std::to_string(parameterNumber))->load();
     settings.sinFreq = apvts.getRawParameterValue("Waveshaper Sine Freq " + std::to_string(parameterNumber))->load();
+    settings.DCoffsetRemove = apvts.getRawParameterValue("Waveshaper DCoffset Enabled " + std::to_string(parameterNumber))->load() > 0.5f;
     settings.bypassed = apvts.getRawParameterValue("Waveshaper Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
@@ -193,6 +222,8 @@ void WaveshaperModuleDSP::updateDSPState(double)
     tanhSlope.setTargetValue(settings.tanhSlope);
     sineAmp.setTargetValue(settings.sinAmp * 0.01f);
     sineFreq.setTargetValue(settings.sinFreq);
+
+    DCoffsetRemoveEnabled = settings.DCoffsetRemove;
 }
 
 //==============================================================================
@@ -222,6 +253,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     tanhSlopeSliderAttachment(pluginState.apvts, "Waveshaper Tanh Slope " + std::to_string(parameterNumber), tanhSlopeSlider),
     sineAmpSliderAttachment(pluginState.apvts, "Waveshaper Sine Amp " + std::to_string(parameterNumber), sineAmpSlider),
     sineFreqSliderAttachment(pluginState.apvts, "Waveshaper Sine Freq " + std::to_string(parameterNumber), sineFreqSlider),
+    DCoffsetEnabledButtonAttachment(pluginState.apvts, "Waveshaper DCoffset Enabled " + std::to_string(parameterNumber), DCoffsetEnabledButton),
     bypassButtonAttachment(pluginState.apvts, "Waveshaper Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
@@ -247,6 +279,8 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     sineAmpLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     sineFreqLabel.setText("Sin Freq", juce::dontSendNotification);
     sineFreqLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    DCoffsetEnabledButtonLabel.setText("DC Filter", juce::dontSendNotification);
+    DCoffsetEnabledButtonLabel.setFont(ModuleLookAndFeel::getLabelsFont());
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -290,6 +324,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     tanhSlopeSlider.setTooltip("Set the hyperbolic tangent function slope");
     sineAmpSlider.setTooltip("Set the sine function amplitude");
     sineFreqSlider.setTooltip("Set the sine function frequency");
+    DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())
     {
@@ -318,6 +353,7 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()
         &tanhSlopeSlider,
         &sineAmpSlider,
         &sineFreqSlider,
+        &DCoffsetEnabledButton,
         // labels
         &driveLabel,
         &mixLabel,
@@ -328,6 +364,7 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()
         &tanhSlopeLabel,
         &sineAmpLabel,
         &sineFreqLabel,
+        &DCoffsetEnabledButtonLabel,
         // bypass
         &bypassButton
     };
@@ -344,7 +381,8 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getParamComps()
         &tanhAmpSlider,
         &tanhSlopeSlider,
         &sineAmpSlider,
-        &sineFreqSlider
+        &sineFreqSlider,
+        &DCoffsetEnabledButton
     };
 }
 
@@ -362,6 +400,7 @@ void WaveshaperModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     tanhSlopeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     sineAmpSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     sineFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    DCoffsetEnabledButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void WaveshaperModuleGUI::resetParameters(unsigned int parameterNumber)
@@ -375,6 +414,7 @@ void WaveshaperModuleGUI::resetParameters(unsigned int parameterNumber)
     auto tanhSlope = pluginState.apvts.getParameter("Waveshaper Tanh Slope " + std::to_string(parameterNumber));
     auto sineAmp = pluginState.apvts.getParameter("Waveshaper Sine Amp " + std::to_string(parameterNumber));
     auto sineFreq = pluginState.apvts.getParameter("Waveshaper Sine Freq " + std::to_string(parameterNumber));
+    auto dcOffset = pluginState.apvts.getParameter("Waveshaper DCoffset Enabled " + std::to_string(parameterNumber));
     auto bypassed = pluginState.apvts.getParameter("Waveshaper Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
@@ -386,6 +426,7 @@ void WaveshaperModuleGUI::resetParameters(unsigned int parameterNumber)
     tanhSlope->setValueNotifyingHost(tanhSlope->getDefaultValue());
     sineAmp->setValueNotifyingHost(sineAmp->getDefaultValue());
     sineFreq->setValueNotifyingHost(sineFreq->getDefaultValue());
+    dcOffset->setValueNotifyingHost(dcOffset->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
 }
 
@@ -403,6 +444,7 @@ juce::Array<juce::var> WaveshaperModuleGUI::getParamValues()
     values.add(juce::var(tanhSlopeSlider.getValue()));
     values.add(juce::var(sineAmpSlider.getValue()));
     values.add(juce::var(sineFreqSlider.getValue()));
+    values.add(juce::var(DCoffsetEnabledButton.getToggleState()));
 
     return values;
 }
