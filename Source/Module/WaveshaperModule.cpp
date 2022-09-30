@@ -178,7 +178,7 @@ void WaveshaperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Para
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Tanh Slope " + std::to_string(i), "Waveshaper Tanh Slope " + std::to_string(i), NormalisableRange<float>(1.f, 15.f, 0.01f), 1.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Amp " + std::to_string(i), "Waveshaper Sin Amp " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("Waveshaper Sine Freq " + std::to_string(i), "Waveshaper Sin Freq " + std::to_string(i), NormalisableRange<float>(0.5f, 100.f, 0.01f), 0.5f, "Waveshaper " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterBool>("Waveshaper DCoffset Enabled " + std::to_string(i), "Waveshaper DCoffset Enabled " + std::to_string(i), false, "Waveshaper " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("Waveshaper DCoffset Enabled " + std::to_string(i), "Waveshaper DCoffset Enabled " + std::to_string(i), true, "Waveshaper " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>("Waveshaper Bypassed " + std::to_string(i), "Waveshaper Bypassed " + std::to_string(i), false, "Waveshaper " + std::to_string(i)));
     }
 }
@@ -471,18 +471,22 @@ void WaveshaperModuleGUI::resized()
 
     waveshaperArea.translate(0, 8);
 
-    auto topArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
+    auto topArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
+    auto middleArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
     auto bottomArea = waveshaperArea;
 
     auto topLabelsArea = topArea.removeFromTop(14);
+    auto middleLabelsArea = middleArea.removeFromTop(14);
     auto bottomLabelsArea = bottomArea.removeFromTop(14);
 
     // label areas
-    temp = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto driveLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto mixLabelArea = temp;
-    auto fxDistributionLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto biasLabelArea = topLabelsArea;
+    auto driveLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
+    auto mixLabelArea = topLabelsArea;
+    temp = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto biasLabelArea = temp;
+    auto symmetryLabelArea = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
+    auto DCoffsetRemoveLabelArea = middleLabelsArea;
     temp = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
     auto tanhAmpLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
     auto tanhSlopeLabelArea = temp;
@@ -490,11 +494,13 @@ void WaveshaperModuleGUI::resized()
     auto sineFreqLabelArea = bottomLabelsArea;
 
     // slider areas
-    temp = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto driveArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto mixArea = temp;
-    auto fxDistributionArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto biasArea = topArea;
+    auto driveArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
+    auto mixArea = topArea;
+    temp = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto biasArea = temp;
+    auto symmetryArea = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
+    auto DCoffsetRemoveArea = middleArea;
     temp = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
     auto tanhAmpArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
     auto tanhSlopeArea = temp;
@@ -502,7 +508,7 @@ void WaveshaperModuleGUI::resized()
     auto sineFreqArea = bottomArea;
 
     juce::Rectangle<int> renderArea;
-    renderArea.setSize(driveArea.getWidth(), driveArea.getWidth());
+    renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
     
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centredBottom);
@@ -532,6 +538,22 @@ void WaveshaperModuleGUI::resized()
     biasSlider.setBounds(renderArea);
     biasLabel.setBounds(biasLabelArea);
     biasLabel.setJustificationType(juce::Justification::centred);
+
+    renderArea.setCentre(symmetryArea.getCentre());
+    renderArea.setY(symmetryArea.getTopLeft().getY());
+    symmetrySlider.setBounds(renderArea);
+    symmetryLabel.setBounds(symmetryLabelArea);
+    symmetryLabel.setJustificationType(juce::Justification::centred);
+
+    // DCoffsetRemoveArea.reduce(85.f, 65.f);
+    DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
+    /*DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(JUCE_LIVE_CONSTANT(-615.f),
+        JUCE_LIVE_CONSTANT(-289.f)));*/
+    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-615.f, -289.f));
+    DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
+    DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
+    DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f), 
+        JUCE_LIVE_CONSTANT(0.4327f));
 
     renderArea.setCentre(tanhAmpArea.getCentre());
     renderArea.setY(tanhAmpArea.getTopLeft().getY());
