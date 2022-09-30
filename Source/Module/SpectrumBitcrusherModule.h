@@ -46,11 +46,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 struct SpectrumBitcrusherSettings {
     float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
     float rateRedux{ 0 }, robotisation{ 0 };
-    bool bypassed{ false };
+    bool bypassed{ false }, DCoffsetRemove{ false };
 };
 
 const juce::String SPECTRUM_BITCRUSHER_ID = "SBitcrusher ";
 
+using Filter = juce::dsp::IIR::Filter<float>;
 
 class SpectrumBitcrusherModuleDSP : public DSPModule {
 public:
@@ -71,6 +72,9 @@ private:
     juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
     juce::LinearSmoothedValue<float> rateRedux, robotisation;
+
+    Filter leftDCoffsetRemoveHPF, rightDCoffsetRemoveHPF;
+    bool DCoffsetRemoveEnabled = false;
 
     std::function<void(juce::AudioSampleBuffer&)> spectrumProcessingLambda;
 
@@ -134,5 +138,11 @@ private:
     ButtonAttachment bypassButtonAttachment;
 
     ButtonsLookAndFeel lnf;
+
+    juce::ToggleButton DCoffsetEnabledButton;
+
+    ButtonAttachment DCoffsetEnabledButtonAttachment;
+
+    juce::Label DCoffsetEnabledButtonLabel;
 
 };

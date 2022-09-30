@@ -28,8 +28,10 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "SpectrumBitcrusherModule.h"
+
 #include <complex>
 #include <cmath>
+#include "FilterModule.h"
 
 using namespace std::complex_literals;
 
@@ -95,10 +97,26 @@ void SpectrumBitcrusherModuleDSP::updateDSPState(double sampleRate)
 
     rateRedux.setTargetValue(settings.rateRedux);
     robotisation.setTargetValue(settings.robotisation * 0.01f);
+
+    DCoffsetRemoveEnabled = settings.DCoffsetRemove;
 }
 
 void SpectrumBitcrusherModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+    juce::dsp::ProcessSpec spec;
+
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = 1;
+    spec.sampleRate = sampleRate;
+
+    leftDCoffsetRemoveHPF.prepare(spec);
+    rightDCoffsetRemoveHPF.prepare(spec);
+
+    // create a 1pole HPF at 5Hz in order to remove DC offset
+    auto filterCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(5, sampleRate, 1);
+    updateCoefficients(leftDCoffsetRemoveHPF.coefficients, filterCoefficients[0]);
+    updateCoefficients(rightDCoffsetRemoveHPF.coefficients, filterCoefficients[0]);
+
     wetBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
     tempBuffer.setSize(2, samplesPerBlock, false, true, true); // clears
 
@@ -140,6 +158,16 @@ void SpectrumBitcrusherModuleDSP::processBlock(juce::AudioBuffer<float>& buffer,
 
         applySymmetry(tempBuffer, symmetry.getNextValue(), numSamples);
 
+        if (DCoffsetRemoveEnabled) {
+            juce::dsp::AudioBlock<float> block(tempBuffer);
+            auto leftBlock = block.getSingleChannelBlock(0);
+            auto rightBlock = block.getSingleChannelBlock(1);
+            juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+            juce::dsp::ProcessContextReplacing<float> rightContext(rightBlock);
+            leftDCoffsetRemoveHPF.process(leftContext);
+            rightDCoffsetRemoveHPF.process(rightContext);
+        }
+
         // Mixing buffers
         dryGain.applyGain(buffer, numSamples);
         wetGain.applyGain(tempBuffer, numSamples);
@@ -161,6 +189,7 @@ void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeSta
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(16.f, 1024.f, 1.f, 0.25f), 1024.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(i), "Spectrum Bitcrusher Robotisation " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(i), "Spectrum Bitcrusher DCoffset Enabled " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
 }
@@ -176,6 +205,7 @@ SpectrumBitcrusherSettings SpectrumBitcrusherModuleDSP::getSettings(juce::AudioP
     settings.bias = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bias " + std::to_string(parameterNumber))->load();
     settings.rateRedux = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber))->load();
     settings.robotisation = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(parameterNumber))->load();
+    settings.DCoffsetRemove = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(parameterNumber))->load() > 0.5f;
     settings.bypassed = apvts.getRawParameterValue(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
     return settings;
@@ -203,6 +233,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     symmetrySliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber), symmetrySlider),
     binsReduxSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber), binsReduxSlider),
     robotisationSliderAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(parameterNumber), robotisationSlider),
+    DCoffsetEnabledButtonAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(parameterNumber), DCoffsetEnabledButton),
     bypassButtonAttachment(pluginState.apvts, SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
     // title setup
@@ -224,6 +255,8 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     binsReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     robotisationLabel.setText("Robotisation", juce::dontSendNotification);
     robotisationLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    DCoffsetEnabledButtonLabel.setText("DC Filter", juce::dontSendNotification);
+    DCoffsetEnabledButtonLabel.setFont(ModuleLookAndFeel::getLabelsFont());
 
     driveSlider.labels.add({ 0.f, "0dB" });
     driveSlider.labels.add({ 1.f, "40dB" });
@@ -261,6 +294,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     symmetrySlider.setTooltip("Apply symmetry to the waveform moving it from the center");
     binsReduxSlider.setTooltip("Set the bins rate for the reduction of the spectrum resolution");
     robotisationSlider.setTooltip("Select the amount of robotisation of the input signal");
+    DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())
     {
@@ -286,6 +320,7 @@ std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getAllComps()
         &symmetrySlider,
         &binsReduxSlider,
         &robotisationSlider,
+        &DCoffsetEnabledButton,
         // labels
         &driveLabel,
         &mixLabel,
@@ -294,6 +329,7 @@ std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getAllComps()
         &symmetryLabel,
         &binsReduxLabel,
         &robotisationLabel,
+        &DCoffsetEnabledButtonLabel,
         // bypass
         &bypassButton
     };
@@ -308,7 +344,8 @@ std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getParamComps()
         &biasSlider,
         &symmetrySlider,
         &binsReduxSlider,
-        &robotisationSlider
+        &robotisationSlider,
+        &DCoffsetEnabledButton
     };
 }
 
@@ -324,6 +361,7 @@ void SpectrumBitcrusherModuleGUI::updateParameters(const juce::Array<juce::var>&
     symmetrySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     binsReduxSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     robotisationSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    DCoffsetEnabledButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void SpectrumBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
@@ -335,6 +373,7 @@ void SpectrumBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
     auto symmetry = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(parameterNumber));
     auto binsRedux = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(parameterNumber));
     auto robotisation = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(parameterNumber));
+    auto dcOffset = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(parameterNumber));
     auto bypassed = pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(parameterNumber));
 
     drive->setValueNotifyingHost(drive->getDefaultValue());
@@ -344,6 +383,7 @@ void SpectrumBitcrusherModuleGUI::resetParameters(unsigned int parameterNumber)
     symmetry->setValueNotifyingHost(symmetry->getDefaultValue());
     binsRedux->setValueNotifyingHost(binsRedux->getDefaultValue());
     robotisation->setValueNotifyingHost(robotisation->getDefaultValue());
+    dcOffset->setValueNotifyingHost(dcOffset->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
 }
 
@@ -359,6 +399,7 @@ juce::Array<juce::var> SpectrumBitcrusherModuleGUI::getParamValues()
     values.add(juce::var(symmetrySlider.getValue()));
     values.add(juce::var(binsReduxSlider.getValue()));
     values.add(juce::var(robotisationSlider.getValue()));
+    values.add(juce::var(DCoffsetEnabledButton.getToggleState()));
 
     return values;
 }
