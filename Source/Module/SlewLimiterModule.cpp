@@ -194,7 +194,7 @@ void SlewLimiterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Par
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Bias " + std::to_string(i), "SlewLimiter Bias " + std::to_string(i), NormalisableRange<float>(-0.9f, 0.9f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Rise " + std::to_string(i), "SlewLimiter Rise " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>("SlewLimiter Fall " + std::to_string(i), "SlewLimiter Fall " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 0.f, "SlewLimiter " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterBool>("SlewLimiter DCoffset Enabled " + std::to_string(i), "SlewLimiter DCoffset Enabled " + std::to_string(i), false, "SlewLimiter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("SlewLimiter DCoffset Enabled " + std::to_string(i), "SlewLimiter DCoffset Enabled " + std::to_string(i), true, "SlewLimiter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>("SlewLimiter Bypassed " + std::to_string(i), "SlewLimiter Bypassed " + std::to_string(i), false, "SlewLimiter " + std::to_string(i)));
     }
 }
@@ -250,11 +250,11 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     mixLabel.setText("Mix", juce::dontSendNotification);
     mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    fxDistributionLabel.setText("FxDistribution", juce::dontSendNotification);
+    fxDistributionLabel.setText("Fx Distribution", juce::dontSendNotification);
     fxDistributionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
     symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    biasLabel.setText("Bias", juce::dontSendNotification);
+    biasLabel.setText("Fx Bias", juce::dontSendNotification);
     biasLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     slewLimiterRiseLabel.setText("Rise", juce::dontSendNotification);
     slewLimiterRiseLabel.setFont(ModuleLookAndFeel::getLabelsFont());
@@ -296,7 +296,7 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
     fxDistributionSlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
     symmetrySlider.setTooltip("Apply symmetry to the waveform moving it from the center");
-    biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
+    biasSlider.setTooltip("Set the value which determines the bias between the positive or negative area of the waveform");
     slewLimiterRiseSlider.setTooltip("Set the maximum change speed of the waveform during the rising phase");
     slewLimiterFallSlider.setTooltip("Set the maximum change speed of the waveform during the falling phase");
     DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
@@ -428,34 +428,39 @@ void SlewLimiterModuleGUI::resized()
 
     slewLimiterArea.translate(0, 8);
 
-    auto topArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 2.f));
+    auto topArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 3.f));
+    auto middleArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 2.f));
     auto bottomArea = slewLimiterArea;
 
     auto topLabelsArea = topArea.removeFromTop(14);
+    auto middleLabelsArea = middleArea.removeFromTop(14);
     auto bottomLabelsArea = bottomArea.removeFromTop(14);
 
     // label areas
-    temp = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto driveLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto mixLabelArea = temp;
-    auto symmetryLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto biasLabelArea = topLabelsArea;
-    auto riseLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 3.f));
-    auto fallLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveLabelArea = bottomLabelsArea;
+    auto driveLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
+    auto mixLabelArea = topLabelsArea;
+    temp = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto biasLabelArea = temp;
+    auto symmetryLabelArea = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
+    auto DCoffsetRemoveLabelArea = middleLabelsArea;
+    auto riseLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
+    auto fallLabelArea = bottomLabelsArea;
 
     // slider areas
-    temp = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto driveArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto mixArea = temp;
-    auto symmetryArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto biasArea = topArea;
-    auto riseArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 3.f));
-    auto fallArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveArea = bottomArea;
+    auto driveArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
+    auto mixArea = topArea;
+    temp = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto biasArea = temp;
+    auto symmetryArea = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
+    auto DCoffsetRemoveArea = middleArea;
+    auto riseArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
+    auto fallArea = bottomArea;
 
     juce::Rectangle<int> renderArea;
-    renderArea.setSize(driveArea.getWidth(), driveArea.getWidth());
+    renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
+    renderArea.reduce(25, 0);
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centredBottom);
@@ -473,11 +478,11 @@ void SlewLimiterModuleGUI::resized()
     mixLabel.setBounds(mixLabelArea);
     mixLabel.setJustificationType(juce::Justification::centred);
 
-    renderArea.setCentre(symmetryArea.getCentre());
-    renderArea.setY(symmetryArea.getTopLeft().getY());
-    symmetrySlider.setBounds(renderArea);
-    symmetryLabel.setBounds(symmetryLabelArea);
-    symmetryLabel.setJustificationType(juce::Justification::centred);
+    renderArea.setCentre(fxDistributionArea.getCentre());
+    renderArea.setY(fxDistributionArea.getTopLeft().getY());
+    fxDistributionSlider.setBounds(renderArea);
+    fxDistributionLabel.setBounds(fxDistributionLabelArea);
+    fxDistributionLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(biasArea.getCentre());
     renderArea.setY(biasArea.getTopLeft().getY());
@@ -485,7 +490,24 @@ void SlewLimiterModuleGUI::resized()
     biasLabel.setBounds(biasLabelArea);
     biasLabel.setJustificationType(juce::Justification::centred);
 
-    renderArea.setSize(riseArea.getHeight(), riseArea.getHeight());
+    renderArea.setCentre(symmetryArea.getCentre());
+    renderArea.setY(symmetryArea.getTopLeft().getY());
+    symmetrySlider.setBounds(renderArea);
+    symmetryLabel.setBounds(symmetryLabelArea);
+    symmetryLabel.setJustificationType(juce::Justification::centred);
+
+    // DCoffsetRemoveArea.reduce(85.f, 65.f);
+    DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
+    //DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(JUCE_LIVE_CONSTANT(-615.f),
+    //    JUCE_LIVE_CONSTANT(-289.f)));
+    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-517.991f, -289.f));
+    DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
+    DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
+    /*DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f),
+        JUCE_LIVE_CONSTANT(0.4327f));*/
+    DCoffsetEnabledButtonLabel.setCentreRelative(0.843f, 0.4327f);
+
+    // renderArea.setSize(riseArea.getHeight(), riseArea.getHeight());
 
     renderArea.setCentre(riseArea.getCentre());
     renderArea.setY(riseArea.getTopLeft().getY());
@@ -498,12 +520,5 @@ void SlewLimiterModuleGUI::resized()
     slewLimiterFallSlider.setBounds(renderArea);
     slewLimiterFallLabel.setBounds(fallLabelArea);
     slewLimiterFallLabel.setJustificationType(juce::Justification::centred);
-
-    DCoffsetRemoveArea.reduce(85.f, 65.f);
-    DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-618.6f, -388.f));
-    DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
-    DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
-    DCoffsetEnabledButtonLabel.setCentreRelative(0.805f, 0.68f);
 
 }
