@@ -189,7 +189,7 @@ void SpectrumBitcrusherModuleDSP::addParameters(juce::AudioProcessorValueTreeSta
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Symmetry " + std::to_string(i), "Spectrum Bitcrusher Symmetry " + std::to_string(i), NormalisableRange<float>(-100.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Bins Redux " + std::to_string(i), "Spectrum Bitcrusher Bins Redux " + std::to_string(i), NormalisableRange<float>(16.f, 1024.f, 1.f, 0.25f), 1024.f, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterFloat>(SPECTRUM_BITCRUSHER_ID + "Robotisation " + std::to_string(i), "Spectrum Bitcrusher Robotisation " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 1.f), 0.f, "Spectrum Bitcrusher " + std::to_string(i)));
-        layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(i), "Spectrum Bitcrusher DCoffset Enabled " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "DCoffset Enabled " + std::to_string(i), "Spectrum Bitcrusher DCoffset Enabled " + std::to_string(i), true, "Spectrum Bitcrusher " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>(SPECTRUM_BITCRUSHER_ID + "Bypassed " + std::to_string(i), "Spectrum Bitcrusher Bypassed " + std::to_string(i), false, "Spectrum Bitcrusher " + std::to_string(i)));
     }
 }
@@ -247,7 +247,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     fxDistributionLabel.setText("Fx Distribution", juce::dontSendNotification);
     fxDistributionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    biasLabel.setText("Bias", juce::dontSendNotification);
+    biasLabel.setText("Fx Bias", juce::dontSendNotification);
     biasLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
     symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
@@ -290,7 +290,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     driveSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
     fxDistributionSlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
-    biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
+    biasSlider.setTooltip("Set the value which determines the bias between the positive or negative area of the waveform");
     symmetrySlider.setTooltip("Apply symmetry to the waveform moving it from the center");
     binsReduxSlider.setTooltip("Set the bins rate for the reduction of the spectrum resolution");
     robotisationSlider.setTooltip("Select the amount of robotisation of the input signal");
@@ -423,32 +423,39 @@ void SpectrumBitcrusherModuleGUI::resized()
 
     bitcrusherArea.translate(0, 8);
 
-    auto topArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
+    auto topArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 3.f));
+    auto middleArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
     auto bottomArea = bitcrusherArea;
 
     auto topLabelsArea = topArea.removeFromTop(14);
+    auto middleLabelsArea = middleArea.removeFromTop(14);
     auto bottomLabelsArea = bottomArea.removeFromTop(14);
 
     // label areas
-    temp = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto driveLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto mixLabelArea = temp;
-    auto fxDistributionLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto biasLabelArea = topLabelsArea;
+    auto driveLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
+    auto mixLabelArea = topLabelsArea;
+    temp = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto biasLabelArea = temp;
+    auto symmetryLabelArea = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
+    auto DCoffsetRemoveLabelArea = middleLabelsArea;
     auto rateLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
     auto bitLabelArea = bottomLabelsArea;
 
     // slider areas
-    temp = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto driveArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto mixArea = temp;
-    auto fxDistributionArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto biasArea = topArea;
+    auto driveArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
+    auto mixArea = topArea;
+    temp = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
+    auto fxDistributionArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
+    auto biasArea = temp;
+    auto symmetryArea = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
+    auto DCoffsetRemoveArea = middleArea;
     auto rateArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
     auto bitArea = bottomArea;
 
     juce::Rectangle<int> renderArea;
-    renderArea.setSize(driveArea.getWidth(), driveArea.getWidth());
+    renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
+    renderArea.reduce(25, 0);
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centredBottom);
@@ -477,7 +484,24 @@ void SpectrumBitcrusherModuleGUI::resized()
     biasLabel.setBounds(biasLabelArea);
     biasLabel.setJustificationType(juce::Justification::centred);
 
-    renderArea.setSize(rateArea.getHeight(), rateArea.getHeight());
+    renderArea.setCentre(symmetryArea.getCentre());
+    renderArea.setY(symmetryArea.getTopLeft().getY());
+    symmetrySlider.setBounds(renderArea);
+    symmetryLabel.setBounds(symmetryLabelArea);
+    symmetryLabel.setJustificationType(juce::Justification::centred);
+
+    // DCoffsetRemoveArea.reduce(85.f, 65.f);
+    DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
+    //DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(JUCE_LIVE_CONSTANT(-615.f),
+    //    JUCE_LIVE_CONSTANT(-289.f)));
+    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-517.991f, -289.f));
+    DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
+    DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
+    /*DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f),
+        JUCE_LIVE_CONSTANT(0.4327f));*/
+    DCoffsetEnabledButtonLabel.setCentreRelative(0.843f, 0.4327f);
+
+    // renderArea.setSize(rateArea.getHeight(), rateArea.getHeight());
 
     renderArea.setCentre(rateArea.getCentre());
     renderArea.setY(rateArea.getTopLeft().getY());
