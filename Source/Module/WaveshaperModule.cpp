@@ -267,7 +267,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     fxDistributionLabel.setText("Fx Distribution", juce::dontSendNotification);
     fxDistributionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    biasLabel.setText("Bias", juce::dontSendNotification);
+    biasLabel.setText("Fx Bias", juce::dontSendNotification);
     biasLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     symmetryLabel.setText("Symmetry", juce::dontSendNotification);
     symmetryLabel.setFont(ModuleLookAndFeel::getLabelsFont());
@@ -318,7 +318,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     driveSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
     mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
     fxDistributionSlider.setTooltip("Apply the signal processing to the positive or negative area of the waveform");
-    biasSlider.setTooltip("Set the the value which determines the bias between the positive or negative area of the waveform");
+    biasSlider.setTooltip("Set the value which determines the bias between the positive or negative area of the waveform");
     symmetrySlider.setTooltip("Apply symmetry to the waveform moving it from the center");
     tanhAmpSlider.setTooltip("Set the hyperbolic tangent function amplitude");
     tanhSlopeSlider.setTooltip("Set the hyperbolic tangent function slope");
@@ -552,8 +552,7 @@ void WaveshaperModuleGUI::resized()
     DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-615.f, -289.f));
     DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
-    DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f), 
-        JUCE_LIVE_CONSTANT(0.4327f));
+    DCoffsetEnabledButtonLabel.setCentreRelative(0.9f, 0.4327f);
 
     renderArea.setCentre(tanhAmpArea.getCentre());
     renderArea.setY(tanhAmpArea.getTopLeft().getY());
