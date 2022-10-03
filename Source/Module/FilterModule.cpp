@@ -438,7 +438,7 @@ void FilterModuleGUI::resized()
     auto bypassButtonArea = temp.removeFromTop(25);
 
     bypassButtonArea.setWidth(35.f);
-    bypassButtonArea.setX(145.f);
+    bypassButtonArea.setX(128.f);
     bypassButtonArea.setY(20.f);
 
     bypassButton.setBounds(bypassButtonArea);
@@ -448,7 +448,7 @@ void FilterModuleGUI::resized()
     auto analyzerButtonArea = temp2.removeFromTop(25);
 
     analyzerButtonArea.setWidth(50.f);
-    analyzerButtonArea.setX(450.f);
+    analyzerButtonArea.setX(467.f);
     analyzerButtonArea.setY(22.f);
 
     analyzerButton.setBounds(analyzerButtonArea);

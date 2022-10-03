@@ -418,7 +418,7 @@ void SlewLimiterModuleGUI::resized()
     auto bypassButtonArea = temp.removeFromTop(25);
 
     bypassButtonArea.setWidth(35.f);
-    bypassButtonArea.setX(145.f);
+    bypassButtonArea.setX(128.f);
     bypassButtonArea.setY(20.f);
 
     bypassButton.setBounds(bypassButtonArea);
