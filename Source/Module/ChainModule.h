@@ -123,4 +123,8 @@ private:
     juce::AffineTransform getDragIconTransform();
 
     bool somethingIsBeingDraggedOver = false;
+
+protected:
+
+    void drawContainer(juce::Graphics& g) override;
 };

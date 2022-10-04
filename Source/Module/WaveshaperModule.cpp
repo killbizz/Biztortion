@@ -260,6 +260,8 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     title.setText("Waveshaper", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
+    moduleColor = juce::Colours::red;
+
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());

@@ -38,11 +38,12 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 
-class WelcomeModuleGUI : public GUIModule, juce::Timer {
+class WelcomeModuleGUI : public GUIModule {
+
 public:
+
     WelcomeModuleGUI();
 
-    void timerCallback() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
     std::vector<juce::Component*> getAllComps() override;
@@ -62,4 +63,8 @@ private:
     juce::Label author, title, version;
 
     unsigned int hueCounter = 0;
+
+protected:
+
+    void drawContainer(juce::Graphics& g) override;
 };

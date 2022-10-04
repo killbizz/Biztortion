@@ -245,6 +245,8 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     title.setText("Slew Limiter", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
+    moduleColor = juce::Colours::red;
+
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());

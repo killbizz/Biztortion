@@ -240,6 +240,8 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     title.setText("Spectrum Bitcrusher", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
+    moduleColor = juce::Colours::red;
+
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());

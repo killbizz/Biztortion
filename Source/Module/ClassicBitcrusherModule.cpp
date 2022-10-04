@@ -310,6 +310,8 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     title.setText("Classic Bitcrusher", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
+    moduleColor = juce::Colours::red;
+
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
     driveLabel.setFont(ModuleLookAndFeel::getLabelsFont());

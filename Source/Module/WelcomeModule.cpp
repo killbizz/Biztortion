@@ -44,13 +44,6 @@ WelcomeModuleGUI::WelcomeModuleGUI()
         addAndMakeVisible(comp);
     }
 
-    startTimerHz(45);
-
-}
-
-void WelcomeModuleGUI::timerCallback()
-{
-    repaint();
 }
 
 void WelcomeModuleGUI::paint(juce::Graphics& g)
@@ -95,4 +88,16 @@ std::vector<juce::Component*> WelcomeModuleGUI::getParamComps()
 juce::AffineTransform WelcomeModuleGUI::getTransform()
 {
     return juce::AffineTransform::scale( 0.85f, 0.7f).translated(94, 17);
+}
+
+void WelcomeModuleGUI::drawContainer(juce::Graphics& g)
+{
+    // container margin
+    g.setColour(juce::Colour(132, 135, 138));
+    g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
+    g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
+    // content margin
+    g.setColour(juce::Colours::black);
+    auto renderArea = getContentRenderArea();
+    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
 }

@@ -121,6 +121,8 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
     title.setText("Scope", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
+    moduleColor = juce::Colours::red;
+
     // labels
     hZoomLabel.setText("H Zoom", juce::dontSendNotification);
     hZoomLabel.setFont(ModuleLookAndFeel::getLabelsFont());

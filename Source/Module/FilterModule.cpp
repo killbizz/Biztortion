@@ -262,6 +262,8 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     title.setText("Filter", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
+    moduleColor = juce::Colours::red;
+
     // labels
 
     peakFreqSlider.labels.add({ 0.f, "20Hz" });

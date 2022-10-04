@@ -479,3 +479,15 @@ juce::AffineTransform ChainModuleGUI::getDragIconTransform()
 {
     return juce::AffineTransform::scale(0.9f, 0.9f).translated(45.6715f, 18.7671);
 }
+
+void ChainModuleGUI::drawContainer(juce::Graphics& g)
+{
+    // container margin
+    g.setColour(juce::Colour(132, 135, 138));
+    g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
+    g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
+    // content margin
+    g.setColour(juce::Colours::black);
+    auto renderArea = getContentRenderArea();
+    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
+}
