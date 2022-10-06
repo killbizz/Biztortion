@@ -84,7 +84,7 @@ void FFTAnalyzerComponent::paint(juce::Graphics& g)
         leftChannelFFTPath.applyTransform(AffineTransform()
             .translated(responseArea.getX(), responseArea.getY())
         );
-        g.setColour(Colours::cyan);
+        g.setColour(Colours::violet);
         g.strokePath(leftChannelFFTPath, PathStrokeType(1));
 
         auto rightChannelFFTPath = rightPathProducer.getPath();
@@ -221,7 +221,7 @@ void FFTAnalyzerComponent::resized()
     textWidth = g.getCurrentFont().getStringWidth(str);
     r.setSize(textWidth, fontHeight);
     r.setCentre(left + 14, top + 8);
-    g.setColour(juce::Colours::cyan);
+    g.setColour(juce::Colours::violet);
     g.drawFittedText(str, r, juce::Justification::centred, 1);
 }
 
