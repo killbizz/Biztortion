@@ -140,7 +140,7 @@ void ButtonsLookAndFeel::drawToggleButton(juce::Graphics& g,
 
         PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
         // Colour(0u, 172u, 1u)
-        auto color = toggleButton.getToggleState() ? Colours::dimgrey : Colours::lightgreen;
+        auto color = toggleButton.getToggleState() ? Colours::dimgrey : this->color;
 
         g.setColour(color);
         g.strokePath(powerButton, pst);
@@ -149,7 +149,7 @@ void ButtonsLookAndFeel::drawToggleButton(juce::Graphics& g,
     else if (auto* analyzerButton = dynamic_cast<AnalyzerButton*>(&toggleButton))
     {
         // Colour(0u, 172u, 1u)
-        auto color = !toggleButton.getToggleState() ? Colours::dimgrey : Colours::lightgreen;
+        auto color = !toggleButton.getToggleState() ? Colours::dimgrey : this->color;
 
         g.setColour(color);
 
@@ -157,6 +157,46 @@ void ButtonsLookAndFeel::drawToggleButton(juce::Graphics& g,
         g.drawRect(bounds);
 
         g.strokePath(analyzerButton->randomPath, PathStrokeType(1.f));
+    }
+    else
+    {
+        auto fontSize = juce::jmin(15.0f, (float)toggleButton.getHeight() * 0.75f);
+        auto tickWidth = fontSize * 1.1f;
+
+        drawTickBox(g, toggleButton, 4.0f, ((float)toggleButton.getHeight() - tickWidth) * 0.5f,
+            tickWidth, tickWidth,
+            toggleButton.getToggleState(),
+            toggleButton.isEnabled(),
+            shouldDrawButtonAsHighlighted,
+            shouldDrawButtonAsDown);
+
+        g.setColour(toggleButton.findColour(ToggleButton::textColourId));
+        g.setFont(fontSize);
+
+        if (!toggleButton.isEnabled())
+            g.setOpacity(0.5f);
+
+        g.drawFittedText(toggleButton.getButtonText(),
+            toggleButton.getLocalBounds().withTrimmedLeft(roundToInt(tickWidth) + 10)
+            .withTrimmedRight(2),
+            Justification::centredLeft, 10);
+    }
+}
+
+void ButtonsLookAndFeel::drawTickBox(Graphics& g, Component& component, float x, float y, float w, float h, const bool ticked, const bool isEnabled, const bool shouldDrawButtonAsHighlighted, const bool shouldDrawButtonAsDown)
+{
+    ignoreUnused(shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+
+    Rectangle<float> tickBounds(x, y, w, h);
+
+    g.setColour(isEnabled ? component.findColour(ToggleButton::tickDisabledColourId) : juce::Colours::dimgrey);
+    g.drawRoundedRectangle(tickBounds, 4.0f, 1.0f);
+
+    if (ticked)
+    {
+        g.setColour(isEnabled ? component.findColour(ToggleButton::tickColourId) : juce::Colours::dimgrey);
+        auto tick = getTickShape(0.75f);
+        g.fillPath(tick, tick.getTransformToScaleToFit(tickBounds.reduced(4, 5).toFloat(), false));
     }
 }
 
