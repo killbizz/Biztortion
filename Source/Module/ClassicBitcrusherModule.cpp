@@ -310,7 +310,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     title.setText("Classic Bitcrusher", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
-    moduleColor = juce::Colours::red;
+    moduleColor = moduleType_colors.at(ModuleType::ClassicBitcrusher);
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -349,7 +349,12 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bitcrusherBitReduxSlider.labels.add({ 0.f, "1" });
     bitcrusherBitReduxSlider.labels.add({ 1.f, "16" });
 
+    // bypass button
+    lnf.color = moduleType_colors.at(ModuleType::ClassicBitcrusher);
     bypassButton.setLookAndFeel(&lnf);
+
+    // dcFilter
+    DCoffsetEnabledButton.setLookAndFeel(&dcOffsetLnf);
 
     auto safePtr = juce::Component::SafePointer<ClassicBitcrusherModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
@@ -384,6 +389,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
 ClassicBitcrusherModuleGUI::~ClassicBitcrusherModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
+    DCoffsetEnabledButton.setLookAndFeel(nullptr);
 }
 
 std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getAllComps()
@@ -575,6 +581,8 @@ void ClassicBitcrusherModuleGUI::resized()
     symmetrySlider.setBounds(renderArea);
     symmetryLabel.setBounds(symmetryLabelArea);
     symmetryLabel.setJustificationType(juce::Justification::centred);
+
+    // TODO : fix dcOffset area to delete the extra space which can be used to change the buttons's state
 
     // DCoffsetRemoveArea.reduce(85.f, 65.f);
     DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);

@@ -31,6 +31,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
+#include <random>
+
 class GUIModule : public juce::Component, juce::Timer {
 public:
     GUIModule();
@@ -59,6 +61,6 @@ protected:
     virtual void drawContainer(juce::Graphics& g);
 
     juce::Colour moduleColor;
-    unsigned int brightnessCounter = 50;
+    unsigned int brightnessCounter;
     int addingFactor = 1;
 };

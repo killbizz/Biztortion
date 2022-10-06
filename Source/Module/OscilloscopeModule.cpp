@@ -121,7 +121,7 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
     title.setText("Scope", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
-    moduleColor = juce::Colours::red;
+    moduleColor = moduleType_colors.at(ModuleType::Oscilloscope);
 
     // labels
     hZoomLabel.setText("H Zoom", juce::dontSendNotification);
@@ -135,6 +135,7 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
     vZoomSlider.labels.add({ 1.f, "2" });
 
     // bypass button
+    lnf.color = moduleType_colors.at(ModuleType::Oscilloscope);
     bypassButton.setLookAndFeel(&lnf);
 
     auto safePtr = juce::Component::SafePointer<OscilloscopeModuleGUI>(this);

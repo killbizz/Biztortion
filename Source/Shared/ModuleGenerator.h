@@ -47,8 +47,8 @@ public:
 
     // SOFTWARE EXTENSIBILITY : guide to add a new chain module:
     // - create 2 new classes which extend DSPModule and GUIModule
-    // - add a new entry in the ModuleType enum and in the moduleType_names map (in ../Shared/ModuleType.h file)
-    // - update the createDSPModule and createGUIModule methods
+    // - add a new entry in the ModuleType enum and in the moduleType_names/moduleType_colors maps (in ../Shared/ModuleType.h file)
+    // - update the ModuleGenerator::createDSPModule and ModuleGenerator::createGUIModule methods
     // - add the addParameters function of the newly created DSPModule in the ../Shared/PluginState::createParameterLayout()
 
     ModuleGenerator(PluginState& s);

@@ -262,7 +262,7 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     title.setText("Filter", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
-    moduleColor = juce::Colours::red;
+    moduleColor = moduleType_colors.at(ModuleType::IIRFilter);
 
     // labels
 
@@ -282,7 +282,7 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     highCutSlopeSlider.labels.add({ 1.f, "48" });
 
     // buttons
-
+    lnf.color = moduleType_colors.at(ModuleType::IIRFilter);
     bypassButton.setLookAndFeel(&lnf);
     analyzerButton.setLookAndFeel(&lnf);
 

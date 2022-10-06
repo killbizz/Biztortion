@@ -129,6 +129,8 @@ private:
 
     ButtonAttachment DCoffsetEnabledButtonAttachment;
 
+    ButtonsLookAndFeel dcOffsetLnf;
+
     juce::Label DCoffsetEnabledButtonLabel;
 
     juce::Label driveLabel,

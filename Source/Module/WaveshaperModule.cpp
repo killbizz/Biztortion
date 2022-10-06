@@ -260,7 +260,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     title.setText("Waveshaper", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
-    moduleColor = juce::Colours::red;
+    moduleColor = moduleType_colors.at(ModuleType::Waveshaper);
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -303,7 +303,12 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     sineFreqSlider.labels.add({ 0.f, "0.5" });
     sineFreqSlider.labels.add({ 1.f, "100" });
 
+    // bypass button
+    lnf.color = moduleType_colors.at(ModuleType::Waveshaper);
     bypassButton.setLookAndFeel(&lnf);
+
+    // dcFilter
+    DCoffsetEnabledButton.setLookAndFeel(&dcOffsetLnf);
 
     auto safePtr = juce::Component::SafePointer<WaveshaperModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
@@ -339,6 +344,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
 WaveshaperModuleGUI::~WaveshaperModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
+    DCoffsetEnabledButton.setLookAndFeel(nullptr);
 }
 
 std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()

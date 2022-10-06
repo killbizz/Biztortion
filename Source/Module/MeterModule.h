@@ -86,6 +86,8 @@ public:
     virtual void resetParameters(unsigned int parameterNumber) override {};
     virtual juce::Array<juce::var> getParamValues() override { return juce::Array<juce::var>(); };
 
+    void timerCallback() override;
+
     void resized() override;
 
 private:
@@ -104,6 +106,10 @@ private:
     juce::Label title;
 
     foleys::LevelMeterLookAndFeel lnf;
-    foleys::LevelMeter meter{ foleys::LevelMeter::MeterFlags::Default };
+    foleys::LevelMeter meter{ foleys::LevelMeter::MeterFlags::Minimal };
+
+protected:
+
+    void drawContainer(juce::Graphics& g) override;
 
 };

@@ -240,7 +240,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     title.setText("Spectrum Bitcrusher", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
-    moduleColor = juce::Colours::red;
+    moduleColor = moduleType_colors.at(ModuleType::SpectrumBitcrusher);
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -275,7 +275,12 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     robotisationSlider.labels.add({ 0.f, "0%" });
     robotisationSlider.labels.add({ 1.f, "100%" });
 
+    // bypass button
+    lnf.color = moduleType_colors.at(ModuleType::SpectrumBitcrusher);
     bypassButton.setLookAndFeel(&lnf);
+
+    // dcFilter
+    DCoffsetEnabledButton.setLookAndFeel(&dcOffsetLnf);
 
     auto safePtr = juce::Component::SafePointer<SpectrumBitcrusherModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
@@ -309,6 +314,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
 SpectrumBitcrusherModuleGUI::~SpectrumBitcrusherModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
+    DCoffsetEnabledButton.setLookAndFeel(nullptr);
 }
 
 std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getAllComps()

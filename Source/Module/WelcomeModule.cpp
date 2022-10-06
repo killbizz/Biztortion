@@ -39,6 +39,12 @@ WelcomeModuleGUI::WelcomeModuleGUI()
     version.setText("version: 1.1", juce::dontSendNotification);
     version.setFont(juce::Font("Courier New", 16, 0));
 
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, 100); // define the range
+
+    hueCounter = distr(gen);
+
     for (auto* comp : getAllComps())
     {
         addAndMakeVisible(comp);
@@ -48,9 +54,10 @@ WelcomeModuleGUI::WelcomeModuleGUI()
 
 void WelcomeModuleGUI::paint(juce::Graphics& g)
 {
+    moduleColor = juce::Colour::fromHSL((((float)(hueCounter++)) * 0.01f) * 0.8f, 0.95f, 0.5f, 0.6f);
     drawContainer(g);
     g.reduceClipRegion(bigNoseImg, getTransform());
-    g.setColour(juce::Colour::fromHSL((((float)(hueCounter++))*0.01f)*0.8f, 0.95f, 0.5f, 0.6f));
+    g.setColour(moduleColor);
     g.fillAll();
     if (hueCounter == 100)
         hueCounter = 0;
@@ -92,12 +99,26 @@ juce::AffineTransform WelcomeModuleGUI::getTransform()
 
 void WelcomeModuleGUI::drawContainer(juce::Graphics& g)
 {
-    // container margin
+    // container border and background
     g.setColour(juce::Colour(132, 135, 138));
     g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
     g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
-    // content margin
+
+    // content border
     g.setColour(juce::Colours::black);
-    auto renderArea = getContentRenderArea();
+    auto renderArea = getContentRenderArea().toFloat();
     g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
+
+    // module outline
+    renderArea.expand(5.5, 5.5);
+    g.setColour(moduleColor);
+    g.drawRoundedRectangle(renderArea, 4.f, 4.f);
+
+    if (brightnessCounter == 70) {
+        addingFactor = -1;
+    }
+    else if (brightnessCounter == 50) {
+        addingFactor = 1;
+    }
+    brightnessCounter = brightnessCounter + addingFactor;
 }

@@ -245,7 +245,7 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     title.setText("Slew Limiter", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
-    moduleColor = juce::Colours::red;
+    moduleColor = moduleType_colors.at(ModuleType::SlewLimiter);
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -280,7 +280,12 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     slewLimiterFallSlider.labels.add({ 0.f, "0%" });
     slewLimiterFallSlider.labels.add({ 1.f, "100%" });
 
+    // bypass button
+    lnf.color = moduleType_colors.at(ModuleType::SlewLimiter);
     bypassButton.setLookAndFeel(&lnf);
+
+    // dcFilter
+    DCoffsetEnabledButton.setLookAndFeel(&dcOffsetLnf);
 
     auto safePtr = juce::Component::SafePointer<SlewLimiterModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
@@ -314,6 +319,7 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
 SlewLimiterModuleGUI::~SlewLimiterModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
+    DCoffsetEnabledButton.setLookAndFeel(nullptr);
 }
 
 std::vector<juce::Component*> SlewLimiterModuleGUI::getAllComps()

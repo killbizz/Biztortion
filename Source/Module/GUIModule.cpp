@@ -31,26 +31,38 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 GUIModule::GUIModule()
 {
-    startTimerHz(45);
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(40, 70); // define the range
+
+    brightnessCounter = distr(gen);
+
+    startTimerHz(40);
 }
 
 void GUIModule::drawContainer(juce::Graphics& g)
 {
 
-    // container margin
+    // container border and background
     g.setColour(juce::Colour(132, 135, 138));
     g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
     g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
-    // content margin
+
+    // content border
+    g.setColour(juce::Colours::black);
+    auto renderArea = getContentRenderArea().toFloat();
+    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
+
+    // module outline
+    renderArea.expand(5.5, 5.5);
     moduleColor = moduleColor.withLightness((float)brightnessCounter / 100.f);
     g.setColour(moduleColor);
-    auto renderArea = getContentRenderArea();
-    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 4.f);
+    g.drawRoundedRectangle(renderArea, 4.f, 4.f);
 
     if (brightnessCounter == 70) {
         addingFactor = -1;
     }
-    else if (brightnessCounter == 50) {
+    else if (brightnessCounter == 40) {
         addingFactor = 1;
     }
     brightnessCounter = brightnessCounter + addingFactor;
@@ -60,7 +72,7 @@ void GUIModule::drawContainer(juce::Graphics& g)
 juce::Rectangle<int> GUIModule::getContentRenderArea()
 {
     auto bounds = getContainerArea();
-    bounds.reduce(5, 5);
+    bounds.reduce(10, 10);
 
     return bounds;
 }
@@ -87,7 +99,7 @@ juce::Rectangle<int> GUIModule::getContainerArea()
 {
     // returns a dimesion reduced rectangle as bounds in order to avoid margin collisions
     auto bounds = getLocalBounds();
-    bounds.reduce(10, 10);
+    bounds.reduce(5, 5);
 
     return bounds;
 }

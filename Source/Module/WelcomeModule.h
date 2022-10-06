@@ -62,7 +62,7 @@ private:
 
     juce::Label author, title, version;
 
-    unsigned int hueCounter = 0;
+    unsigned int hueCounter;
 
 protected:
 
