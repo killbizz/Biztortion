@@ -90,5 +90,7 @@ void GUIState::updateChainModules()
     for (auto it = chainModules.begin(); it < chainModules.end(); ++it) {
         (**it).currentModuleActivator.setToggleState(false, juce::NotificationType::dontSendNotification);
         (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+        (**it).dragIcon->setVisible(false);
+        (**it).chainPositionLabel.setVisible(true);
     }
 }
