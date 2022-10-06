@@ -242,6 +242,8 @@ void ChainModuleGUI::resized()
     }
 }
 
+void ChainModuleGUI::timerCallback() {}
+
 std::vector<juce::Component*> ChainModuleGUI::getAllComps()
 {
     return {
@@ -274,17 +276,17 @@ void ChainModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
 
 void ChainModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::DrawableButton::ColourIds::backgroundOnColourId, juce::Colours::red);
+    laf.setColour(juce::DrawableButton::ColourIds::backgroundOnColourId, moduleType_colors.at(moduleType));
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
 }
 
 void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 {
     laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
-    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::green);
+    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
 
-    laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
-    laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
+    laf.setColour(juce::TextButton::buttonOnColourId, moduleType_colors.at(moduleType));
+    laf.setColour(juce::TextButton::textColourOnId, juce::Colours::black);
 }
 
 void ChainModuleGUI::setup(const ModuleType type)
@@ -313,6 +315,9 @@ void ChainModuleGUI::setup(const ModuleType type)
     newModuleSelector.setSelectedId(999);
     newModuleSelector.setVisible(false);
     newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+
+    setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
+    setupDeleteModuleColours(deleteModuleLookAndFeel);
 
     resized();
 }
@@ -455,7 +460,7 @@ std::unique_ptr<BizDrawable> ChainModuleGUI::getRightCable(unsigned int chainPos
 {
     switch (chainPosition) {
 
-    case 1: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
+        case 1: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
             &*juce::Drawable::createFromImageData(BinaryData::AudioCableRosa_png, BinaryData::AudioCableRosa_pngSize))));
         case 2: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
             &*juce::Drawable::createFromImageData(BinaryData::AudioCableVerdeAcqua_png, BinaryData::AudioCableVerdeAcqua_pngSize))));

@@ -60,6 +60,8 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
 
+    void timerCallback() override;
+
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
 
