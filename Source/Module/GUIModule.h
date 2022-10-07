@@ -33,7 +33,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <random>
 
-class GUIModule : public juce::Component, juce::Timer {
+class GUIModule : public juce::Component, public juce::Timer {
 public:
     GUIModule();
     virtual ~GUIModule() = default;
@@ -63,4 +63,5 @@ protected:
     juce::Colour moduleColor;
     unsigned int brightnessCounter;
     int addingFactor = 1;
+    juce::NormalisableRange<float> remapper;
 };

@@ -29,15 +29,15 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "GUIModule.h"
 
-GUIModule::GUIModule()
+GUIModule::GUIModule() : remapper(0.f, 100.f, 1.f, 1.3f) // exponential remapping for a smoother lightness fx in the outline
 {
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
-    std::uniform_int_distribution<> distr(40, 70); // define the range
+    std::uniform_int_distribution<> distr(45, 70); // define the range
 
     brightnessCounter = distr(gen);
 
-    startTimerHz(40);
+    startTimerHz(10);
 }
 
 void GUIModule::drawContainer(juce::Graphics& g)
@@ -55,14 +55,14 @@ void GUIModule::drawContainer(juce::Graphics& g)
 
     // module outline
     renderArea.expand(5.5, 5.5);
-    moduleColor = moduleColor.withLightness((float)brightnessCounter / 100.f);
+    moduleColor = moduleColor.withLightness(remapper.convertTo0to1((float)brightnessCounter));
     g.setColour(moduleColor);
     g.drawRoundedRectangle(renderArea, 4.f, 4.f);
 
     if (brightnessCounter == 70) {
         addingFactor = -1;
     }
-    else if (brightnessCounter == 40) {
+    else if (brightnessCounter == 45) {
         addingFactor = 1;
     }
     brightnessCounter = brightnessCounter + addingFactor;
