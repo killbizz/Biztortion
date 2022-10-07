@@ -553,13 +553,18 @@ void WaveshaperModuleGUI::resized()
     symmetryLabel.setBounds(symmetryLabelArea);
     symmetryLabel.setJustificationType(juce::Justification::centred);
 
-    // DCoffsetRemoveArea.reduce(85.f, 65.f);
+    DCoffsetRemoveArea.reduce(19.f, 21.6355f);
+    /*DCoffsetRemoveArea.reduce(JUCE_LIVE_CONSTANT(85.f), 
+        JUCE_LIVE_CONSTANT(65.f));*/
     DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
-    /*DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(JUCE_LIVE_CONSTANT(-615.f),
-        JUCE_LIVE_CONSTANT(-289.f)));*/
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-615.f, -289.f));
+    /*DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(JUCE_LIVE_CONSTANT(1.f)).translated(
+        JUCE_LIVE_CONSTANT(-8.45953f),
+        JUCE_LIVE_CONSTANT(-10.31)));*/
+    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(1.f).translated(-5.56252f, -14.2353f));
     DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
+    /*DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f),
+        JUCE_LIVE_CONSTANT(0.4327f));*/
     DCoffsetEnabledButtonLabel.setCentreRelative(0.9f, 0.4327f);
 
     renderArea.setCentre(tanhAmpArea.getCentre());

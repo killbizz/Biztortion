@@ -468,7 +468,7 @@ void SlewLimiterModuleGUI::resized()
 
     juce::Rectangle<int> renderArea;
     renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
-    renderArea.reduce(25, 0);
+    renderArea.reduce(25, 25);
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centredBottom);
@@ -504,11 +504,14 @@ void SlewLimiterModuleGUI::resized()
     symmetryLabel.setBounds(symmetryLabelArea);
     symmetryLabel.setJustificationType(juce::Justification::centred);
 
-    // DCoffsetRemoveArea.reduce(85.f, 65.f);
+    DCoffsetRemoveArea.reduce(46.f, 19.f);
+    //DCoffsetRemoveArea.reduce(JUCE_LIVE_CONSTANT(85.f), 
+    //    JUCE_LIVE_CONSTANT(65.f));
     DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
-    //DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(JUCE_LIVE_CONSTANT(-615.f),
-    //    JUCE_LIVE_CONSTANT(-289.f)));
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(2.2f).translated(-517.991f, -289.f));
+    /*DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(JUCE_LIVE_CONSTANT(1.f)).translated(
+        JUCE_LIVE_CONSTANT(-8.45953f),
+        JUCE_LIVE_CONSTANT(-10.31)));*/
+    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(1.f).translated(-8.45953f, -8.90813f));
     DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
     /*DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f),

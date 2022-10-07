@@ -50,6 +50,11 @@ WelcomeModuleGUI::WelcomeModuleGUI()
         addAndMakeVisible(comp);
     }
 
+    if (isTimerRunning())
+        stopTimer();
+
+    startTimerHz(40);
+
 }
 
 void WelcomeModuleGUI::paint(juce::Graphics& g)

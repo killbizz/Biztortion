@@ -160,7 +160,7 @@ void ButtonsLookAndFeel::drawToggleButton(juce::Graphics& g,
     }
     else
     {
-        auto fontSize = juce::jmin(15.0f, (float)toggleButton.getHeight() * 0.75f);
+        auto fontSize = (float)toggleButton.getHeight() * 0.75f;
         auto tickWidth = fontSize * 1.1f;
 
         drawTickBox(g, toggleButton, 4.0f, ((float)toggleButton.getHeight() - tickWidth) * 0.5f,
