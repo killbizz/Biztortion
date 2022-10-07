@@ -78,7 +78,7 @@ void DSPModule::effectDistribution(juce::AudioBuffer<float>& inOutDrySignal, juc
                 bufferData[i] = wetData[i];
             }
             else if (amount > 0.f) {
-                if (bufferData[i] >= -bias) {
+                if (bufferData[i] >= bias) {
                     bufferData[i] = sumSignals(bufferData[i], 0.f, wetData[i], 1.f);
                 }
                 else {
@@ -86,7 +86,7 @@ void DSPModule::effectDistribution(juce::AudioBuffer<float>& inOutDrySignal, juc
                 }
             }
             else {
-                if (bufferData[i] < -bias) {
+                if (bufferData[i] < bias) {
                     bufferData[i] = sumSignals(bufferData[i], 0.f, wetData[i], 1.f);
                 }
                 else {
