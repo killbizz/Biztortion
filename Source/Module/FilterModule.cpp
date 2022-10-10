@@ -54,10 +54,13 @@ void updateCoefficients(Coefficients& old, const Coefficients& replacements) {
     *old = *replacements;
 }
 
-Coefficients FilterModuleDSP::makePeakFilter(const FilterChainSettings& chainSettings, double sampleRate) {
-    return juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate,
-        chainSettings.peakFreq, chainSettings.peakQuality,
-        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+Coefficients FilterModuleDSP::makePeakFilter(const ChainPositions& chainPosition, const FilterChainSettings& chainSettings, double sampleRate) {
+    return juce::dsp::IIR::Coefficients<float>::makePeakFilter(
+        sampleRate,
+        chainPosition == ChainPositions::Peak1 ? chainSettings.peak1Freq : chainSettings.peak2Freq,
+        chainPosition == ChainPositions::Peak1 ? chainSettings.peak1Quality : chainSettings.peak2Quality,
+        chainPosition == ChainPositions::Peak1 ? juce::Decibels::decibelsToGain(chainSettings.peak1GainInDecibels) : juce::Decibels::decibelsToGain(chainSettings.peak2GainInDecibels)
+    );
 }
 
 FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber) {
@@ -65,13 +68,22 @@ FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeSt
 
     settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq " + std::to_string(parameterNumber))->load();
     settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq " + std::to_string(parameterNumber))->load();
-    settings.peakFreq = apvts.getRawParameterValue("Peak Freq " + std::to_string(parameterNumber))->load();
-    settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain " + std::to_string(parameterNumber))->load();
-    settings.peakQuality = apvts.getRawParameterValue("Peak Quality " + std::to_string(parameterNumber))->load();
+    // PEAK1
+    settings.peak1Freq = apvts.getRawParameterValue("Peak1 Freq " + std::to_string(parameterNumber))->load();
+    settings.peak1GainInDecibels = apvts.getRawParameterValue("Peak1 Gain " + std::to_string(parameterNumber))->load();
+    settings.peak1Quality = apvts.getRawParameterValue("Peak1 Quality " + std::to_string(parameterNumber))->load();
+    // PEAK2
+    settings.peak2Freq = apvts.getRawParameterValue("Peak2 Freq " + std::to_string(parameterNumber))->load();
+    settings.peak2GainInDecibels = apvts.getRawParameterValue("Peak2 Gain " + std::to_string(parameterNumber))->load();
+    settings.peak2Quality = apvts.getRawParameterValue("Peak2 Quality " + std::to_string(parameterNumber))->load();
     settings.lowCutSlope = apvts.getRawParameterValue("LowCut Slope " + std::to_string(parameterNumber))->load();
     settings.highCutSlope = apvts.getRawParameterValue("HighCut Slope " + std::to_string(parameterNumber))->load();
     // bypass
     settings.bypassed = apvts.getRawParameterValue("Filter Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.lowCutBypassed = apvts.getRawParameterValue("LowCut Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.peak1Bypassed = apvts.getRawParameterValue("Peak1 Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.peak2Bypassed = apvts.getRawParameterValue("Peak2 Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
+    settings.highCutBypassed = apvts.getRawParameterValue("HighCut Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
     settings.analyzerBypassed = apvts.getRawParameterValue("Filter Analyzer Enabled " + std::to_string(parameterNumber))->load() > 0.5f;
     return settings;
 }
@@ -93,23 +105,46 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
             20000.f,
             "Filter " + std::to_string(i)
             );
-        auto peakFreq = std::make_unique<juce::AudioParameterFloat>(
-            "Peak Freq " + std::to_string(i),
-            "Peak Freq " + std::to_string(i),
+        // PEAK 1
+        auto peak1Freq = std::make_unique<juce::AudioParameterFloat>(
+            "Peak1 Freq " + std::to_string(i),
+            "Peak1 Freq " + std::to_string(i),
             juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-            800.f,
+            330.f,
             "Filter " + std::to_string(i)
             );
-        auto peakGain = std::make_unique<juce::AudioParameterFloat>(
-            "Peak Gain " + std::to_string(i),
-            "Peak Gain " + std::to_string(i),
+        auto peak1Gain = std::make_unique<juce::AudioParameterFloat>(
+            "Peak1 Gain " + std::to_string(i),
+            "Peak1 Gain " + std::to_string(i),
             juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
             0.0f,
             "Filter " + std::to_string(i)
             );
-        auto peakQuality = std::make_unique<juce::AudioParameterFloat>(
-            "Peak Quality " + std::to_string(i),
-            "Peak Quality " + std::to_string(i),
+        auto peak1Quality = std::make_unique<juce::AudioParameterFloat>(
+            "Peak1 Quality " + std::to_string(i),
+            "Peak1 Quality " + std::to_string(i),
+            juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+            1.f,
+            "Filter " + std::to_string(i)
+            );
+        // PEAK 2
+        auto peak2Freq = std::make_unique<juce::AudioParameterFloat>(
+            "Peak2 Freq " + std::to_string(i),
+            "Peak2 Freq " + std::to_string(i),
+            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+            1240.f,
+            "Filter " + std::to_string(i)
+            );
+        auto peak2Gain = std::make_unique<juce::AudioParameterFloat>(
+            "Peak2 Gain " + std::to_string(i),
+            "Peak2 Gain " + std::to_string(i),
+            juce::NormalisableRange<float>(-24.f, 24.f, 0.5, 1.f),
+            0.0f,
+            "Filter " + std::to_string(i)
+            );
+        auto peak2Quality = std::make_unique<juce::AudioParameterFloat>(
+            "Peak2 Quality " + std::to_string(i),
+            "Peak2 Quality " + std::to_string(i),
             juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
             1.f,
             "Filter " + std::to_string(i)
@@ -143,12 +178,20 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
             "|", std::move(lowCutFreq), std::move(lowCutSlope));
         auto highCutGroup = std::make_unique<juce::AudioProcessorParameterGroup>("HighCut " + std::to_string(i), "HighCut " + std::to_string(i),
             "|", std::move(highCutFreq), std::move(highCutSlope));
-        auto peakGroup = std::make_unique<juce::AudioProcessorParameterGroup>("Peak " + std::to_string(i), "Peak " + std::to_string(i),
-            "|", std::move(peakFreq), std::move(peakQuality), std::move(peakGain));
+        auto peak1Group = std::make_unique<juce::AudioProcessorParameterGroup>("Peak1 " + std::to_string(i), "Peak1 " + std::to_string(i),
+            "|", std::move(peak1Freq), std::move(peak1Quality), std::move(peak1Gain));
+        auto peak2Group = std::make_unique<juce::AudioProcessorParameterGroup>("Peak2 " + std::to_string(i), "Peak2 " + std::to_string(i),
+            "|", std::move(peak2Freq), std::move(peak2Quality), std::move(peak2Gain));
 
         layout.add(std::move(lowCutGroup));
         layout.add(std::move(highCutGroup));
-        layout.add(std::move(peakGroup));
+        layout.add(std::move(peak1Group));
+        layout.add(std::move(peak2Group));
+
+        layout.add(std::make_unique<AudioParameterBool>("LowCut Bypassed " + std::to_string(i), "LowCut Bypassed " + std::to_string(i), true, "Filter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("Peak1 Bypassed " + std::to_string(i), "Peak1 Bypassed " + std::to_string(i), false, "Filter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("Peak2 Bypassed " + std::to_string(i), "Peak2 Bypassed " + std::to_string(i), false, "Filter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("HighCut Bypassed " + std::to_string(i), "HighCut Bypassed " + std::to_string(i), true, "Filter " + std::to_string(i)));
 
         layout.add(std::make_unique<AudioParameterBool>("Filter Bypassed " + std::to_string(i), "Filter Bypassed " + std::to_string(i), false, "Filter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>("Filter Analyzer Enabled " + std::to_string(i), "Filter Analyzer Enabled " + std::to_string(i), true, "Filter " + std::to_string(i)));
@@ -166,18 +209,22 @@ void FilterModuleDSP::updateDSPState(double sampleRate) {
 
     bypassed = settings.bypassed;
     updateLowCutFilter(settings, sampleRate);
-    updatePeakFilter(settings, sampleRate);
+    updatePeakFilters(settings, sampleRate);
     updateHighCutFilter(settings, sampleRate);
 }
 
-void FilterModuleDSP::updatePeakFilter(const FilterChainSettings& chainSettings, double sampleRate) {
-    auto peakCoefficients = makePeakFilter(chainSettings, sampleRate);
-    // JUCE allocates coefficients on the HEAP
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
-    updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+void FilterModuleDSP::updatePeakFilters(const FilterChainSettings& chainSettings, double sampleRate) {    
+    // PEAK1
+    auto peak1Coefficients = makePeakFilter(ChainPositions::Peak1, chainSettings, sampleRate);
+    updateCoefficients(leftChain.get<ChainPositions::Peak1>().coefficients, peak1Coefficients);
+    updateCoefficients(rightChain.get<ChainPositions::Peak1>().coefficients, peak1Coefficients);
+    // PEAK2
+    auto peak2Coefficients = makePeakFilter(ChainPositions::Peak2, chainSettings, sampleRate);
+    updateCoefficients(leftChain.get<ChainPositions::Peak2>().coefficients, peak2Coefficients);
+    updateCoefficients(rightChain.get<ChainPositions::Peak2>().coefficients, peak2Coefficients);
 
-    leftChain.setBypassed<ChainPositions::Peak>(chainSettings.bypassed);
-    rightChain.setBypassed<ChainPositions::Peak>(chainSettings.bypassed);
+    leftChain.setBypassed<ChainPositions::Peak1>(chainSettings.peak1Bypassed || chainSettings.bypassed);
+    rightChain.setBypassed<ChainPositions::Peak2>(chainSettings.peak2Bypassed || chainSettings.bypassed);
 }
 
 void FilterModuleDSP::updateLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
@@ -187,8 +234,8 @@ void FilterModuleDSP::updateLowCutFilter(const FilterChainSettings& chainSetting
     auto& rightLowCut = rightChain.get<ChainPositions::LowCut>();
     updateCutFilter(rightLowCut, lowCutCoefficients, static_cast<FilterSlope>(chainSettings.lowCutSlope));
 
-    leftChain.setBypassed<ChainPositions::LowCut>(chainSettings.bypassed);
-    rightChain.setBypassed<ChainPositions::LowCut>(chainSettings.bypassed);
+    leftChain.setBypassed<ChainPositions::LowCut>(chainSettings.lowCutBypassed || chainSettings.bypassed);
+    rightChain.setBypassed<ChainPositions::LowCut>(chainSettings.lowCutBypassed || chainSettings.bypassed);
 }
 
 void FilterModuleDSP::updateHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
@@ -198,8 +245,8 @@ void FilterModuleDSP::updateHighCutFilter(const FilterChainSettings& chainSettin
     auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
     updateCutFilter(rightHighCut, highCutCoefficients, static_cast<FilterSlope>(chainSettings.highCutSlope));
 
-    leftChain.setBypassed<ChainPositions::HighCut>(chainSettings.bypassed);
-    rightChain.setBypassed<ChainPositions::HighCut>(chainSettings.bypassed);
+    leftChain.setBypassed<ChainPositions::HighCut>(chainSettings.highCutBypassed || chainSettings.bypassed);
+    rightChain.setBypassed<ChainPositions::HighCut>(chainSettings.highCutBypassed || chainSettings.bypassed);
 }
 
 void FilterModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
@@ -239,23 +286,33 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 
 FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     : GUIModule(), pluginState(p),
-    peakFreqSlider(*pluginState.apvts.getParameter("Peak Freq " + std::to_string(parameterNumber)), "Hz"),
-    peakGainSlider(*pluginState.apvts.getParameter("Peak Gain " + std::to_string(parameterNumber)), "dB"),
-    peakQualitySlider(*pluginState.apvts.getParameter("Peak Quality " + std::to_string(parameterNumber)), ""),
+    peak1FreqSlider(*pluginState.apvts.getParameter("Peak1 Freq " + std::to_string(parameterNumber)), "Hz"),
+    peak1GainSlider(*pluginState.apvts.getParameter("Peak1 Gain " + std::to_string(parameterNumber)), "dB"),
+    peak1QualitySlider(*pluginState.apvts.getParameter("Peak1 Quality " + std::to_string(parameterNumber)), ""),
+    peak2FreqSlider(*pluginState.apvts.getParameter("Peak2 Freq " + std::to_string(parameterNumber)), "Hz"),
+    peak2GainSlider(*pluginState.apvts.getParameter("Peak2 Gain " + std::to_string(parameterNumber)), "dB"),
+    peak2QualitySlider(*pluginState.apvts.getParameter("Peak2 Quality " + std::to_string(parameterNumber)), ""),
     lowCutFreqSlider(*pluginState.apvts.getParameter("LowCut Freq " + std::to_string(parameterNumber)), "Hz"),
     highCutFreqSlider(*pluginState.apvts.getParameter("HighCut Freq " + std::to_string(parameterNumber)), "Hz"),
     lowCutSlopeSlider(*pluginState.apvts.getParameter("LowCut Slope " + std::to_string(parameterNumber)), "dB/Oct"),
     highCutSlopeSlider(*pluginState.apvts.getParameter("HighCut Slope " + std::to_string(parameterNumber)), "dB/Oct"),
     responseCurveComponent(p, parameterNumber),
     filterFftAnalyzerComponent(p, parameterNumber),
-    peakFreqSliderAttachment(pluginState.apvts, "Peak Freq " + std::to_string(parameterNumber), peakFreqSlider),
-    peakGainSliderAttachment(pluginState.apvts, "Peak Gain " + std::to_string(parameterNumber), peakGainSlider),
-    peakQualitySliderAttachment(pluginState.apvts, "Peak Quality " + std::to_string(parameterNumber), peakQualitySlider),
+    peak1FreqSliderAttachment(pluginState.apvts, "Peak1 Freq " + std::to_string(parameterNumber), peak1FreqSlider),
+    peak1GainSliderAttachment(pluginState.apvts, "Peak1 Gain " + std::to_string(parameterNumber), peak1GainSlider),
+    peak1QualitySliderAttachment(pluginState.apvts, "Peak1 Quality " + std::to_string(parameterNumber), peak1QualitySlider),
+    peak2FreqSliderAttachment(pluginState.apvts, "Peak2 Freq " + std::to_string(parameterNumber), peak2FreqSlider),
+    peak2GainSliderAttachment(pluginState.apvts, "Peak2 Gain " + std::to_string(parameterNumber), peak2GainSlider),
+    peak2QualitySliderAttachment(pluginState.apvts, "Peak2 Quality " + std::to_string(parameterNumber), peak2QualitySlider),
     lowCutFreqSliderAttachment(pluginState.apvts, "LowCut Freq " + std::to_string(parameterNumber), lowCutFreqSlider),
     highCutFreqSliderAttachment(pluginState.apvts, "HighCut Freq " + std::to_string(parameterNumber), highCutFreqSlider),
     lowCutSlopeSliderAttachment(pluginState.apvts, "LowCut Slope " + std::to_string(parameterNumber), lowCutSlopeSlider),
     highCutSlopeSliderAttachment(pluginState.apvts, "HighCut Slope " + std::to_string(parameterNumber), highCutSlopeSlider),
     bypassButtonAttachment(pluginState.apvts, "Filter Bypassed " + std::to_string(parameterNumber), bypassButton),
+    lowCutBypassButtonAttachment(pluginState.apvts, "LowCut Bypassed " + std::to_string(parameterNumber), lowCutBypassButton),
+    peak1BypassButtonAttachment(pluginState.apvts, "Peak1 Bypassed " + std::to_string(parameterNumber), peak1BypassButton),
+    peak2BypassButtonAttachment(pluginState.apvts, "Peak2 Bypassed " + std::to_string(parameterNumber), peak2BypassButton),
+    highCutBypassButtonAttachment(pluginState.apvts, "HighCut Bypassed " + std::to_string(parameterNumber), highCutBypassButton),
     analyzerButtonAttachment(pluginState.apvts, "Filter Analyzer Enabled " + std::to_string(parameterNumber), analyzerButton)
 {
     // title setup
@@ -265,13 +322,21 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     moduleColor = moduleType_colors.at(ModuleType::IIRFilter);
 
     // labels
-
-    peakFreqSlider.labels.add({ 0.f, "20Hz" });
-    peakFreqSlider.labels.add({ 1.f, "20kHz" });
-    peakGainSlider.labels.add({ 0.f, "-24dB" });
-    peakGainSlider.labels.add({ 1.f, "+24dB" });
-    peakQualitySlider.labels.add({ 0.f, "0.1" });
-    peakQualitySlider.labels.add({ 1.f, "10.0" });
+    // peak1
+    peak1FreqSlider.labels.add({ 0.f, "20Hz" });
+    peak1FreqSlider.labels.add({ 1.f, "20kHz" });
+    peak1GainSlider.labels.add({ 0.f, "-24dB" });
+    peak1GainSlider.labels.add({ 1.f, "+24dB" });
+    peak1QualitySlider.labels.add({ 0.f, "0.1" });
+    peak1QualitySlider.labels.add({ 1.f, "10.0" });
+    // peak2
+    peak2FreqSlider.labels.add({ 0.f, "20Hz" });
+    peak2FreqSlider.labels.add({ 1.f, "20kHz" });
+    peak2GainSlider.labels.add({ 0.f, "-24dB" });
+    peak2GainSlider.labels.add({ 1.f, "+24dB" });
+    peak2QualitySlider.labels.add({ 0.f, "0.1" });
+    peak2QualitySlider.labels.add({ 1.f, "10.0" });
+    // cut filters
     lowCutFreqSlider.labels.add({ 0.f, "20Hz" });
     lowCutFreqSlider.labels.add({ 1.f, "20kHz" });
     highCutFreqSlider.labels.add({ 0.f, "20Hz" });
@@ -284,6 +349,10 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     // buttons
     lnf.color = moduleType_colors.at(ModuleType::IIRFilter);
     bypassButton.setLookAndFeel(&lnf);
+    lowCutBypassButton.setLookAndFeel(&lnf);
+    peak1BypassButton.setLookAndFeel(&lnf);
+    peak2BypassButton.setLookAndFeel(&lnf);
+    highCutBypassButton.setLookAndFeel(&lnf);
     analyzerButton.setLookAndFeel(&lnf);
 
     auto safePtr = juce::Component::SafePointer<FilterModuleGUI>(this);
@@ -309,12 +378,19 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
 
     // tooltips
     bypassButton.setTooltip("Bypass this module");
+    lowCutBypassButton.setTooltip("Bypass the lowcut filter");
+    highCutBypassButton.setTooltip("Bypass the highcut filter");
+    peak1BypassButton.setTooltip("Bypass the first peak filter");
+    peak2BypassButton.setTooltip("Bypass the second peak filter");
     analyzerButton.setTooltip("Enable the spectrum analyzer");
     lowCutFreqSlider.setTooltip("Set the lowcut filter frequency");
     lowCutSlopeSlider.setTooltip("Set the lowcut filter slope");
-    peakFreqSlider.setTooltip("Set the peak filter frequency");
-    peakGainSlider.setTooltip("Set the peak filter gain");
-    peakQualitySlider.setTooltip("Set the peak filter quality");
+    peak1FreqSlider.setTooltip("Set the peak filter frequency");
+    peak1GainSlider.setTooltip("Set the peak filter gain");
+    peak1QualitySlider.setTooltip("Set the peak filter quality");
+    peak2FreqSlider.setTooltip("Set the peak filter frequency");
+    peak2GainSlider.setTooltip("Set the peak filter gain");
+    peak2QualitySlider.setTooltip("Set the peak filter quality");
     highCutFreqSlider.setTooltip("Set the highcut filter frequency");
     highCutSlopeSlider.setTooltip("Set the highcut filter slope");
 
@@ -330,6 +406,10 @@ FilterModuleGUI::~FilterModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
     analyzerButton.setLookAndFeel(nullptr);
+    lowCutBypassButton.setLookAndFeel(nullptr);
+    highCutBypassButton.setLookAndFeel(nullptr);
+    peak1BypassButton.setLookAndFeel(nullptr);
+    peak2BypassButton.setLookAndFeel(nullptr);
 }
 
 std::vector<juce::Component*> FilterModuleGUI::getAllComps()
@@ -337,9 +417,12 @@ std::vector<juce::Component*> FilterModuleGUI::getAllComps()
     return {
         &title,
         // filter
-        &peakFreqSlider,
-        &peakGainSlider,
-        &peakQualitySlider,
+        &peak1FreqSlider,
+        &peak1GainSlider,
+        &peak1QualitySlider,
+        &peak2FreqSlider,
+        &peak2GainSlider,
+        &peak2QualitySlider,
         &lowCutFreqSlider,
         &highCutFreqSlider,
         &lowCutSlopeSlider,
@@ -349,73 +432,113 @@ std::vector<juce::Component*> FilterModuleGUI::getAllComps()
         &responseCurveComponent,
         // bypass
         &bypassButton,
-        &analyzerButton
+        &analyzerButton,
+        &lowCutBypassButton,
+        &highCutBypassButton,
+        &peak1BypassButton,
+        &peak2BypassButton
     };
 }
 
 std::vector<juce::Component*> FilterModuleGUI::getParamComps()
 {
     return {
-        &peakFreqSlider,
-        &peakGainSlider,
-        &peakQualitySlider,
+        &peak1FreqSlider,
+        &peak1GainSlider,
+        &peak1QualitySlider,
+        &peak2FreqSlider,
+        &peak2GainSlider,
+        &peak2QualitySlider,
         &lowCutFreqSlider,
         &highCutFreqSlider,
         &lowCutSlopeSlider,
-        &highCutSlopeSlider
+        &highCutSlopeSlider,
+        &lowCutBypassButton,
+        &highCutBypassButton,
+        &peak1BypassButton,
+        &peak2BypassButton
     };
 }
 
 void FilterModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
     auto value = values.begin();
-    bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
-    peakFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
-    peakGainSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
-    peakQualitySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    
+    peak1FreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    peak1GainSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    peak1QualitySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    peak2FreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    peak2GainSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    peak2QualitySlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     lowCutFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     highCutFreqSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     lowCutSlopeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     highCutSlopeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+    bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     analyzerButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    lowCutBypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    peak1BypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    peak2BypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    highCutBypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void FilterModuleGUI::resetParameters(unsigned int parameterNumber)
 {
-    auto peakFreq = pluginState.apvts.getParameter("Peak Freq " + std::to_string(parameterNumber));
-    auto peakGain = pluginState.apvts.getParameter("Peak Gain " + std::to_string(parameterNumber));
-    auto peakQuality = pluginState.apvts.getParameter("Peak Quality " + std::to_string(parameterNumber));
+    auto peak1Freq = pluginState.apvts.getParameter("Peak1 Freq " + std::to_string(parameterNumber));
+    auto peak1Gain = pluginState.apvts.getParameter("Peak1 Gain " + std::to_string(parameterNumber));
+    auto peak1Quality = pluginState.apvts.getParameter("Peak1 Quality " + std::to_string(parameterNumber));
+    auto peak2Freq = pluginState.apvts.getParameter("Peak2 Freq " + std::to_string(parameterNumber));
+    auto peak2Gain = pluginState.apvts.getParameter("Peak2 Gain " + std::to_string(parameterNumber));
+    auto peak2Quality = pluginState.apvts.getParameter("Peak2 Quality " + std::to_string(parameterNumber));
     auto lowcutFreq = pluginState.apvts.getParameter("LowCut Freq " + std::to_string(parameterNumber));
     auto highcutFreq = pluginState.apvts.getParameter("HighCut Freq " + std::to_string(parameterNumber));
     auto lowcutSlope = pluginState.apvts.getParameter("LowCut Slope " + std::to_string(parameterNumber));
     auto highcutSlope = pluginState.apvts.getParameter("HighCut Slope " + std::to_string(parameterNumber));
     auto bypassed = pluginState.apvts.getParameter("Filter Bypassed " + std::to_string(parameterNumber));
     auto analyzerEnabled = pluginState.apvts.getParameter("Filter Analyzer Enabled " + std::to_string(parameterNumber));
+    auto lowCutBypassed = pluginState.apvts.getParameter("LowCut Bypassed " + std::to_string(parameterNumber));
+    auto peak1Bypassed = pluginState.apvts.getParameter("Peak1 Bypassed " + std::to_string(parameterNumber));
+    auto peak2Bypassed = pluginState.apvts.getParameter("Peak2 Bypassed " + std::to_string(parameterNumber));
+    auto highCutBypassed = pluginState.apvts.getParameter("HighCut Bypassed " + std::to_string(parameterNumber));
 
-    peakFreq->setValueNotifyingHost(peakFreq->getDefaultValue());
-    peakGain->setValueNotifyingHost(peakGain->getDefaultValue());
-    peakQuality->setValueNotifyingHost(peakQuality->getDefaultValue());
+    peak1Freq->setValueNotifyingHost(peak1Freq->getDefaultValue());
+    peak1Gain->setValueNotifyingHost(peak1Gain->getDefaultValue());
+    peak1Quality->setValueNotifyingHost(peak1Quality->getDefaultValue());
+    peak2Freq->setValueNotifyingHost(peak2Freq->getDefaultValue());
+    peak2Gain->setValueNotifyingHost(peak2Gain->getDefaultValue());
+    peak2Quality->setValueNotifyingHost(peak2Quality->getDefaultValue());
     lowcutFreq->setValueNotifyingHost(lowcutFreq->getDefaultValue());
     highcutFreq->setValueNotifyingHost(highcutFreq->getDefaultValue());
     lowcutSlope->setValueNotifyingHost(lowcutSlope->getDefaultValue());
     highcutSlope->setValueNotifyingHost(highcutSlope->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
     analyzerEnabled->setValueNotifyingHost(analyzerEnabled->getDefaultValue());
+    lowCutBypassed->setValueNotifyingHost(lowCutBypassed->getDefaultValue());
+    highCutBypassed->setValueNotifyingHost(highCutBypassed->getDefaultValue());
+    peak1Bypassed->setValueNotifyingHost(peak1Bypassed->getDefaultValue());
+    peak2Bypassed->setValueNotifyingHost(peak2Bypassed->getDefaultValue());
 }
 
 juce::Array<juce::var> FilterModuleGUI::getParamValues()
 {
     juce::Array<juce::var> values;
 
-    values.add(juce::var(bypassButton.getToggleState()));
-    values.add(juce::var(peakFreqSlider.getValue()));
-    values.add(juce::var(peakGainSlider.getValue()));
-    values.add(juce::var(peakQualitySlider.getValue()));
+    values.add(juce::var(peak1FreqSlider.getValue()));
+    values.add(juce::var(peak1GainSlider.getValue()));
+    values.add(juce::var(peak1QualitySlider.getValue()));
+    values.add(juce::var(peak2FreqSlider.getValue()));
+    values.add(juce::var(peak2GainSlider.getValue()));
+    values.add(juce::var(peak2QualitySlider.getValue()));
     values.add(juce::var(lowCutFreqSlider.getValue()));
     values.add(juce::var(highCutFreqSlider.getValue()));
     values.add(juce::var(lowCutSlopeSlider.getValue()));
     values.add(juce::var(highCutSlopeSlider.getValue()));
+    values.add(juce::var(bypassButton.getToggleState()));
     values.add(juce::var(analyzerButton.getToggleState()));
+    values.add(juce::var(lowCutBypassButton.getToggleState()));
+    values.add(juce::var(peak1BypassButton.getToggleState()));
+    values.add(juce::var(peak2BypassButton.getToggleState()));
+    values.add(juce::var(highCutBypassButton.getToggleState()));
 
     return values;
 }
@@ -427,7 +550,8 @@ void FilterModuleGUI::paint(juce::Graphics& g)
     g.setColour(juce::Colours::white);
     g.setFont(ModuleLookAndFeel::getLabelsFont());
     g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
-    g.drawFittedText("Peak", peakFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
+    g.drawFittedText("Peak", peak1FreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
+    g.drawFittedText("Peak", peak2FreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
     g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
 }
 
@@ -439,18 +563,17 @@ void FilterModuleGUI::resized()
     auto temp = filtersArea;
     auto bypassButtonArea = temp.removeFromTop(25);
 
-    bypassButtonArea.setWidth(35.f);
-    bypassButtonArea.setX(128.f);
-    bypassButtonArea.setY(20.f);
-
+    auto size = 32.f;
+    bypassButtonArea.setSize(size, size);
     bypassButton.setBounds(bypassButtonArea);
+    bypassButton.setCentreRelative(0.23f,0.088f);
 
     // analyzer button
     auto temp2 = filtersArea;
     auto analyzerButtonArea = temp2.removeFromTop(25);
 
     analyzerButtonArea.setWidth(50.f);
-    analyzerButtonArea.setX(467.f);
+    analyzerButtonArea.setX(466.626f);
     analyzerButtonArea.setY(22.f);
 
     analyzerButton.setBounds(analyzerButtonArea);
@@ -466,9 +589,37 @@ void FilterModuleGUI::resized()
     auto lsArea = lowCutArea;
     auto hfArea = highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f));
     auto hsArea = highCutArea;
-    auto pfArea = filtersArea.removeFromTop(filtersArea.getHeight() * 0.33);
-    auto pgArea = filtersArea.removeFromTop(filtersArea.getHeight() * 0.5);
-    auto pqArea = filtersArea;
+    // peak filters
+    auto leftPeakArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 2.f));
+    auto rightPeakArea = filtersArea;
+    auto leftPeakFreqArea = leftPeakArea.removeFromTop(leftPeakArea.getHeight() * 0.33);
+    auto leftPeakGainArea = leftPeakArea.removeFromTop(leftPeakArea.getHeight() * 0.5);
+    auto leftPeakQualityArea = leftPeakArea;
+    auto rightPeakFreqArea = rightPeakArea.removeFromTop(rightPeakArea.getHeight() * 0.33);
+    auto rightPeakGainArea = rightPeakArea.removeFromTop(rightPeakArea.getHeight() * 0.5);
+    auto rightPeakQualityArea = rightPeakArea;
+    // buttons
+    auto lowCutButtonArea = bypassButtonArea;
+    lowCutButtonArea.setWidth(21);
+    lowCutButtonArea.setX(lfArea.getX() + 50);
+    lowCutButtonArea.setY(lfArea.getY() - 13);
+    auto peak1ButtonArea = bypassButtonArea;
+    peak1ButtonArea.setWidth(21);
+    peak1ButtonArea.setX(leftPeakFreqArea.getX() + 8);
+    peak1ButtonArea.setY(leftPeakFreqArea.getY() - 13);
+    auto peak2ButtonArea = bypassButtonArea;
+    peak2ButtonArea.setWidth(21);
+    peak2ButtonArea.setX(rightPeakFreqArea.getX() + 69);
+    peak2ButtonArea.setY(rightPeakFreqArea.getY() - 13);
+    auto highCutButtonArea = bypassButtonArea;
+    highCutButtonArea.setWidth(21.f);
+    highCutButtonArea.setX(hfArea.getX() + 132);
+    highCutButtonArea.setY(hfArea.getY() - 13);
+
+    lowCutBypassButton.setBounds(lowCutButtonArea);
+    peak1BypassButton.setBounds(peak1ButtonArea);
+    peak2BypassButton.setBounds(peak2ButtonArea);
+    highCutBypassButton.setBounds(highCutButtonArea);
 
     juce::Rectangle<int> renderArea;
     renderArea.setSize(lfArea.getHeight(), lfArea.getHeight());
@@ -504,19 +655,31 @@ void FilterModuleGUI::resized()
     renderArea.setY(hsArea.getTopLeft().getY() + offset);
     highCutSlopeSlider.setBounds(renderArea);
 
-    // peak
+    // peaks
 
-    renderArea.setSize(pfArea.getHeight() + 10, pfArea.getHeight());
+    renderArea.setSize(leftPeakFreqArea.getHeight() + 10, leftPeakFreqArea.getHeight());
 
-    renderArea.setCentre(pfArea.getCentre());
-    renderArea.setY(pfArea.getTopLeft().getY() + offset);
-    peakFreqSlider.setBounds(renderArea);
+    renderArea.setCentre(leftPeakFreqArea.getCentre());
+    renderArea.setY(leftPeakFreqArea.getTopLeft().getY() + offset);
+    peak1FreqSlider.setBounds(renderArea);
 
-    renderArea.setCentre(pgArea.getCentre());
-    renderArea.setY(pgArea.getTopLeft().getY() + offset);
-    peakGainSlider.setBounds(renderArea);
+    renderArea.setCentre(leftPeakGainArea.getCentre());
+    renderArea.setY(leftPeakGainArea.getTopLeft().getY() + offset);
+    peak1GainSlider.setBounds(renderArea);
 
-    renderArea.setCentre(pqArea.getCentre());
-    renderArea.setY(pqArea.getTopLeft().getY() + offset);
-    peakQualitySlider.setBounds(renderArea);
+    renderArea.setCentre(leftPeakQualityArea.getCentre());
+    renderArea.setY(leftPeakQualityArea.getTopLeft().getY() + offset);
+    peak1QualitySlider.setBounds(renderArea);
+
+    renderArea.setCentre(rightPeakFreqArea.getCentre());
+    renderArea.setY(rightPeakFreqArea.getTopLeft().getY() + offset);
+    peak2FreqSlider.setBounds(renderArea);
+
+    renderArea.setCentre(rightPeakGainArea.getCentre());
+    renderArea.setY(rightPeakGainArea.getTopLeft().getY() + offset);
+    peak2GainSlider.setBounds(renderArea);
+
+    renderArea.setCentre(rightPeakQualityArea.getCentre());
+    renderArea.setY(rightPeakQualityArea.getTopLeft().getY() + offset);
+    peak2QualitySlider.setBounds(renderArea);
 }

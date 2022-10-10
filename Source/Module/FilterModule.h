@@ -62,19 +62,21 @@ enum FilterSlope {
 };
 
 struct FilterChainSettings {
-    float peakFreq{ 0 }, peakGainInDecibels{ 0 }, peakQuality{ 1.f };
+    float peak1Freq{ 0 }, peak1GainInDecibels{ 0 }, peak1Quality{ 1.f };
+    float peak2Freq{ 0 }, peak2GainInDecibels{ 0 }, peak2Quality{ 1.f };
     float lowCutFreq{ 0 }, highCutFreq{ 0 };
     int lowCutSlope{ FilterSlope::Slope_12 }, highCutSlope{ FilterSlope::Slope_12 };
-    bool bypassed{ false }, analyzerBypassed{ false };
+    bool bypassed{ false }, lowCutBypassed{ true }, peak1Bypassed{ false }, peak2Bypassed{ false }, highCutBypassed{ true }, analyzerBypassed{ false };
 };
 
 using Filter = juce::dsp::IIR::Filter<float>;
 using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
-using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, Filter, CutFilter>;
 
 enum ChainPositions {
     LowCut,
-    Peak,
+    Peak1,
+    Peak2,
     HighCut
 };
 
@@ -122,19 +124,19 @@ void updateCutFilter(ChainType& monoChain, const CoefficientType& cutCoefficient
 class FilterModuleDSP : public DSPModule {
 public:
     FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
+
     // inline for avoiding linking problems with functions which have declaration + impementation
     // in the file.h (placed here for convenience)
     static inline auto makeLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
-        // i need explanation ...
         return juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
             chainSettings.lowCutFreq, sampleRate, 2 * (chainSettings.lowCutSlope + 1));
     }
     static inline auto makeHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
-        // i need explanation ...
         return juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(
             chainSettings.highCutFreq, sampleRate, 2 * (chainSettings.highCutSlope + 1));
     }
-    static Coefficients makePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
+
+    static Coefficients makePeakFilter(const ChainPositions& chainPosition, const FilterChainSettings& chainSettings, double sampleRate);
 
     static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
 
@@ -142,7 +144,7 @@ public:
     MonoChain* getOneChain();
 
     void updateDSPState(double sampleRate) override;
-    void updatePeakFilter(const FilterChainSettings& chainSettings, double sampleRate);
+    void updatePeakFilters(const FilterChainSettings& chainSettings, double sampleRate);
     void updateLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
     void updateHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
 
@@ -184,25 +186,39 @@ private:
 
     juce::Label title;
 
-    RotarySliderWithLabels peakFreqSlider,
-        peakGainSlider,
-        peakQualitySlider,
+    RotarySliderWithLabels peak1FreqSlider,
+        peak1GainSlider,
+        peak1QualitySlider,
+        peak2FreqSlider,
+        peak2GainSlider,
+        peak2QualitySlider,
         lowCutFreqSlider,
         highCutFreqSlider,
         lowCutSlopeSlider,
         highCutSlopeSlider;
-    Attachment peakFreqSliderAttachment,
-        peakGainSliderAttachment,
-        peakQualitySliderAttachment,
+    Attachment peak1FreqSliderAttachment,
+        peak1GainSliderAttachment,
+        peak1QualitySliderAttachment,
+        peak2FreqSliderAttachment,
+        peak2GainSliderAttachment,
+        peak2QualitySliderAttachment,
         lowCutFreqSliderAttachment,
         highCutFreqSliderAttachment,
         lowCutSlopeSliderAttachment,
         highCutSlopeSliderAttachment;
 
-    PowerButton bypassButton;
+    PowerButton bypassButton,
+        peak1BypassButton,
+        peak2BypassButton, 
+        lowCutBypassButton, 
+        highCutBypassButton;
     AnalyzerButton analyzerButton;
 
     ButtonAttachment bypassButtonAttachment,
+        peak1BypassButtonAttachment,
+        peak2BypassButtonAttachment,
+        lowCutBypassButtonAttachment,
+        highCutBypassButtonAttachment,
         analyzerButtonAttachment;
 
     ButtonsLookAndFeel lnf;

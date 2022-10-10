@@ -140,7 +140,7 @@ void ButtonsLookAndFeel::drawToggleButton(juce::Graphics& g,
 
         PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
         // Colour(0u, 172u, 1u)
-        auto color = toggleButton.getToggleState() ? Colours::dimgrey : this->color;
+        auto color = toggleButton.getToggleState() || !toggleButton.isEnabled() ? Colours::dimgrey : this->color;
 
         g.setColour(color);
         g.strokePath(powerButton, pst);

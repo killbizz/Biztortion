@@ -45,7 +45,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 using Filter = juce::dsp::IIR::Filter<float>;
 using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
-using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, Filter, CutFilter>;
 
 //==============================================================================
 
