@@ -465,11 +465,10 @@ void WaveshaperModuleGUI::resized()
     auto temp = waveshaperArea;
     auto bypassButtonArea = temp.removeFromTop(25);
 
-    bypassButtonArea.setWidth(35.f);
-    bypassButtonArea.setX(128.f);
-    bypassButtonArea.setY(20.f);
-
+    auto size = 32.f;
+    bypassButtonArea.setSize(size, size);
     bypassButton.setBounds(bypassButtonArea);
+    bypassButton.setCentreRelative(0.23f, 0.088f);
 
     auto titleAndBypassArea = waveshaperArea.removeFromTop(30);
     titleAndBypassArea.translate(0, 4);

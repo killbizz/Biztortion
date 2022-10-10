@@ -327,7 +327,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bitcrusherDitherLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     bitcrusherRateReduxLabel.setText("Sampling Rate Redux", juce::dontSendNotification);
     bitcrusherRateReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-    bitcrusherBitReduxLabel.setText("Bit Depht Redux", juce::dontSendNotification);
+    bitcrusherBitReduxLabel.setText("Bit Depth Redux", juce::dontSendNotification);
     bitcrusherBitReduxLabel.setFont(ModuleLookAndFeel::getLabelsFont());
     DCoffsetEnabledButtonLabel.setText("DC Filter", juce::dontSendNotification);
     DCoffsetEnabledButtonLabel.setFont(ModuleLookAndFeel::getLabelsFont());
@@ -502,11 +502,10 @@ void ClassicBitcrusherModuleGUI::resized()
     auto temp = bitcrusherArea;
     auto bypassButtonArea = temp.removeFromTop(25);
 
-    bypassButtonArea.setWidth(35.f);
-    bypassButtonArea.setX(128.f);
-    bypassButtonArea.setY(20.f);
-
+    auto size = 32.f;
+    bypassButtonArea.setSize(size, size);
     bypassButton.setBounds(bypassButtonArea);
+    bypassButton.setCentreRelative(0.23f, 0.088f);
 
     auto titleAndBypassArea = bitcrusherArea.removeFromTop(30);
     titleAndBypassArea.translate(0, 4);

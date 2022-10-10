@@ -123,6 +123,9 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
 
     moduleColor = moduleType_colors.at(ModuleType::Oscilloscope);
 
+    leftOscilloscope->setTraceColour(moduleType_colors.at(ModuleType::Oscilloscope));
+    rightOscilloscope->setTraceColour(moduleType_colors.at(ModuleType::Oscilloscope));
+
     // labels
     hZoomLabel.setText("H Zoom", juce::dontSendNotification);
     hZoomLabel.setFont(ModuleLookAndFeel::getLabelsFont());
@@ -155,7 +158,7 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
     freezeLnf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
     freezeLnf.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
     freezeLnf.setColour(juce::TextButton::buttonOnColourId, juce::Colours::black);
-    freezeLnf.setColour(juce::TextButton::textColourOnId, juce::Colours::lightgreen);
+    freezeLnf.setColour(juce::TextButton::textColourOnId, moduleType_colors.at(ModuleType::Oscilloscope));
 
     freezeButton.setLookAndFeel(&freezeLnf);
 
@@ -326,11 +329,10 @@ void OscilloscopeModuleGUI::resized()
     auto temp = oscilloscopeArea;
     auto bypassButtonArea = temp.removeFromTop(25);
 
-    bypassButtonArea.setWidth(35.f);
-    bypassButtonArea.setX(128.f);
-    bypassButtonArea.setY(20.f);
-
+    auto size = 32.f;
+    bypassButtonArea.setSize(size, size);
     bypassButton.setBounds(bypassButtonArea);
+    bypassButton.setCentreRelative(0.23f, 0.088f);
 
     auto titleAndBypassArea = oscilloscopeArea.removeFromTop(30);
     titleAndBypassArea.translate(0, 4);
