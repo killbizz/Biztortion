@@ -23,15 +23,16 @@
             file="Resources/AudioCableVerdeAcqua.png"/>
       <FILE id="DvCLrn" name="AudioCableViola.png" compile="0" resource="1"
             file="Resources/AudioCableViola.png"/>
-      <FILE id="RtnMV3" name="bigNose1.svg" compile="0" resource="1" file="Resources/bigNose1.svg"/>
       <FILE id="LPCGa8" name="BiztortionLogoBlack.png" compile="0" resource="1"
             file="Resources/BiztortionLogoBlack.png"/>
       <FILE id="ddQQYe" name="BiztortionLogoWhite.png" compile="0" resource="1"
             file="Resources/BiztortionLogoWhite.png"/>
-      <FILE id="WaH5M9" name="biztortionNoseAlpha.png" compile="0" resource="1"
+      <FILE id="jONRY8" name="biztortionNoseAlpha.png" compile="0" resource="1"
             file="Resources/biztortionNoseAlpha.png"/>
       <FILE id="Zn8IGD" name="drag-horizontal.svg" compile="0" resource="1"
             file="Resources/drag-horizontal.svg"/>
+      <FILE id="GOTIwX" name="magentaCable.svg" compile="0" resource="1"
+            file="Resources/magentaCable.svg"/>
       <FILE id="BvRseL" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
     </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">

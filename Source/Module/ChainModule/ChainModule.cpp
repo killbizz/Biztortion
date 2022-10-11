@@ -453,29 +453,29 @@ void ChainModuleGUI::addModuleToGUI(GUIModule* module)
 
 juce::AffineTransform ChainModuleGUI::getCableTransform()
 {
-    return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);
+    /*return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);*/
+    /*return juce::AffineTransform::scale(
+        JUCE_LIVE_CONSTANT(0.2f), 
+        JUCE_LIVE_CONSTANT(0.2f))
+        .translated(
+            (JUCE_LIVE_CONSTANT(68.8f) + 112.1f * (chainPosition - 1)),
+            JUCE_LIVE_CONSTANT(451.86f));*/
+    return juce::AffineTransform::scale(0.2f, 0.2f).translated(68.8f + 112.1f*(chainPosition-1), 451.86f);
 }
 
-std::unique_ptr<BizDrawable> ChainModuleGUI::getRightCable(unsigned int chainPosition)
+std::unique_ptr<Drawable> ChainModuleGUI::getRightCable(unsigned int chainPosition)
 {
     switch (chainPosition) {
 
-        case 1: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
-            &*juce::Drawable::createFromImageData(BinaryData::AudioCableRosa_png, BinaryData::AudioCableRosa_pngSize))));
-        case 2: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
-            &*juce::Drawable::createFromImageData(BinaryData::AudioCableVerdeAcqua_png, BinaryData::AudioCableVerdeAcqua_pngSize))));
-        case 3: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
-            &*juce::Drawable::createFromImageData(BinaryData::AudioCableGiallo_png, BinaryData::AudioCableGiallo_pngSize))));
-        case 4: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
-            &*juce::Drawable::createFromImageData(BinaryData::AudioCableViola_png, BinaryData::AudioCableViola_pngSize))));
-        case 5: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
-            &*juce::Drawable::createFromImageData(BinaryData::AudioCableArancione_png, BinaryData::AudioCableArancione_pngSize))));
-        case 6: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
-            &*juce::Drawable::createFromImageData(BinaryData::AudioCableBlu_png, BinaryData::AudioCableBlu_pngSize))));
-        case 7: return std::unique_ptr<BizDrawable>(new BizDrawable(*dynamic_cast<juce::DrawableImage*>(
-            &*juce::Drawable::createFromImageData(BinaryData::AudioCableRosso_png, BinaryData::AudioCableRosso_pngSize))));
+    case 1: return juce::Drawable::createFromImageData(BinaryData::magentaCable_svg , BinaryData::magentaCable_svgSize);
+        case 2: return juce::Drawable::createFromImageData(BinaryData::AudioCableVerdeAcqua_png, BinaryData::AudioCableVerdeAcqua_pngSize);
+        case 3: return juce::Drawable::createFromImageData(BinaryData::AudioCableGiallo_png, BinaryData::AudioCableGiallo_pngSize);
+        case 4: return juce::Drawable::createFromImageData(BinaryData::AudioCableViola_png, BinaryData::AudioCableViola_pngSize);
+        case 5: return juce::Drawable::createFromImageData(BinaryData::AudioCableArancione_png, BinaryData::AudioCableArancione_pngSize);
+        case 6: return juce::Drawable::createFromImageData(BinaryData::AudioCableBlu_png, BinaryData::AudioCableBlu_pngSize);
+        case 7: return juce::Drawable::createFromImageData(BinaryData::AudioCableRosso_png, BinaryData::AudioCableRosso_pngSize);
 
-        default: break;
+        default: return nullptr;
     }
     
 }

@@ -117,10 +117,10 @@ private:
     ModuleType moduleType = ModuleType::Uninstantiated;
     ModuleGenerator moduleGenerator;
 
-    // UNUSED only by the 8° module
-    std::unique_ptr<BizDrawable> rightCable;
+    // nullptr only in the 8° module
+    std::unique_ptr<Drawable> rightCable;
     juce::AffineTransform getCableTransform();
-    std::unique_ptr<BizDrawable> getRightCable(unsigned int chainPosition);
+    std::unique_ptr<Drawable> getRightCable(unsigned int chainPosition);
 
     juce::AffineTransform getDragIconTransform();
 

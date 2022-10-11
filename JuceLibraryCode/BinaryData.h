@@ -29,9 +29,6 @@ namespace BinaryData
     extern const char*   AudioCableViola_png;
     const int            AudioCableViola_pngSize = 80031;
 
-    extern const char*   bigNose1_svg;
-    const int            bigNose1_svgSize = 3366;
-
     extern const char*   BiztortionLogoBlack_png;
     const int            BiztortionLogoBlack_pngSize = 43377;
 
@@ -43,6 +40,9 @@ namespace BinaryData
 
     extern const char*   draghorizontal_svg;
     const int            draghorizontal_svgSize = 729;
+
+    extern const char*   magentaCable_svg;
+    const int            magentaCable_svgSize = 35109;
 
     extern const char*   trash_svg;
     const int            trash_svgSize = 1871;
