@@ -39,7 +39,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "SlewLimiterModule.h"
 
-#include "FilterModule.h"
+#include "../FilterModule/FilterModule.h"
 
 //==============================================================================
 

@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    WaveshaperModule.h
+    TimeBitcrusherModule.h
 
     Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
@@ -11,9 +11,9 @@
 /*
   ==============================================================================
 
-    Copyright (c) 2018 Daniele Filaretti
-    Content: the original Waveshaper Algorithm
-    Source: https://github.com/dfilaretti/waveshaper-demo
+    Copyright (c) 2018 Joshua Hodge
+    Content: the original Time-Domain Bitcrusher Algorithm
+    Source: https://github.com/theaudioprogrammer/bitcrusherDemo
 
   ==============================================================================
 */
@@ -37,115 +37,68 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 */
 
+
 #pragma once
 
 #include <JuceHeader.h>
 
-#include "../Shared/GUIStuff.h"
-#include "../Component/TransferFunctionGraphComponent.h"
-#include "../Module/DSPModule.h"
-#include "../Module/GUIModule.h"
-#include "../Shared/PluginState.h"
+#include "../../Shared/GUIStuff.h"
+#include "../../Module/DSPModule.h"
+#include "../../Module/GUIModule.h"
+#include "../../Shared/PluginState.h"
 
 //==============================================================================
 
-/* WaveshaperModule DSP */
+/* ClassicBitcrusherModule DSP */
 
 //==============================================================================
 
-struct WaveshaperSettings {
+struct ClassicBitcrusherSettings {
     float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
-    float tanhAmp{ 0 }, tanhSlope{ 0 }, sinAmp{ 0 }, sinFreq{ 0 };
+    float rateRedux{ 0 }, bitRedux{ 0 }, dither{ 0 };
     bool bypassed{ false }, DCoffsetRemove{ false };
 };
 
+const juce::String CLASSIC_BITCRUSHER_ID = "CBitcrusher ";
+
 using Filter = juce::dsp::IIR::Filter<float>;
 
-// TODO : implementing oversampling
-//class Waveshaper : public juce::dsp::ProcessorBase
-//{
-//public:
-//    Waveshaper()
-//    {
-//        
-//        waveshaper.functionToUse = [](float in)
-//        {
-//            float out = tanhAmp.getNextValue() * std::tanh(in * tanhSlope.getNextValue())
-//                + sineAmp.getNextValue() * std::sin(in * sineFreq.getNextValue());
-//
-//            return out;
-//        };
-//    }
-//
-//    void prepare(const juce::dsp::ProcessSpec& spec) override
-//    {
-//        oversampler.initProcessing(spec.maximumBlockSize);
-//    }
-//
-//    void process(const juce::dsp::ProcessContextReplacing<float>& context) override
-//    {
-//        // First sample up...
-//        auto oversampledBlock = oversampler.processSamplesUp(context.getInputBlock());
-//        // Then process with the waveshaper...
-//        waveshaper.process(juce::dsp::ProcessContextReplacing<float>(oversampledBlock));
-//        // Finally sample back down
-//        oversampler.processSamplesDown(context.getOutputBlock());
-//    }
-//
-//    void reset() override { oversampler.reset(); }
-//
-//    float getLatencyInSamples() { return oversampler.getLatencyInSamples(); }
-//
-//private:
-//    static const size_t numChannels = 1;
-//    static const size_t oversamplingOrder = 4;
-//    static const int    oversamplingFactor = 1 << oversamplingOrder;
-//    static const auto filterType = juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR;
-//
-//    juce::dsp::Oversampling<float> oversampler{ numChannels, oversamplingOrder, filterType };
-//    juce::dsp::WaveShaper<float> waveshaper;
-//};
 
-class WaveshaperModuleDSP : public DSPModule {
+class ClassicBitcrusherModuleDSP : public DSPModule {
 public:
-    WaveshaperModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
+    ClassicBitcrusherModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
+
+    Array<float> getWhiteNoise(int numSamples);
 
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
-    static WaveshaperSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
+    static ClassicBitcrusherSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
 
 private:
 
     bool bypassed = false;
-    juce::AudioBuffer<float> wetBuffer, tempBuffer;
+    juce::AudioBuffer<float> wetBuffer, noiseBuffer, tempBuffer;
     juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
-    juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
-    juce::LinearSmoothedValue<float> tanhAmp, tanhSlope, sineAmp, sineFreq;
-
+    juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain, dither;
+    juce::LinearSmoothedValue<float> rateRedux, bitRedux;
     Filter leftDCoffsetRemoveHPF, rightDCoffsetRemoveHPF;
     bool DCoffsetRemoveEnabled = false;
 
-    /*static const size_t numChannels = 2;
-    static const size_t oversamplingOrder = 4;
-    static const int    oversamplingFactor = 1 << oversamplingOrder;
-    static const auto filterType = juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR;
-
-    juce::dsp::Oversampling<float> oversampler{ numChannels, oversamplingOrder, filterType };*/
 };
 
 //==============================================================================
 
-/* WaveshaperModule GUI */
+/* ClassicBitcrusherModule GUI */
 
 //==============================================================================
 
-class WaveshaperModuleGUI : public GUIModule {
+class ClassicBitcrusherModuleGUI : public GUIModule {
 public:
-    WaveshaperModuleGUI(PluginState& p, unsigned int parameterNumber);
-    ~WaveshaperModuleGUI();
+    ClassicBitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber);
+    ~ClassicBitcrusherModuleGUI();
 
     std::vector<juce::Component*> getAllComps() override;
     std::vector<juce::Component*> getParamComps() override;
@@ -165,35 +118,30 @@ private:
 
     juce::Label title;
 
-    TransferFunctionGraphComponent transferFunctionGraph;
-
     juce::Label driveLabel,
         mixLabel,
         fxDistributionLabel,
         biasLabel,
         symmetryLabel,
-        tanhAmpLabel,
-        tanhSlopeLabel,
-        sineAmpLabel,
-        sineFreqLabel;
+        bitcrusherDitherLabel,
+        bitcrusherRateReduxLabel,
+        bitcrusherBitReduxLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
         fxDistributionSlider,
         biasSlider,
         symmetrySlider,
-        tanhAmpSlider,
-        tanhSlopeSlider,
-        sineAmpSlider,
-        sineFreqSlider;
+        bitcrusherDitherSlider,
+        bitcrusherRateReduxSlider,
+        bitcrusherBitReduxSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
         fxDistributionSliderAttachment,
         biasSliderAttachment,
         symmetrySliderAttachment,
-        tanhAmpSliderAttachment,
-        tanhSlopeSliderAttachment,
-        sineAmpSliderAttachment,
-        sineFreqSliderAttachment;
+        bitcrusherDitherSliderAttachment,
+        bitcrusherRateReduxSliderAttachment,
+        bitcrusherBitReduxSliderAttachment;
 
     PowerButton bypassButton;
 

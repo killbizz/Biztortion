@@ -30,7 +30,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <JuceHeader.h>
-#include "GUIModule.h"
+#include "../GUIModule.h"
 
 //==============================================================================
 

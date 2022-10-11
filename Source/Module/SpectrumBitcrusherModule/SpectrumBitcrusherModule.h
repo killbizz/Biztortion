@@ -31,11 +31,11 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "../Shared/GUIStuff.h"
-#include "../Module/DSPModule.h"
-#include "../Module/GUIModule.h"
-#include "../Shared/PluginState.h"
-#include "../Shared/SpectrumBitcrusherProcessor.h"
+#include "../../Shared/GUIStuff.h"
+#include "../../Module/DSPModule.h"
+#include "../../Module/GUIModule.h"
+#include "../../Shared/PluginState.h"
+#include "SpectrumBitcrusherProcessor.h"
 
 //==============================================================================
 

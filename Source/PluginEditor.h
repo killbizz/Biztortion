@@ -44,7 +44,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "Component/HelpComponent.h"
 #include "Shared/GUIStuff.h"
 #include "Shared/GUIState.h"
-#include "Module/WelcomeModule.h"
+#include "Module/WelcomeModule/WelcomeModule.h"
 
 class BiztortionAudioProcessorEditor : public juce::AudioProcessorEditor, public DragAndDropContainer
 {

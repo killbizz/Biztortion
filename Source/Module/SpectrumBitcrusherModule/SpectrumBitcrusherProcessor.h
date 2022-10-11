@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "OverlappingFFTProcessor.h"
-#include "FFTAnalyzer.h"
+#include "../../Shared/OverlappingFFTProcessor.h"
+#include "../../Shared/FFTAnalyzer.h"
 
 class SpectrumBitcrusherProcessor : public OverlappingFFTProcessor
 {

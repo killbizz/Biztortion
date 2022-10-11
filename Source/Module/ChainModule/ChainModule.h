@@ -31,11 +31,11 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "../Shared/GUIStuff.h"
-#include "../Shared/GUIState.h"
-#include "../Shared/PluginState.h"
-#include "../Module/WelcomeModule.h"
-#include "../Shared/ModuleGenerator.h"
+#include "../../Shared/GUIStuff.h"
+#include "../../Shared/GUIState.h"
+#include "../../Shared/PluginState.h"
+#include "../../Module/WelcomeModule/WelcomeModule.h"
+#include "../../Shared/ModuleGenerator.h"
 
 //==============================================================================
 
@@ -117,7 +117,7 @@ private:
     ModuleType moduleType = ModuleType::Uninstantiated;
     ModuleGenerator moduleGenerator;
 
-    // UNUSED only by the 8° module
+    // UNUSED only by the 8Â° module
     std::unique_ptr<BizDrawable> rightCable;
     juce::AffineTransform getCableTransform();
     std::unique_ptr<BizDrawable> getRightCable(unsigned int chainPosition);

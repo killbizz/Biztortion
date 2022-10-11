@@ -34,13 +34,13 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "../Module/DSPModule.h"
 #include "../Module/GUIModule.h"
-#include "../Module/ClassicBitcrusherModule.h"
-#include "../Module/SpectrumBitcrusherModule.h"
-#include "../Module/WaveshaperModule.h"
-#include "../Module/FilterModule.h"
-#include "../Module/MeterModule.h"
-#include "../Module/OscilloscopeModule.h"
-#include "../Module/SlewLimiterModule.h"
+#include "../Module/ClassicBitcrusherModule/ClassicBitcrusherModule.h"
+#include "../Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.h"
+#include "../Module/WaveshaperModule/WaveshaperModule.h"
+#include "../Module/FilterModule/FilterModule.h"
+#include "../Module/MeterModule/MeterModule.h"
+#include "../Module/OscilloscopeModule/OscilloscopeModule.h"
+#include "../Module/SlewLimiterModule/SlewLimiterModule.h"
 
 class ModuleGenerator {
 public:

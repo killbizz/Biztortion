@@ -39,7 +39,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "GUIStuff.h"
 
-#include "../Module/ChainModule.h"
+#include "../Module/ChainModule/ChainModule.h"
 
 void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
     int x,

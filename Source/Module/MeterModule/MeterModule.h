@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    OscilloscopeModule.h
+    MeterModule.h
 
     Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
@@ -31,88 +31,85 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-#include "../Shared/GUIStuff.h"
-#include "../Module/DSPModule.h"
-#include "../Module/GUIModule.h"
-#include "../Shared/PluginState.h"
+#include "../../Shared/GUIStuff.h"
+#include "../../Module/DSPModule.h"
+#include "../../Module/GUIModule.h"
+#include "../../Shared/PluginState.h"
 
 //==============================================================================
 
-/* OscilloscopeModule DSP */
+/* MeterModule DSP */
 
 //==============================================================================
 
-struct OscilloscopeSettings {
-    float hZoom{ 0 };
-    float vZoom{ 0 };
-    bool bypassed{ false };
+struct MeterSettings {
+    float levelInDecibel{ 0 };
 };
 
-class OscilloscopeModuleDSP : public DSPModule {
+class MeterModuleDSP : public DSPModule {
 public:
-    OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
+    MeterModuleDSP(juce::AudioProcessorValueTreeState& _apvts, juce::String _type);
 
-    drow::AudioOscilloscope* getLeftOscilloscope();
-    drow::AudioOscilloscope* getRightOscilloscope();
-
-    static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
+    juce::String getType();
+    static MeterSettings getSettings(juce::AudioProcessorValueTreeState& apvts, juce::String type);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
+    foleys::LevelMeterSource& getMeterSource();
 
     void updateDSPState(double sampleRate) override;
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate) override;
 
 private:
-    bool bypassed = false;
-    drow::AudioOscilloscope leftOscilloscope;
-    drow::AudioOscilloscope rightOscilloscope;
+    juce::String type;
+    juce::dsp::Gain<float> level;
+
+    foleys::LevelMeterSource meterSource;
 };
 
 //==============================================================================
 
-/* OscilloscopeModule GUI */
+/* MeterModule GUI */
 
 //==============================================================================
 
-class OscilloscopeModuleGUI : public GUIModule {
+class MeterModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(PluginState& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int parameterNumber);
-    ~OscilloscopeModuleGUI();
+    MeterModuleGUI(PluginState& p, juce::String type, foleys::LevelMeterSource* ms);
+    ~MeterModuleGUI();
+
+    juce::String getType();
 
     std::vector<juce::Component*> getAllComps() override;
-    virtual std::vector<juce::Component*> getParamComps() override;
-    virtual void updateParameters(const juce::Array<juce::var>& values) override;
-    virtual void resetParameters(unsigned int parameterNumber) override;
-    virtual juce::Array<juce::var> getParamValues() override;
+    std::vector<juce::Component*> getParamComps() override;
+    // useless methods because (at this moment) this is not a module usable in the processing chain
+    virtual void updateParameters(const juce::Array<juce::var>& values) override {};
+    virtual void resetParameters(unsigned int parameterNumber) override {};
+    virtual juce::Array<juce::var> getParamValues() override { return juce::Array<juce::var>(); };
 
-    void paintOverChildren(Graphics& g) override;
+    void timerCallback() override;
+
     void resized() override;
 
 private:
 
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
-    using ButtonAttachment = APVTS::ButtonAttachment;
 
     PluginState& pluginState;
 
+    // input/output meter
+    juce::String type;
+    //gain
+    RotarySliderWithLabels levelSlider;
+    Attachment levelSliderAttachment;
+
     juce::Label title;
 
-    juce::Label hZoomLabel,
-        vZoomLabel;
+    foleys::LevelMeterLookAndFeel lnf;
+    foleys::LevelMeter meter{ foleys::LevelMeter::MeterFlags::Minimal };
 
-    RotarySliderWithLabels hZoomSlider, vZoomSlider;
-    Attachment hZoomSliderAttachment, vZoomSliderAttachment;
-    
-    
-    juce::TextButton freezeButton{ "Freeze" };
-    PowerButton bypassButton;
+protected:
 
-    ButtonAttachment bypassButtonAttachment;
+    void drawContainer(juce::Graphics& g) override;
 
-    ButtonsLookAndFeel lnf;
-    ModuleLookAndFeel freezeLnf;
-
-    drow::AudioOscilloscope* leftOscilloscope;
-    drow::AudioOscilloscope* rightOscilloscope;
 };

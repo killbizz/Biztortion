@@ -38,7 +38,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 */
 
 #include "TransferFunctionGraphComponent.h"
-#include "../Module/WaveshaperModule.h"
+
+#include "../Module/WaveshaperModule/WaveshaperModule.h"
 
 TransferFunctionGraphComponent::TransferFunctionGraphComponent(PluginState& p, unsigned int parameterNumber)
 	: pluginState(p), parameterNumber(parameterNumber)

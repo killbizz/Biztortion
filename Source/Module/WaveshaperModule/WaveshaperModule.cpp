@@ -39,7 +39,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "WaveshaperModule.h"
 
-#include "FilterModule.h"
+#include "../FilterModule/FilterModule.h"
 
 //==============================================================================
 
