@@ -30,6 +30,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "ChainModule.h"
 
 #include <algorithm>
+#include <BinaryData.cpp>
 
 ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chainPosition)
     : GUIModule(), pluginState(ps), guiState(gs), chainPosition(_chainPosition), moduleGenerator(pluginState)
@@ -467,13 +468,13 @@ std::unique_ptr<Drawable> ChainModuleGUI::getRightCable(unsigned int chainPositi
 {
     switch (chainPosition) {
 
-    case 1: return juce::Drawable::createFromImageData(BinaryData::magentaCable_svg , BinaryData::magentaCable_svgSize);
-        case 2: return juce::Drawable::createFromImageData(BinaryData::AudioCableVerdeAcqua_png, BinaryData::AudioCableVerdeAcqua_pngSize);
-        case 3: return juce::Drawable::createFromImageData(BinaryData::AudioCableGiallo_png, BinaryData::AudioCableGiallo_pngSize);
-        case 4: return juce::Drawable::createFromImageData(BinaryData::AudioCableViola_png, BinaryData::AudioCableViola_pngSize);
-        case 5: return juce::Drawable::createFromImageData(BinaryData::AudioCableArancione_png, BinaryData::AudioCableArancione_pngSize);
-        case 6: return juce::Drawable::createFromImageData(BinaryData::AudioCableBlu_png, BinaryData::AudioCableBlu_pngSize);
-        case 7: return juce::Drawable::createFromImageData(BinaryData::AudioCableRosso_png, BinaryData::AudioCableRosso_pngSize);
+        case 1: return juce::Drawable::createFromImageData(BinaryData::magentaCable_svg , BinaryData::magentaCable_svgSize);
+        case 2: return juce::Drawable::createFromImageData(BinaryData::cyanCable_svg , BinaryData::cyanCable_svgSize);
+        case 3: return juce::Drawable::createFromImageData(BinaryData::yellowCable_svg, BinaryData::yellowCable_svgSize);
+        case 4: return juce::Drawable::createFromImageData(BinaryData::violetCable_svg, BinaryData::violetCable_svgSize);
+        case 5: return juce::Drawable::createFromImageData(BinaryData::orangeCable_svg, BinaryData::orangeCable_svgSize);
+        case 6: return juce::Drawable::createFromImageData(BinaryData::blueCable_svg, BinaryData::blueCable_svgSize);
+        case 7: return juce::Drawable::createFromImageData(BinaryData::redCable_svg, BinaryData::redCable_svgSize);
 
         default: return nullptr;
     }

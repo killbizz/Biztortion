@@ -38,17 +38,35 @@ namespace BinaryData
     extern const char*   biztortionNoseAlpha_png;
     const int            biztortionNoseAlpha_pngSize = 16177;
 
+    extern const char*   blueCable_svg;
+    const int            blueCable_svgSize = 22915;
+
+    extern const char*   cyanCable_svg;
+    const int            cyanCable_svgSize = 22862;
+
     extern const char*   draghorizontal_svg;
     const int            draghorizontal_svgSize = 729;
 
     extern const char*   magentaCable_svg;
-    const int            magentaCable_svgSize = 35109;
+    const int            magentaCable_svgSize = 22912;
+
+    extern const char*   orangeCable_svg;
+    const int            orangeCable_svgSize = 22867;
+
+    extern const char*   redCable_svg;
+    const int            redCable_svgSize = 22914;
 
     extern const char*   trash_svg;
     const int            trash_svgSize = 1871;
 
+    extern const char*   violetCable_svg;
+    const int            violetCable_svgSize = 22867;
+
+    extern const char*   yellowCable_svg;
+    const int            yellowCable_svgSize = 22867;
+
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 13;
+    const int namedResourceListSize = 19;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

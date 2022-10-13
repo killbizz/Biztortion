@@ -19,19 +19,18 @@
         stroke-linecap: round;
         stroke-miterlimit: 10;
         stroke-width: 38px;
-        stroke: url(#Sfumatura_senza_nome_59);
+        stroke: url(#Sfumatura_senza_nome_23);
       }
     </style>
-    <radialGradient id="Sfumatura_senza_nome_59" data-name="Sfumatura senza nome 59" cx="266.26" cy="276.7" r="137.45" gradientTransform="matrix(-0.5, -0.87, 6.93, -4, -1517.64, 1614.09)" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#f0f"/>
-      <stop offset="0.48" stop-color="#fd00fd"/>
-      <stop offset="0.68" stop-color="#f600f6"/>
-      <stop offset="0.82" stop-color="#ea00ea"/>
-      <stop offset="0.94" stop-color="#d800d8"/>
-      <stop offset="1" stop-color="#c0c"/>
+    <radialGradient id="Sfumatura_senza_nome_23" data-name="Sfumatura senza nome 23" cx="266.26" cy="276.7" r="137.45" gradientTransform="matrix(-0.5, -0.87, 6.93, -4, -1517.64, 1614.09)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b502ff"/>
+      <stop offset="0.56" stop-color="#b402fd"/>
+      <stop offset="0.79" stop-color="#ae02f6"/>
+      <stop offset="0.96" stop-color="#a602ea"/>
+      <stop offset="1" stop-color="#a302e6"/>
     </radialGradient>
   </defs>
-  <title>magentaCable</title>
+  <title>violetCable</title>
   <g class="cls-1">
     <g id="Livello_1" data-name="Livello 1">
       <g>
