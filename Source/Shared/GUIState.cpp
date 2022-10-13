@@ -30,7 +30,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "GUIState.h"
-#include "../Module/ChainModule.h"
+#include "../Module/ChainModule/ChainModule.h"
 
 GUIState::GUIState(juce::AudioProcessorEditor& ape, PluginState& ps)
     : editor(ape), pluginState(ps)
@@ -90,5 +90,7 @@ void GUIState::updateChainModules()
     for (auto it = chainModules.begin(); it < chainModules.end(); ++it) {
         (**it).currentModuleActivator.setToggleState(false, juce::NotificationType::dontSendNotification);
         (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+        (**it).dragIcon->setVisible(false);
+        (**it).chainPositionLabel.setVisible(true);
     }
 }

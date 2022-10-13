@@ -31,13 +31,18 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
-class GUIModule : public juce::Component {
+#include <random>
+
+class GUIModule : public juce::Component, public juce::Timer {
 public:
+    GUIModule();
     virtual ~GUIModule() = default;
     void handleParamCompsEnablement(bool bypass);
 
     // basic GUImodule painting (a single GUImodule can override this method to generate a more complex paint method)
     void paint(juce::Graphics& g) override;
+
+    void timerCallback() override;
 
     // facility for addAndMakeVisible function
     virtual std::vector<juce::Component*> getAllComps() = 0;
@@ -50,10 +55,13 @@ public:
     // get parameter values of this GUIModule (vars in the array can be bool or double values)
     virtual juce::Array<juce::var> getParamValues() = 0;
 
-private:
-    juce::Rectangle<int> getContainerArea();
-
 protected:
     juce::Rectangle<int> getContentRenderArea();
-    void drawContainer(juce::Graphics& g);
+    juce::Rectangle<int> getContainerArea();
+    virtual void drawContainer(juce::Graphics& g);
+
+    juce::Colour moduleColor;
+    unsigned int brightnessCounter;
+    int addingFactor = 1;
+    juce::NormalisableRange<float> remapper;
 };

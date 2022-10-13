@@ -64,21 +64,21 @@ void DSPModule::setModuleType(ModuleType mt)
     moduleType = mt;
 }
 
-void DSPModule::applyAsymmetry(juce::AudioBuffer<float>& drySignal, juce::AudioBuffer<float>& wetSignal, float symmetryAmount, float symmetryBias, int numSamples)
+void DSPModule::effectDistribution(juce::AudioBuffer<float>& inOutDrySignal, juce::AudioBuffer<float>& wetSignal, float amount, float bias, int numSamples)
 {
-    float dryGain = std::abs(symmetryAmount);
+    float dryGain = std::abs(amount);
     float wetGain = 1 - dryGain;
 
     for (auto channel = 0; channel < 2; ++channel)
     {
         auto* wetData = wetSignal.getWritePointer(channel);
-        auto* bufferData = drySignal.getWritePointer(channel);
+        auto* bufferData = inOutDrySignal.getWritePointer(channel);
         for (auto i = 0; i < numSamples; ++i) {
-            if (symmetryAmount == 0.f) {
+            if (amount == 0.f) {
                 bufferData[i] = wetData[i];
             }
-            else if (symmetryAmount > 0.f) {
-                if (bufferData[i] < -symmetryBias) {
+            else if (amount > 0.f) {
+                if (bufferData[i] >= bias) {
                     bufferData[i] = sumSignals(bufferData[i], 0.f, wetData[i], 1.f);
                 }
                 else {
@@ -86,12 +86,27 @@ void DSPModule::applyAsymmetry(juce::AudioBuffer<float>& drySignal, juce::AudioB
                 }
             }
             else {
-                if (bufferData[i] >= -symmetryBias) {
+                if (bufferData[i] < bias) {
                     bufferData[i] = sumSignals(bufferData[i], 0.f, wetData[i], 1.f);
                 }
                 else {
                     bufferData[i] = sumSignals(bufferData[i], dryGain, wetData[i], wetGain);
                 }
+            }
+        }
+    }
+}
+
+void DSPModule::applySymmetry(juce::AudioBuffer<float>& signal, float amount, int numSamples)
+{
+    for (auto channel = 0; channel < 2; ++channel)
+    {
+        auto* bufferData = signal.getWritePointer(channel);
+        for (auto i = 0; i < numSamples; ++i) {
+            if (bufferData[i] < 0.0f) {
+                bufferData[i] *= (2.0f - amount);
+            } else {
+                bufferData[i] *= amount;
             }
         }
     }

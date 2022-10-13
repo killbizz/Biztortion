@@ -205,7 +205,7 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         for (auto it = pluginState.DSPmodules.cbegin(); it < pluginState.DSPmodules.cend(); ++it) {
             auto module = &**it;
             // fft analyzer FIFOs update
-            if (module->getModuleType() == ModuleType::IIRFilter) {
+            if (module->getModuleType() == ModuleType::Equalizer) {
                 auto index = moduleCounter++;
                 pluginState.leftAnalyzerFIFOs[index]->update(buffer);
                 pluginState.rightAnalyzerFIFOs[index]->update(buffer);

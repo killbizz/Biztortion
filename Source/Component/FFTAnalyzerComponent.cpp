@@ -45,7 +45,7 @@ FFTAnalyzerComponent::FFTAnalyzerComponent(PluginState& p, unsigned int paramete
       leftPathProducer(*pluginState.leftAnalyzerFIFOs[0]),
       rightPathProducer(*pluginState.rightAnalyzerFIFOs[0])
 {
-    auto chainPosition = pluginState.getChainPositionFromDSPmodule(ModuleType::IIRFilter, parameterNumber);
+    auto chainPosition = pluginState.getChainPositionFromDSPmodule(ModuleType::Equalizer, parameterNumber);
     auto index = pluginState.getSampleFifoIndexOfCorrespondingModule(chainPosition);
     leftPathProducer.setSingleChannelSampleFifo(pluginState.leftAnalyzerFIFOs[index]);
     rightPathProducer.setSingleChannelSampleFifo(pluginState.rightAnalyzerFIFOs[index]);
@@ -84,7 +84,7 @@ void FFTAnalyzerComponent::paint(juce::Graphics& g)
         leftChannelFFTPath.applyTransform(AffineTransform()
             .translated(responseArea.getX(), responseArea.getY())
         );
-        g.setColour(Colours::skyblue);
+        g.setColour(Colours::violet);
         g.strokePath(leftChannelFFTPath, PathStrokeType(1));
 
         auto rightChannelFFTPath = rightPathProducer.getPath();
@@ -221,7 +221,7 @@ void FFTAnalyzerComponent::resized()
     textWidth = g.getCurrentFont().getStringWidth(str);
     r.setSize(textWidth, fontHeight);
     r.setCentre(left + 14, top + 8);
-    g.setColour(juce::Colours::skyblue);
+    g.setColour(juce::Colours::violet);
     g.drawFittedText(str, r, juce::Justification::centred, 1);
 }
 

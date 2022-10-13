@@ -33,7 +33,7 @@ enum ModuleType {
     Uninstantiated,
     Meter,
     Oscilloscope,
-    IIRFilter,
+    Equalizer,
     Waveshaper,
     ClassicBitcrusher,
     SpectrumBitcrusher,
@@ -43,9 +43,19 @@ enum ModuleType {
 const std::unordered_map<ModuleType, juce::String> moduleType_names({
     {ModuleType::Meter, "Meter"},
     {ModuleType::Oscilloscope, "Scope"},
-    {ModuleType::IIRFilter, "Filter"},
+    {ModuleType::Equalizer, "Equalizer"},
     {ModuleType::Waveshaper, "Waveshaper"},
     {ModuleType::ClassicBitcrusher, "Classic Bitcrusher"},
     {ModuleType::SpectrumBitcrusher, "Spectrum Bitcrusher"},
     {ModuleType::SlewLimiter, "Slew Limiter"}
+    });
+
+const std::unordered_map<ModuleType, juce::Colour> moduleType_colors({
+    {ModuleType::Uninstantiated, juce::Colours::black},
+    {ModuleType::Oscilloscope, juce::Colours::magenta}, 
+    {ModuleType::Equalizer, juce::Colours::cyan},
+    {ModuleType::Waveshaper, juce::Colours::red},
+    {ModuleType::ClassicBitcrusher, juce::Colours::orange},
+    {ModuleType::SpectrumBitcrusher, juce::Colour(0,108,255)}, // "medium" blue
+    {ModuleType::SlewLimiter, juce::Colour(240,255,0)} // light yellow
     });

@@ -9,30 +9,23 @@
               companyCopyright="2021 KillBizz">
   <MAINGROUP id="WGhc7c" name="Biztortion">
     <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources">
-      <FILE id="a19rEp" name="AudioCableArancione.png" compile="0" resource="1"
-            file="Resources/AudioCableArancione.png"/>
-      <FILE id="EnkKBO" name="AudioCableBlu.png" compile="0" resource="1"
-            file="Resources/AudioCableBlu.png"/>
-      <FILE id="XDjN90" name="AudioCableGiallo.png" compile="0" resource="1"
-            file="Resources/AudioCableGiallo.png"/>
-      <FILE id="BsSwkx" name="AudioCableRosa.png" compile="0" resource="1"
-            file="Resources/AudioCableRosa.png"/>
-      <FILE id="Y6C4rW" name="AudioCableRosso.png" compile="0" resource="1"
-            file="Resources/AudioCableRosso.png"/>
-      <FILE id="X4PnHI" name="AudioCableVerdeAcqua.png" compile="0" resource="1"
-            file="Resources/AudioCableVerdeAcqua.png"/>
-      <FILE id="DvCLrn" name="AudioCableViola.png" compile="0" resource="1"
-            file="Resources/AudioCableViola.png"/>
-      <FILE id="RtnMV3" name="bigNose1.svg" compile="0" resource="1" file="Resources/bigNose1.svg"/>
       <FILE id="LPCGa8" name="BiztortionLogoBlack.png" compile="0" resource="1"
             file="Resources/BiztortionLogoBlack.png"/>
       <FILE id="ddQQYe" name="BiztortionLogoWhite.png" compile="0" resource="1"
             file="Resources/BiztortionLogoWhite.png"/>
-      <FILE id="WaH5M9" name="biztortionNoseAlpha.png" compile="0" resource="1"
+      <FILE id="jONRY8" name="biztortionNoseAlpha.png" compile="0" resource="1"
             file="Resources/biztortionNoseAlpha.png"/>
+      <FILE id="jt86PH" name="blueCable.svg" compile="0" resource="1" file="Resources/blueCable.svg"/>
+      <FILE id="r1O0Sp" name="cyanCable.svg" compile="0" resource="1" file="Resources/cyanCable.svg"/>
       <FILE id="Zn8IGD" name="drag-horizontal.svg" compile="0" resource="1"
             file="Resources/drag-horizontal.svg"/>
+      <FILE id="qx3Mrj" name="magentaCable.svg" compile="0" resource="1"
+            file="Resources/magentaCable.svg"/>
+      <FILE id="uV3xKJ" name="orangeCable.svg" compile="0" resource="1" file="Resources/orangeCable.svg"/>
+      <FILE id="G8wzvn" name="redCable.svg" compile="0" resource="1" file="Resources/redCable.svg"/>
       <FILE id="BvRseL" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
+      <FILE id="roECTK" name="violetCable.svg" compile="0" resource="1" file="Resources/violetCable.svg"/>
+      <FILE id="CvoPe7" name="yellowCable.svg" compile="0" resource="1" file="Resources/yellowCable.svg"/>
     </GROUP>
     <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
       <GROUP id="{3CE862F7-9551-DF55-4209-CE64AF968F62}" name="Shared">
@@ -47,6 +40,8 @@
         <FILE id="ysiY45" name="ModuleGenerator.h" compile="0" resource="0"
               file="Source/Shared/ModuleGenerator.h"/>
         <FILE id="XHS35Z" name="ModuleType.h" compile="0" resource="0" file="Source/Shared/ModuleType.h"/>
+        <FILE id="xL7u1f" name="OverlappingFFTProcessor.h" compile="0" resource="0"
+              file="Source/Shared/OverlappingFFTProcessor.h"/>
         <FILE id="jE7lxU" name="PluginState.cpp" compile="1" resource="0" file="Source/Shared/PluginState.cpp"/>
         <FILE id="u2PZmA" name="PluginState.h" compile="0" resource="0" file="Source/Shared/PluginState.h"/>
       </GROUP>
@@ -68,40 +63,63 @@
               resource="0" file="Source/Component/TransferFunctionGraphComponent.h"/>
       </GROUP>
       <GROUP id="{35D8389F-08CD-6D8A-9595-9DAB35801015}" name="Module">
-        <FILE id="YXe7c7" name="ChainModule.cpp" compile="1" resource="0" file="Source/Module/ChainModule.cpp"/>
-        <FILE id="y5hFo0" name="ChainModule.h" compile="0" resource="0" file="Source/Module/ChainModule.h"/>
-        <FILE id="pRff4g" name="ClassicBitcrusherModule.cpp" compile="1" resource="0"
-              file="Source/Module/ClassicBitcrusherModule.cpp"/>
-        <FILE id="pG7Arg" name="ClassicBitcrusherModule.h" compile="0" resource="0"
-              file="Source/Module/ClassicBitcrusherModule.h"/>
+        <GROUP id="{8995AE95-5CBA-35B8-2835-C2D300FB24D5}" name="ChainModule">
+          <FILE id="zqUUfQ" name="ChainModule.cpp" compile="1" resource="0" file="Source/Module/ChainModule/ChainModule.cpp"/>
+          <FILE id="li1Yy7" name="ChainModule.h" compile="0" resource="0" file="Source/Module/ChainModule/ChainModule.h"/>
+        </GROUP>
+        <GROUP id="{97754550-BAC5-81ED-42B5-4EB86B99214F}" name="ClassicBitcrusherModule">
+          <FILE id="OaAM4G" name="ClassicBitcrusherModule.cpp" compile="1" resource="0"
+                file="Source/Module/ClassicBitcrusherModule/ClassicBitcrusherModule.cpp"/>
+          <FILE id="mrzPUp" name="ClassicBitcrusherModule.h" compile="0" resource="0"
+                file="Source/Module/ClassicBitcrusherModule/ClassicBitcrusherModule.h"/>
+        </GROUP>
+        <GROUP id="{51141C58-73A3-E298-61E6-A68D79849732}" name="EqualizerModule">
+          <FILE id="SrJ3V6" name="EqualizerModule.cpp" compile="1" resource="0"
+                file="Source/Module/EqualizerModule/EqualizerModule.cpp"/>
+          <FILE id="XAPP3R" name="EqualizerModule.h" compile="0" resource="0"
+                file="Source/Module/EqualizerModule/EqualizerModule.h"/>
+        </GROUP>
+        <GROUP id="{87345D9B-80A9-80EB-3050-5BB3B6751355}" name="MeterModule">
+          <FILE id="VieDcY" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule/MeterModule.cpp"/>
+          <FILE id="C3XhgX" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule/MeterModule.h"/>
+        </GROUP>
+        <GROUP id="{667407E8-54E0-F6B8-50BB-F345A5E68EEA}" name="OscilloscopeModule">
+          <FILE id="g9Mfc9" name="OscilloscopeModule.cpp" compile="1" resource="0"
+                file="Source/Module/OscilloscopeModule/OscilloscopeModule.cpp"/>
+          <FILE id="uBKNtp" name="OscilloscopeModule.h" compile="0" resource="0"
+                file="Source/Module/OscilloscopeModule/OscilloscopeModule.h"/>
+        </GROUP>
+        <GROUP id="{F47BBDB9-C362-1EC3-7AD7-C01F25BEE79F}" name="SlewLimiterModule">
+          <FILE id="WxwzpY" name="SlewLimiterModule.cpp" compile="1" resource="0"
+                file="Source/Module/SlewLimiterModule/SlewLimiterModule.cpp"/>
+          <FILE id="OlQRo0" name="SlewLimiterModule.h" compile="0" resource="0"
+                file="Source/Module/SlewLimiterModule/SlewLimiterModule.h"/>
+        </GROUP>
+        <GROUP id="{ADE1A7D8-9C79-FA6C-969E-DB527CA45E73}" name="SpectrumBitcrusherModule">
+          <FILE id="pstCE1" name="SpectrumBitcrusherModule.cpp" compile="1" resource="0"
+                file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.cpp"/>
+          <FILE id="pp96DQ" name="SpectrumBitcrusherModule.h" compile="0" resource="0"
+                file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.h"/>
+          <FILE id="tWRajU" name="SpectrumBitcrusherProcessor.cpp" compile="1"
+                resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherProcessor.cpp"/>
+          <FILE id="weLbJI" name="SpectrumBitcrusherProcessor.h" compile="0"
+                resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherProcessor.h"/>
+        </GROUP>
+        <GROUP id="{6DC2AAFC-F5F1-9E0A-0486-90C6679EDC4D}" name="WaveshaperModule">
+          <FILE id="FXxZPi" name="WaveshaperModule.cpp" compile="1" resource="0"
+                file="Source/Module/WaveshaperModule/WaveshaperModule.cpp"/>
+          <FILE id="lzbTL5" name="WaveshaperModule.h" compile="0" resource="0"
+                file="Source/Module/WaveshaperModule/WaveshaperModule.h"/>
+        </GROUP>
+        <GROUP id="{0899F8B5-9AC2-2139-6A98-C82D9DE789F6}" name="WelcomeModule">
+          <FILE id="bJUOXh" name="WelcomeModule.cpp" compile="1" resource="0"
+                file="Source/Module/WelcomeModule/WelcomeModule.cpp"/>
+          <FILE id="gkYD9K" name="WelcomeModule.h" compile="0" resource="0" file="Source/Module/WelcomeModule/WelcomeModule.h"/>
+        </GROUP>
         <FILE id="yc7UDc" name="DSPModule.cpp" compile="1" resource="0" file="Source/Module/DSPModule.cpp"/>
         <FILE id="qxoPsW" name="DSPModule.h" compile="0" resource="0" file="Source/Module/DSPModule.h"/>
-        <FILE id="QGnBgS" name="FilterModule.cpp" compile="1" resource="0"
-              file="Source/Module/FilterModule.cpp"/>
-        <FILE id="xJjgRf" name="FilterModule.h" compile="0" resource="0" file="Source/Module/FilterModule.h"/>
         <FILE id="bQC4aE" name="GUIModule.cpp" compile="1" resource="0" file="Source/Module/GUIModule.cpp"/>
         <FILE id="PFdRlU" name="GUIModule.h" compile="0" resource="0" file="Source/Module/GUIModule.h"/>
-        <FILE id="kjGTBJ" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule.cpp"/>
-        <FILE id="tZhcEl" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule.h"/>
-        <FILE id="DuhuD4" name="OscilloscopeModule.cpp" compile="1" resource="0"
-              file="Source/Module/OscilloscopeModule.cpp"/>
-        <FILE id="w2Avkr" name="OscilloscopeModule.h" compile="0" resource="0"
-              file="Source/Module/OscilloscopeModule.h"/>
-        <FILE id="jvYXSY" name="SlewLimiterModule.cpp" compile="1" resource="0"
-              file="Source/Module/SlewLimiterModule.cpp"/>
-        <FILE id="vEv7b8" name="SlewLimiterModule.h" compile="0" resource="0"
-              file="Source/Module/SlewLimiterModule.h"/>
-        <FILE id="PUdAeU" name="SpectrumBitcrusherModule.cpp" compile="1" resource="0"
-              file="Source/Module/SpectrumBitcrusherModule.cpp"/>
-        <FILE id="cA4CvV" name="SpectrumBitcrusherModule.h" compile="0" resource="0"
-              file="Source/Module/SpectrumBitcrusherModule.h"/>
-        <FILE id="TTC1Z5" name="WaveshaperModule.cpp" compile="1" resource="0"
-              file="Source/Module/WaveshaperModule.cpp"/>
-        <FILE id="qHIiGs" name="WaveshaperModule.h" compile="0" resource="0"
-              file="Source/Module/WaveshaperModule.h"/>
-        <FILE id="kxGNVR" name="WelcomeModule.cpp" compile="1" resource="0"
-              file="Source/Module/WelcomeModule.cpp"/>
-        <FILE id="RPIQV1" name="WelcomeModule.h" compile="0" resource="0" file="Source/Module/WelcomeModule.h"/>
       </GROUP>
       <FILE id="ZIXKn6" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

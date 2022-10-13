@@ -29,13 +29,13 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "PluginState.h"
 
-#include "../Module/MeterModule.h"
-#include "../Module/FilterModule.h"
-#include "../Module/WaveshaperModule.h"
-#include "../Module/ClassicBitcrusherModule.h"
-#include "../Module/SpectrumBitcrusherModule.h"
-#include "../Module/SlewLimiterModule.h"
-#include "../Module/OscilloscopeModule.h"
+#include "../Module/MeterModule/MeterModule.h"
+#include "../Module/EqualizerModule/EqualizerModule.h"
+#include "../Module/WaveshaperModule/WaveshaperModule.h"
+#include "../Module/ClassicBitcrusherModule/ClassicBitcrusherModule.h"
+#include "../Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.h"
+#include "../Module/SlewLimiterModule/SlewLimiterModule.h"
+#include "../Module/OscilloscopeModule/OscilloscopeModule.h"
 
 PluginState::PluginState(juce::AudioProcessor& ap) :
     audioProcessor(ap),
@@ -86,7 +86,7 @@ void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPos
         // else continue to iterate to find the right grid position
     }
     // module is a filter => FIFO allocation for FFT data
-    if (module->getModuleType() == ModuleType::IIRFilter) {
+    if (module->getModuleType() == ModuleType::Equalizer) {
         insertNewAnalyzerFIFO(chainPosition);
     }
 }
@@ -161,7 +161,7 @@ void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
             found = true;
             audioProcessor.suspendProcessing(true);
             // remove fft analyzer FIFO associated with **it if it's a filter
-            if ((&**it)->getModuleType() == ModuleType::IIRFilter) {
+            if ((&**it)->getModuleType() == ModuleType::Equalizer) {
                 deleteOldAnalyzerFIFO(chainPosition);
             }
             it = DSPmodules.erase(it);
@@ -218,7 +218,7 @@ unsigned int PluginState::getSampleFifoIndexOfCorrespondingModule(unsigned int c
             found = true;
             continue;
         }
-        if (((&**it)->getModuleType() == ModuleType::IIRFilter) || ((&**it)->getModuleType() == ModuleType::SpectrumBitcrusher)) {
+        if ((&**it)->getModuleType() == ModuleType::Equalizer) {
             moduleCounter++;
         }
     }
@@ -302,7 +302,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameter
     // dynamic parameter management is not supported
 
     MeterModuleDSP::addParameters(layout);
-    FilterModuleDSP::addParameters(layout);
+    EqualizerModuleDSP::addParameters(layout);
     WaveshaperModuleDSP::addParameters(layout);
     OscilloscopeModuleDSP::addParameters(layout);
     ClassicBitcrusherModuleDSP::addParameters(layout);

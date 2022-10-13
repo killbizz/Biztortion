@@ -29,22 +29,50 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "GUIModule.h"
 
+GUIModule::GUIModule() : remapper(0.f, 100.f, 1.f, 1.3f) // exponential remapping for a smoother lightness fx in the outline
+{
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(45, 70); // define the range
+
+    brightnessCounter = distr(gen);
+
+    startTimerHz(10);
+}
+
 void GUIModule::drawContainer(juce::Graphics& g)
 {
-    // container margin
+
+    // container border and background
     g.setColour(juce::Colour(132, 135, 138));
     g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
     g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
-    // content margin
+
+    // content border
     g.setColour(juce::Colours::black);
-    auto renderArea = getContentRenderArea();
+    auto renderArea = getContentRenderArea().toFloat();
     g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
+
+    // module outline
+    renderArea.expand(5.5, 5.5);
+    moduleColor = moduleColor.withLightness(remapper.convertTo0to1((float)brightnessCounter));
+    g.setColour(moduleColor);
+    g.drawRoundedRectangle(renderArea, 4.f, 4.f);
+
+    if (brightnessCounter == 70) {
+        addingFactor = -1;
+    }
+    else if (brightnessCounter == 45) {
+        addingFactor = 1;
+    }
+    brightnessCounter = brightnessCounter + addingFactor;
+
 }
 
 juce::Rectangle<int> GUIModule::getContentRenderArea()
 {
     auto bounds = getContainerArea();
-    bounds.reduce(5, 5);
+    bounds.reduce(10, 10);
 
     return bounds;
 }
@@ -62,11 +90,16 @@ void GUIModule::paint(juce::Graphics& g)
     drawContainer(g);
 }
 
+void GUIModule::timerCallback()
+{
+    repaint();
+}
+
 juce::Rectangle<int> GUIModule::getContainerArea()
 {
     // returns a dimesion reduced rectangle as bounds in order to avoid margin collisions
     auto bounds = getLocalBounds();
-    bounds.reduce(10, 10);
+    bounds.reduce(5, 5);
 
     return bounds;
 }

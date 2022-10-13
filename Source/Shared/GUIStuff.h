@@ -200,17 +200,13 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
             Path outline;
             outline.addRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness);
 
-            auto outlineColour = button.findColour(button.getToggleState() ? TextButton::textColourOnId
-                : TextButton::textColourOffId);
+            auto outlineColour = juce::Colours::black;
 
             g.setColour(baseColour);
             g.fillPath(outline);
 
-            if (!button.getToggleState())
-            {
-                g.setColour(outlineColour);
-                g.strokePath(outline, PathStrokeType(lineThickness));
-            }
+            g.setColour(outlineColour);
+            g.strokePath(outline, PathStrokeType(lineThickness));
         }
     }
 };
@@ -231,6 +227,15 @@ struct ButtonsLookAndFeel : juce::LookAndFeel_V4
         juce::ToggleButton& toggleButton,
         bool shouldDrawButtonAsHighlighted,
         bool shouldDrawButtonAsDown) override;
+
+    void drawTickBox(Graphics& g, Component& component,
+        float x, float y, float w, float h,
+        const bool ticked,
+        const bool isEnabled,
+        const bool shouldDrawButtonAsHighlighted,
+        const bool shouldDrawButtonAsDown) override;
+
+    juce::Colour color = juce::Colours::lightgreen;
 };
 
 struct LabelWithPosition

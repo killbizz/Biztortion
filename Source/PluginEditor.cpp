@@ -37,7 +37,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "PluginEditor.h"
 
-#include "Module/ChainModule.h"
+#include "Module/ChainModule/ChainModule.h"
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProcessor& ap, PluginState& ps)
