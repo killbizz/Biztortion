@@ -37,7 +37,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/ClassicBitcrusherModule/ClassicBitcrusherModule.h"
 #include "../Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.h"
 #include "../Module/WaveshaperModule/WaveshaperModule.h"
-#include "../Module/FilterModule/FilterModule.h"
+#include "../Module/EqualizerModule/EqualizerModule.h"
 #include "../Module/MeterModule/MeterModule.h"
 #include "../Module/OscilloscopeModule/OscilloscopeModule.h"
 #include "../Module/SlewLimiterModule/SlewLimiterModule.h"

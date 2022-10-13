@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    FilterModule.cpp
+    EqualizerModule.cpp
 
     Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
@@ -37,7 +37,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 */
 
-#include "FilterModule.h"
+#include "EqualizerModule.h"
 
 //==============================================================================
 
@@ -45,7 +45,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 
-FilterModuleDSP::FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
+EqualizerModuleDSP::EqualizerModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
     : DSPModule(_apvts) {
 }
 
@@ -54,7 +54,7 @@ void updateCoefficients(Coefficients& old, const Coefficients& replacements) {
     *old = *replacements;
 }
 
-Coefficients FilterModuleDSP::makePeakFilter(const ChainPositions& chainPosition, const FilterChainSettings& chainSettings, double sampleRate) {
+Coefficients EqualizerModuleDSP::makePeakFilter(const ChainPositions& chainPosition, const EqualizerChainSettings& chainSettings, double sampleRate) {
     return juce::dsp::IIR::Coefficients<float>::makePeakFilter(
         sampleRate,
         chainPosition == ChainPositions::Peak1 ? chainSettings.peak1Freq : chainSettings.peak2Freq,
@@ -63,8 +63,8 @@ Coefficients FilterModuleDSP::makePeakFilter(const ChainPositions& chainPosition
     );
 }
 
-FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber) {
-    FilterChainSettings settings;
+EqualizerChainSettings EqualizerModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber) {
+    EqualizerChainSettings settings;
 
     settings.lowCutFreq = apvts.getRawParameterValue("LowCut Freq " + std::to_string(parameterNumber))->load();
     settings.highCutFreq = apvts.getRawParameterValue("HighCut Freq " + std::to_string(parameterNumber))->load();
@@ -88,7 +88,7 @@ FilterChainSettings FilterModuleDSP::getSettings(juce::AudioProcessorValueTreeSt
     return settings;
 }
 
-void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
+void EqualizerModuleDSP::addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
 {
     for (int i = 1; i < 9; ++i) {
         auto lowCutFreq = std::make_unique<juce::AudioParameterFloat>(
@@ -199,12 +199,12 @@ void FilterModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Paramete
 
 }
 
-MonoChain* FilterModuleDSP::getOneChain()
+MonoChain* EqualizerModuleDSP::getOneChain()
 {
     return &leftChain;
 }
 
-void FilterModuleDSP::updateDSPState(double sampleRate) {
+void EqualizerModuleDSP::updateDSPState(double sampleRate) {
     auto settings = getSettings(apvts, parameterNumber);
 
     bypassed = settings.bypassed;
@@ -213,7 +213,7 @@ void FilterModuleDSP::updateDSPState(double sampleRate) {
     updateHighCutFilter(settings, sampleRate);
 }
 
-void FilterModuleDSP::updatePeakFilters(const FilterChainSettings& chainSettings, double sampleRate) {    
+void EqualizerModuleDSP::updatePeakFilters(const EqualizerChainSettings& chainSettings, double sampleRate) {
     // PEAK1
     auto peak1Coefficients = makePeakFilter(ChainPositions::Peak1, chainSettings, sampleRate);
     updateCoefficients(leftChain.get<ChainPositions::Peak1>().coefficients, peak1Coefficients);
@@ -227,7 +227,7 @@ void FilterModuleDSP::updatePeakFilters(const FilterChainSettings& chainSettings
     rightChain.setBypassed<ChainPositions::Peak2>(chainSettings.peak2Bypassed || chainSettings.bypassed);
 }
 
-void FilterModuleDSP::updateLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
+void EqualizerModuleDSP::updateLowCutFilter(const EqualizerChainSettings& chainSettings, double sampleRate) {
     auto lowCutCoefficients = makeLowCutFilter(chainSettings, sampleRate);
     auto& leftLowCut = leftChain.get<ChainPositions::LowCut>();
     updateCutFilter(leftLowCut, lowCutCoefficients, static_cast<FilterSlope>(chainSettings.lowCutSlope));
@@ -238,7 +238,7 @@ void FilterModuleDSP::updateLowCutFilter(const FilterChainSettings& chainSetting
     rightChain.setBypassed<ChainPositions::LowCut>(chainSettings.lowCutBypassed || chainSettings.bypassed);
 }
 
-void FilterModuleDSP::updateHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
+void EqualizerModuleDSP::updateHighCutFilter(const EqualizerChainSettings& chainSettings, double sampleRate) {
     auto highCutCoefficients = makeHighCutFilter(chainSettings, sampleRate);
     auto& leftHighCut = leftChain.get<ChainPositions::HighCut>();
     updateCutFilter(leftHighCut, highCutCoefficients, static_cast<FilterSlope>(chainSettings.highCutSlope));
@@ -249,7 +249,7 @@ void FilterModuleDSP::updateHighCutFilter(const FilterChainSettings& chainSettin
     rightChain.setBypassed<ChainPositions::HighCut>(chainSettings.highCutBypassed || chainSettings.bypassed);
 }
 
-void FilterModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
+void EqualizerModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     juce::dsp::ProcessSpec spec;
 
@@ -263,7 +263,7 @@ void FilterModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
     updateDSPState(sampleRate);
 }
 
-void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
+void EqualizerModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
 {
     updateDSPState(sampleRate);
 
@@ -284,7 +284,7 @@ void FilterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiB
 
 //==============================================================================
 
-FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
+EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNumber)
     : GUIModule(), pluginState(p),
     peak1FreqSlider(*pluginState.apvts.getParameter("Peak1 Freq " + std::to_string(parameterNumber)), "Hz"),
     peak1GainSlider(*pluginState.apvts.getParameter("Peak1 Gain " + std::to_string(parameterNumber)), "dB"),
@@ -316,10 +316,10 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     analyzerButtonAttachment(pluginState.apvts, "Filter Analyzer Enabled " + std::to_string(parameterNumber), analyzerButton)
 {
     // title setup
-    title.setText("Filter", juce::dontSendNotification);
+    title.setText("Equalizer", juce::dontSendNotification);
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
-    moduleColor = moduleType_colors.at(ModuleType::IIRFilter);
+    moduleColor = moduleType_colors.at(ModuleType::Equalizer);
 
     // labels
     // peak1
@@ -347,7 +347,7 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     highCutSlopeSlider.labels.add({ 1.f, "48" });
 
     // buttons
-    lnf.color = moduleType_colors.at(ModuleType::IIRFilter);
+    lnf.color = moduleType_colors.at(ModuleType::Equalizer);
     bypassButton.setLookAndFeel(&lnf);
     lowCutBypassButton.setLookAndFeel(&lnf);
     peak1BypassButton.setLookAndFeel(&lnf);
@@ -355,7 +355,7 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     highCutBypassButton.setLookAndFeel(&lnf);
     analyzerButton.setLookAndFeel(&lnf);
 
-    auto safePtr = juce::Component::SafePointer<FilterModuleGUI>(this);
+    auto safePtr = juce::Component::SafePointer<EqualizerModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
     {
         if (auto* comp = safePtr.getComponent())
@@ -402,7 +402,7 @@ FilterModuleGUI::FilterModuleGUI(PluginState& p, unsigned int parameterNumber)
     handleParamCompsEnablement(bypassButton.getToggleState());
 }
 
-FilterModuleGUI::~FilterModuleGUI()
+    EqualizerModuleGUI::~EqualizerModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
     analyzerButton.setLookAndFeel(nullptr);
@@ -412,7 +412,7 @@ FilterModuleGUI::~FilterModuleGUI()
     peak2BypassButton.setLookAndFeel(nullptr);
 }
 
-std::vector<juce::Component*> FilterModuleGUI::getAllComps()
+std::vector<juce::Component*> EqualizerModuleGUI::getAllComps()
 {
     return {
         &title,
@@ -440,7 +440,7 @@ std::vector<juce::Component*> FilterModuleGUI::getAllComps()
     };
 }
 
-std::vector<juce::Component*> FilterModuleGUI::getParamComps()
+std::vector<juce::Component*> EqualizerModuleGUI::getParamComps()
 {
     return {
         &peak1FreqSlider,
@@ -460,7 +460,7 @@ std::vector<juce::Component*> FilterModuleGUI::getParamComps()
     };
 }
 
-void FilterModuleGUI::updateParameters(const juce::Array<juce::var>& values)
+void EqualizerModuleGUI::updateParameters(const juce::Array<juce::var>& values)
 {
     auto value = values.begin();
     
@@ -482,7 +482,7 @@ void FilterModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     highCutBypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
-void FilterModuleGUI::resetParameters(unsigned int parameterNumber)
+void EqualizerModuleGUI::resetParameters(unsigned int parameterNumber)
 {
     auto peak1Freq = pluginState.apvts.getParameter("Peak1 Freq " + std::to_string(parameterNumber));
     auto peak1Gain = pluginState.apvts.getParameter("Peak1 Gain " + std::to_string(parameterNumber));
@@ -519,7 +519,7 @@ void FilterModuleGUI::resetParameters(unsigned int parameterNumber)
     peak2Bypassed->setValueNotifyingHost(peak2Bypassed->getDefaultValue());
 }
 
-juce::Array<juce::var> FilterModuleGUI::getParamValues()
+juce::Array<juce::var> EqualizerModuleGUI::getParamValues()
 {
     juce::Array<juce::var> values;
 
@@ -543,7 +543,7 @@ juce::Array<juce::var> FilterModuleGUI::getParamValues()
     return values;
 }
 
-void FilterModuleGUI::paint(juce::Graphics& g)
+void EqualizerModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
     // filter types
@@ -555,7 +555,7 @@ void FilterModuleGUI::paint(juce::Graphics& g)
     g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
 }
 
-void FilterModuleGUI::resized()
+void EqualizerModuleGUI::resized()
 {
     auto filtersArea = getContentRenderArea();
 

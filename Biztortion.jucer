@@ -73,10 +73,11 @@
           <FILE id="mrzPUp" name="ClassicBitcrusherModule.h" compile="0" resource="0"
                 file="Source/Module/ClassicBitcrusherModule/ClassicBitcrusherModule.h"/>
         </GROUP>
-        <GROUP id="{F131059C-E441-EDC2-3D9E-52E169ED5E06}" name="FilterModule">
-          <FILE id="ugmAFP" name="FilterModule.cpp" compile="1" resource="0"
-                file="Source/Module/FilterModule/FilterModule.cpp"/>
-          <FILE id="S6Xk2U" name="FilterModule.h" compile="0" resource="0" file="Source/Module/FilterModule/FilterModule.h"/>
+        <GROUP id="{51141C58-73A3-E298-61E6-A68D79849732}" name="EqualizerModule">
+          <FILE id="SrJ3V6" name="EqualizerModule.cpp" compile="1" resource="0"
+                file="Source/Module/EqualizerModule/EqualizerModule.cpp"/>
+          <FILE id="XAPP3R" name="EqualizerModule.h" compile="0" resource="0"
+                file="Source/Module/EqualizerModule/EqualizerModule.h"/>
         </GROUP>
         <GROUP id="{87345D9B-80A9-80EB-3050-5BB3B6751355}" name="MeterModule">
           <FILE id="VieDcY" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule/MeterModule.cpp"/>

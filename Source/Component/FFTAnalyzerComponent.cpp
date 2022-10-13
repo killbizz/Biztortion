@@ -45,7 +45,7 @@ FFTAnalyzerComponent::FFTAnalyzerComponent(PluginState& p, unsigned int paramete
       leftPathProducer(*pluginState.leftAnalyzerFIFOs[0]),
       rightPathProducer(*pluginState.rightAnalyzerFIFOs[0])
 {
-    auto chainPosition = pluginState.getChainPositionFromDSPmodule(ModuleType::IIRFilter, parameterNumber);
+    auto chainPosition = pluginState.getChainPositionFromDSPmodule(ModuleType::Equalizer, parameterNumber);
     auto index = pluginState.getSampleFifoIndexOfCorrespondingModule(chainPosition);
     leftPathProducer.setSingleChannelSampleFifo(pluginState.leftAnalyzerFIFOs[index]);
     rightPathProducer.setSingleChannelSampleFifo(pluginState.rightAnalyzerFIFOs[index]);

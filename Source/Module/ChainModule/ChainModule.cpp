@@ -30,7 +30,6 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "ChainModule.h"
 
 #include <algorithm>
-#include <BinaryData.cpp>
 
 ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chainPosition)
     : GUIModule(), pluginState(ps), guiState(gs), chainPosition(_chainPosition), moduleGenerator(pluginState)
@@ -75,7 +74,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
         if (type.first != ModuleType::Meter) {
             newModuleSelector.addItem(moduleType_names.at(type.first), type.first);
         }
-        if (type.first == ModuleType::IIRFilter) {
+        if (type.first == ModuleType::Equalizer) {
             newModuleSelector.addSeparator();
         }
     }

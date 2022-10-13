@@ -39,7 +39,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "ResponseCurveComponent.h"
 
-#include "../Module/FilterModule/FilterModule.h"
+#include "../Module/EqualizerModule/EqualizerModule.h"
 
 
 // component for the response curve in order to paint the curve only in his area
@@ -184,18 +184,18 @@ void ResponseCurveComponent::updateResponseCurve()
 
 void ResponseCurveComponent::updateChain()
 {
-    auto chainSettings = FilterModuleDSP::getSettings(pluginState.apvts, parameterNumber);
+    auto chainSettings = EqualizerModuleDSP::getSettings(pluginState.apvts, parameterNumber);
 
     auto sampleRate = pluginState.audioProcessor.getSampleRate();
 
     // peak filters
-    auto peak1Coefficients = FilterModuleDSP::makePeakFilter(ChainPositions::Peak1, chainSettings, sampleRate);
-    auto peak2Coefficients = FilterModuleDSP::makePeakFilter(ChainPositions::Peak2, chainSettings, sampleRate);
+    auto peak1Coefficients = EqualizerModuleDSP::makePeakFilter(ChainPositions::Peak1, chainSettings, sampleRate);
+    auto peak2Coefficients = EqualizerModuleDSP::makePeakFilter(ChainPositions::Peak2, chainSettings, sampleRate);
     updateCoefficients(monoChain.get<ChainPositions::Peak1>().coefficients, peak1Coefficients);
     updateCoefficients(monoChain.get<ChainPositions::Peak2>().coefficients, peak2Coefficients);
 
-    auto lowCutCoefficients = FilterModuleDSP::makeLowCutFilter(chainSettings, sampleRate);
-    auto highCutCoefficients = FilterModuleDSP::makeHighCutFilter(chainSettings, sampleRate);
+    auto lowCutCoefficients = EqualizerModuleDSP::makeLowCutFilter(chainSettings, sampleRate);
+    auto highCutCoefficients = EqualizerModuleDSP::makeHighCutFilter(chainSettings, sampleRate);
 
     updateCutFilter(monoChain.get<ChainPositions::LowCut>(),
         lowCutCoefficients,

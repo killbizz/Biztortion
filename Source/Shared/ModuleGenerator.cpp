@@ -41,8 +41,8 @@ DSPModule* ModuleGenerator::createDSPModule(ModuleType mt)
         newModule = new OscilloscopeModuleDSP(pluginState.apvts);
         break;
     }
-    case ModuleType::IIRFilter: {
-        newModule = new FilterModuleDSP(pluginState.apvts);
+    case ModuleType::Equalizer: {
+        newModule = new EqualizerModuleDSP(pluginState.apvts);
         break;
     }
     case ModuleType::Waveshaper: {
@@ -93,8 +93,8 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
             newModule = new OscilloscopeModuleGUI(pluginState, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), parameterNumber);
             break;
         }
-        case ModuleType::IIRFilter: {
-            newModule = new FilterModuleGUI(pluginState, parameterNumber);
+        case ModuleType::Equalizer: {
+            newModule = new EqualizerModuleGUI(pluginState, parameterNumber);
             break;
         }
         case ModuleType::Waveshaper: {

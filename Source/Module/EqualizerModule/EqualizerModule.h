@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    FilterModule.h
+    EqualizerModule.h
 
     Copyright (c) 2021 KillBizz - Gabriel Bizzo
 
@@ -50,7 +50,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 
-/* FilterModule DSP */
+/* EqualizerModule DSP */
 
 //==============================================================================
 
@@ -61,7 +61,7 @@ enum FilterSlope {
     Slope_48
 };
 
-struct FilterChainSettings {
+struct EqualizerChainSettings {
     float peak1Freq{ 0 }, peak1GainInDecibels{ 0 }, peak1Quality{ 1.f };
     float peak2Freq{ 0 }, peak2GainInDecibels{ 0 }, peak2Quality{ 1.f };
     float lowCutFreq{ 0 }, highCutFreq{ 0 };
@@ -121,32 +121,32 @@ void updateCutFilter(ChainType& monoChain, const CoefficientType& cutCoefficient
     }
 }
 
-class FilterModuleDSP : public DSPModule {
+class EqualizerModuleDSP : public DSPModule {
 public:
-    FilterModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
+    EqualizerModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
 
     // inline for avoiding linking problems with functions which have declaration + impementation
     // in the file.h (placed here for convenience)
-    static inline auto makeLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
+    static inline auto makeLowCutFilter(const EqualizerChainSettings& chainSettings, double sampleRate) {
         return juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
             chainSettings.lowCutFreq, sampleRate, 2 * (chainSettings.lowCutSlope + 1));
     }
-    static inline auto makeHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate) {
+    static inline auto makeHighCutFilter(const EqualizerChainSettings& chainSettings, double sampleRate) {
         return juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(
             chainSettings.highCutFreq, sampleRate, 2 * (chainSettings.highCutSlope + 1));
     }
 
-    static Coefficients makePeakFilter(const ChainPositions& chainPosition, const FilterChainSettings& chainSettings, double sampleRate);
+    static Coefficients makePeakFilter(const ChainPositions& chainPosition, const EqualizerChainSettings& chainSettings, double sampleRate);
 
-    static FilterChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
+    static EqualizerChainSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
 
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout&);
     MonoChain* getOneChain();
 
     void updateDSPState(double sampleRate) override;
-    void updatePeakFilters(const FilterChainSettings& chainSettings, double sampleRate);
-    void updateLowCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
-    void updateHighCutFilter(const FilterChainSettings& chainSettings, double sampleRate);
+    void updatePeakFilters(const EqualizerChainSettings& chainSettings, double sampleRate);
+    void updateLowCutFilter(const EqualizerChainSettings& chainSettings, double sampleRate);
+    void updateHighCutFilter(const EqualizerChainSettings& chainSettings, double sampleRate);
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&, double) override;
@@ -158,14 +158,14 @@ private:
 
 //==============================================================================
 
-/* FilterModule GUI */
+/* EqualizerModule GUI */
 
 //==============================================================================
 
-class FilterModuleGUI : public GUIModule {
+class EqualizerModuleGUI : public GUIModule {
 public:
-    FilterModuleGUI(PluginState& p, unsigned int parameterNumber);
-    ~FilterModuleGUI();
+    EqualizerModuleGUI(PluginState& p, unsigned int parameterNumber);
+    ~EqualizerModuleGUI();
 
     std::vector<juce::Component*> getAllComps() override;
     virtual std::vector<juce::Component*> getParamComps() override;

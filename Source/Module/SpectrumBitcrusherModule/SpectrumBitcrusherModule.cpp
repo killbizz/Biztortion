@@ -31,7 +31,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <complex>
 #include <cmath>
-#include "../FilterModule/FilterModule.h"
+#include "../EqualizerModule/EqualizerModule.h"
 
 using namespace std::complex_literals;
 
