@@ -36,7 +36,7 @@ WelcomeModuleGUI::WelcomeModuleGUI()
     author.setText("(c) 2022 Gabriel Bizzo", juce::dontSendNotification);
     author.setFont(juce::Font("Courier New", 16, 0));
 
-    version.setText("version: 1.1", juce::dontSendNotification);
+    version.setText("version: 2.0", juce::dontSendNotification);
     version.setFont(juce::Font("Courier New", 16, 0));
 
     std::random_device rd; // obtain a random number from hardware
