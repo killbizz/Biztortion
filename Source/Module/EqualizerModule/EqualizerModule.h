@@ -226,4 +226,9 @@ private:
     ResponseCurveComponent responseCurveComponent;
     FFTAnalyzerComponent filterFftAnalyzerComponent;
 
+    void handleLowCutParamsBypass(EqualizerModuleGUI* comp);
+    void handleHighCutParamsBypass(EqualizerModuleGUI* comp);
+    void handlePeak1ParamsBypass(EqualizerModuleGUI* comp);
+    void handlePeak2ParamsBypass(EqualizerModuleGUI* comp);
+
 };

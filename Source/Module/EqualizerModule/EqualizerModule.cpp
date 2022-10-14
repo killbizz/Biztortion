@@ -361,7 +361,52 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
         if (auto* comp = safePtr.getComponent())
         {
             auto bypassed = comp->bypassButton.getToggleState();
-            comp->handleParamCompsEnablement(bypassed);
+            comp->lowCutBypassButton.setEnabled(!bypassed);
+            comp->peak1BypassButton.setEnabled(!bypassed);
+            comp->peak2BypassButton.setEnabled(!bypassed);
+            comp->highCutBypassButton.setEnabled(!bypassed);
+            if (!bypassed) {
+                comp->handleParamCompsEnablement(bypassed);
+            }
+            else {
+                comp->handleLowCutParamsBypass(comp);
+                comp->handleHighCutParamsBypass(comp);
+                comp->handlePeak1ParamsBypass(comp);
+                comp->handlePeak2ParamsBypass(comp);
+            }
+            
+        }
+    };
+
+    lowCutBypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            comp->handleLowCutParamsBypass(comp);
+        }
+    };
+
+    highCutBypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            comp->handleHighCutParamsBypass(comp);
+        }
+    };
+
+    peak1BypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            comp->handlePeak1ParamsBypass(comp);
+        }
+    };
+
+    peak2BypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            comp->handlePeak2ParamsBypass(comp);
         }
     };
 
@@ -453,10 +498,6 @@ std::vector<juce::Component*> EqualizerModuleGUI::getParamComps()
         &highCutFreqSlider,
         &lowCutSlopeSlider,
         &highCutSlopeSlider,
-        &lowCutBypassButton,
-        &highCutBypassButton,
-        &peak1BypassButton,
-        &peak2BypassButton
     };
 }
 
@@ -549,10 +590,43 @@ void EqualizerModuleGUI::paint(juce::Graphics& g)
     // filter types
     g.setColour(juce::Colours::white);
     g.setFont(ModuleLookAndFeel::getLabelsFont());
-    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
-    g.drawFittedText("Peak", peak1FreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
-    g.drawFittedText("Peak", peak2FreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
-    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, -14), juce::Justification::centredTop, 1);
+
+    int y = -17;
+    
+    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, y), juce::Justification::centredTop, 1);
+    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, y), juce::Justification::centredTop, 1);
+
+    int peakExpandX = 14;
+    int peakY = -12;
+    auto peak1Bounds = peak1BypassButton.getBounds();
+    peak1Bounds.expand(peakExpandX, 0);
+    auto peak2Bounds = peak2BypassButton.getBounds();
+    peak2Bounds.expand(peakExpandX, 0);
+
+    g.drawFittedText("Peak 1", peak1Bounds.translated(0, peakY), juce::Justification::centredTop, 1);
+    g.drawFittedText("Peak 2", peak2Bounds.translated(0, peakY), juce::Justification::centredTop, 1);
+
+    g.setColour(juce::Colours::black);
+
+    // lowCut vertical separator
+    float lowCutX = 97;
+    g.fillRect(Rectangle<float>(
+        (float)lowCutFreqSlider.getBounds().getX() + lowCutX, lowCutFreqSlider.getBounds().getY() - 16,
+        2.5f, lowCutSlopeSlider.getBounds().getBottomLeft().getY() - lowCutFreqSlider.getBounds().getY() + 11));
+    // highCut vertical separator
+    float highCutX = -20;
+    g.fillRect(Rectangle<float>(
+        (float)highCutFreqSlider.getBounds().getX() + highCutX, highCutFreqSlider.getBounds().getY() - 16,
+        2.5f, highCutSlopeSlider.getBounds().getBottomLeft().getY() - highCutFreqSlider.getBounds().getY() + 11));
+    // peaks horizontal separator
+    float peakSeparatorY = 1;
+    int left = peak1FreqSlider.getBounds().getX();
+    int right = peak1QualitySlider.getBounds().getRight();
+    int leftOffset = -50;
+    int rightOffset = 0;
+    g.fillRect(Rectangle<float>(
+        left + leftOffset, (float)peak1FreqSlider.getBounds().getBottom() + peakSeparatorY,
+        (right + rightOffset) - (left + leftOffset) , 2.5f));
 }
 
 void EqualizerModuleGUI::resized()
@@ -583,38 +657,52 @@ void EqualizerModuleGUI::resized()
 
     auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     responseCurveArea.reduce(10, 10);
-    auto lowCutArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 3.f));
-    auto highCutArea = filtersArea.removeFromRight(filtersArea.getWidth() * (1.f / 2.f));
+
+    // lowCut - highCut filters
+    int lowHighFiltersWidth = filtersArea.getWidth() * (1.f / 4.f);
+    auto lowCutArea = filtersArea.removeFromLeft(lowHighFiltersWidth);
+    lowCutArea.reduce(0, 7);
+    auto highCutArea = filtersArea.removeFromRight(lowHighFiltersWidth);
+    highCutArea.reduce(0, 7);
     auto lfArea = lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f));
     auto lsArea = lowCutArea;
     auto hfArea = highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f));
     auto hsArea = highCutArea;
-    // peak filters
-    auto leftPeakArea = filtersArea.removeFromLeft(filtersArea.getWidth() * (1.f / 2.f));
-    auto rightPeakArea = filtersArea;
-    auto leftPeakFreqArea = leftPeakArea.removeFromTop(leftPeakArea.getHeight() * 0.33);
-    auto leftPeakGainArea = leftPeakArea.removeFromTop(leftPeakArea.getHeight() * 0.5);
-    auto leftPeakQualityArea = leftPeakArea;
-    auto rightPeakFreqArea = rightPeakArea.removeFromTop(rightPeakArea.getHeight() * 0.33);
-    auto rightPeakGainArea = rightPeakArea.removeFromTop(rightPeakArea.getHeight() * 0.5);
-    auto rightPeakQualityArea = rightPeakArea;
-    // buttons
+
     auto lowCutButtonArea = bypassButtonArea;
     lowCutButtonArea.setWidth(21);
-    lowCutButtonArea.setX(lfArea.getX() + 50);
-    lowCutButtonArea.setY(lfArea.getY() - 13);
-    auto peak1ButtonArea = bypassButtonArea;
-    peak1ButtonArea.setWidth(21);
-    peak1ButtonArea.setX(leftPeakFreqArea.getX() + 8);
-    peak1ButtonArea.setY(leftPeakFreqArea.getY() - 13);
-    auto peak2ButtonArea = bypassButtonArea;
-    peak2ButtonArea.setWidth(21);
-    peak2ButtonArea.setX(rightPeakFreqArea.getX() + 69);
-    peak2ButtonArea.setY(rightPeakFreqArea.getY() - 13);
+    lowCutButtonArea.setCentre(lfArea.getX() + 29, lfArea.getY() - 4);
+
     auto highCutButtonArea = bypassButtonArea;
     highCutButtonArea.setWidth(21.f);
-    highCutButtonArea.setX(hfArea.getX() + 132);
-    highCutButtonArea.setY(hfArea.getY() - 13);
+    highCutButtonArea.setCentre(hfArea.getX() + 121, hfArea.getY() - 4);
+
+    // peak filters
+    int reduceX = 10;
+    auto leftPeakArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
+    auto rightPeakArea = filtersArea;
+
+    auto tempBypassArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 6.f));
+    auto peak1ButtonArea = bypassButtonArea;
+    peak1ButtonArea.setWidth(21);
+    peak1ButtonArea.setCentre(tempBypassArea.getCentre().translated(0, 3));
+    auto leftPeakFreqArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 3.f));
+    leftPeakFreqArea.reduce(reduceX, 0);
+    auto leftPeakGainArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 2.f));
+    leftPeakGainArea.reduce(reduceX, 0);
+    auto leftPeakQualityArea = leftPeakArea;
+    leftPeakQualityArea.reduce(reduceX, 0);
+
+    tempBypassArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 6.f));
+    auto peak2ButtonArea = bypassButtonArea;
+    peak2ButtonArea.setWidth(21);
+    peak2ButtonArea.setCentre(tempBypassArea.getCentre().translated(0, 8));
+    auto rightPeakFreqArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 3.f));
+    rightPeakFreqArea.reduce(reduceX, 0);
+    auto rightPeakGainArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 2.f));
+    rightPeakGainArea.reduce(reduceX, 0);
+    auto rightPeakQualityArea = rightPeakArea;
+    rightPeakQualityArea.reduce(reduceX, 0);
 
     lowCutBypassButton.setBounds(lowCutButtonArea);
     peak1BypassButton.setBounds(peak1ButtonArea);
@@ -657,18 +745,20 @@ void EqualizerModuleGUI::resized()
 
     // peaks
 
-    renderArea.setSize(leftPeakFreqArea.getHeight() + 10, leftPeakFreqArea.getHeight());
+    int peak1YOffset = -4;
+    int paek1SliderSize = leftPeakFreqArea.getHeight() - 7;
+    renderArea.setSize(paek1SliderSize + 16, paek1SliderSize);
 
     renderArea.setCentre(leftPeakFreqArea.getCentre());
-    renderArea.setY(leftPeakFreqArea.getTopLeft().getY() + offset);
+    renderArea.setY(leftPeakFreqArea.getTopLeft().getY() + offset + peak1YOffset);
     peak1FreqSlider.setBounds(renderArea);
 
     renderArea.setCentre(leftPeakGainArea.getCentre());
-    renderArea.setY(leftPeakGainArea.getTopLeft().getY() + offset);
+    renderArea.setY(leftPeakGainArea.getTopLeft().getY() + offset + peak1YOffset);
     peak1GainSlider.setBounds(renderArea);
 
     renderArea.setCentre(leftPeakQualityArea.getCentre());
-    renderArea.setY(leftPeakQualityArea.getTopLeft().getY() + offset);
+    renderArea.setY(leftPeakQualityArea.getTopLeft().getY() + offset + peak1YOffset);
     peak1QualitySlider.setBounds(renderArea);
 
     renderArea.setCentre(rightPeakFreqArea.getCentre());
@@ -682,4 +772,34 @@ void EqualizerModuleGUI::resized()
     renderArea.setCentre(rightPeakQualityArea.getCentre());
     renderArea.setY(rightPeakQualityArea.getTopLeft().getY() + offset);
     peak2QualitySlider.setBounds(renderArea);
+}
+
+void EqualizerModuleGUI::handleLowCutParamsBypass(EqualizerModuleGUI* comp)
+{
+    auto bypassed = comp->lowCutBypassButton.getToggleState();
+    comp->lowCutFreqSlider.setEnabled(!bypassed);
+    comp->lowCutSlopeSlider.setEnabled(!bypassed);
+}
+
+void EqualizerModuleGUI::handleHighCutParamsBypass(EqualizerModuleGUI* comp)
+{
+    auto bypassed = comp->highCutBypassButton.getToggleState();
+    comp->highCutFreqSlider.setEnabled(!bypassed);
+    comp->highCutSlopeSlider.setEnabled(!bypassed);
+}
+
+void EqualizerModuleGUI::handlePeak1ParamsBypass(EqualizerModuleGUI* comp)
+{
+    auto bypassed = comp->peak1BypassButton.getToggleState();
+    comp->peak1FreqSlider.setEnabled(!bypassed);
+    comp->peak1GainSlider.setEnabled(!bypassed);
+    comp->peak1QualitySlider.setEnabled(!bypassed);
+}
+
+void EqualizerModuleGUI::handlePeak2ParamsBypass(EqualizerModuleGUI* comp)
+{
+    auto bypassed = comp->peak2BypassButton.getToggleState();
+    comp->peak2FreqSlider.setEnabled(!bypassed);
+    comp->peak2GainSlider.setEnabled(!bypassed);
+    comp->peak2QualitySlider.setEnabled(!bypassed);
 }
