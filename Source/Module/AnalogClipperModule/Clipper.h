@@ -32,10 +32,9 @@ class Clipper
 	private:
 		Diode diode;
 		
-		float Rin, C, T, lastFPOutput, h;
+		float Rin, C, T, lastFPOutput;
 	
 		float capacitorVoltage(float vIn);
-		float fixedPoint(float vIn);
 		float diodesFunction(float vIn, float vDiodes, float oldVDiodes);
 		float diodesFunctionDerivative(float vIn, float vDiodes, float oldVDiodes);
 	

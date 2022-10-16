@@ -93,6 +93,9 @@ void AnalogClipperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce
 
 			clippers[channel].process(channelData, numSamples);
 		}
+		
+		// Volume
+		volumeValue.applyGain(wetBuffer, numSamples);
 
 		// Sampling back down the wetBuffer after processing
 		/*oversampler.processSamplesDown(leftContext.getOutputBlock());
@@ -107,10 +110,10 @@ void AnalogClipperModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce
 		
 		// Mixing buffers
 		dryGain.applyGain(buffer, numSamples);
-		wetGain.applyGain(tempBuffer, numSamples);
+		wetGain.applyGain(wetBuffer, numSamples);
 
 		for (auto channel = 0; channel < 2; channel++)
-			buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+			buffer.addFrom(channel, 0, wetBuffer, channel, 0, numSamples);
 
 		// Hard clipper for limiting
 		for (auto channel = 0; channel < 2; channel++)
@@ -128,8 +131,9 @@ void AnalogClipperModuleDSP::addParameters(juce::AudioProcessorValueTreeState::P
 	using namespace juce;
 
 	for (int i = 1; i < 9; ++i) {
-		layout.add(std::make_unique<juce::AudioParameterFloat>("Analog Clipper Gain " + std::to_string(i), "Analog Clipper Gain " + std::to_string(i), NormalisableRange<float>(0.f, 80.f, 0.01f), 0.f, "Analog Clipper " + std::to_string(i)));
+		layout.add(std::make_unique<juce::AudioParameterFloat>("Analog Clipper Gain " + std::to_string(i), "Analog Clipper Gain " + std::to_string(i), NormalisableRange<float>(0.f, 40.f, 0.01f), 0.f, "Analog Clipper " + std::to_string(i)));
 		layout.add(std::make_unique<AudioParameterFloat>("Analog Clipper Mix " + std::to_string(i), "Analog Clipper Mix " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Analog Clipper " + std::to_string(i)));
+		layout.add(std::make_unique<AudioParameterFloat>("Analog Clipper Volume " + std::to_string(i), "Analog Clipper Volume " + std::to_string(i), NormalisableRange<float>(0.f, 100.f, 0.01f), 100.f, "Analog Clipper " + std::to_string(i)));
 		layout.add(std::make_unique<AudioParameterBool>("Analog Clipper Bypassed " + std::to_string(i), "Analog Clipper Bypassed " + std::to_string(i), false, "Analog Clipper " + std::to_string(i)));
 	}
 }
@@ -140,6 +144,7 @@ AnalogClipperSettings AnalogClipperModuleDSP::getSettings(juce::AudioProcessorVa
 
 	settings.gain = apvts.getRawParameterValue("Analog Clipper Gain " + std::to_string(parameterNumber))->load();
 	settings.mix = apvts.getRawParameterValue("Analog Clipper Mix " + std::to_string(parameterNumber))->load();
+	settings.volume = apvts.getRawParameterValue("Analog Clipper Volume " + std::to_string(parameterNumber))->load();
 	settings.bypassed = apvts.getRawParameterValue("Analog Clipper Bypassed " + std::to_string(parameterNumber))->load() > 0.5f;
 
 	return settings;
@@ -155,6 +160,7 @@ void AnalogClipperModuleDSP::updateDSPState(double)
 	dryGain.setTargetValue(1.f - mix);
 	wetGain.setTargetValue(mix);
 	gainGain.setTargetValue(juce::Decibels::decibelsToGain(settings.gain));
+	volumeValue.setTargetValue(settings.volume * 0.01f);
 }
 
 //==============================================================================
@@ -167,9 +173,11 @@ AnalogClipperModuleGUI::AnalogClipperModuleGUI(PluginState& p, unsigned int para
 	: GUIModule(), pluginState(p),
 	gainSlider(*pluginState.apvts.getParameter("Analog Clipper Gain " + std::to_string(parameterNumber)), "dB"),
 	mixSlider(*pluginState.apvts.getParameter("Analog Clipper Mix " + std::to_string(parameterNumber)), "%"),
+	volumeSlider(*pluginState.apvts.getParameter("Analog Clipper Volume " + std::to_string(parameterNumber)), "%"),
 	transferFunctionGraph(p, parameterNumber),
 	gainSliderAttachment(pluginState.apvts, "Analog Clipper Gain " + std::to_string(parameterNumber), gainSlider),
 	mixSliderAttachment(pluginState.apvts, "Analog Clipper Mix " + std::to_string(parameterNumber), mixSlider),
+	volumeSliderAttachment(pluginState.apvts, "Analog Clipper Volume " + std::to_string(parameterNumber), volumeSlider),
 	bypassButtonAttachment(pluginState.apvts, "Analog Clipper Bypassed " + std::to_string(parameterNumber), bypassButton)
 {
 	// title setup
@@ -181,12 +189,16 @@ AnalogClipperModuleGUI::AnalogClipperModuleGUI(PluginState& p, unsigned int para
 	gainLabel.setFont(ModuleLookAndFeel::getLabelsFont());
 	mixLabel.setText("Mix", juce::dontSendNotification);
 	mixLabel.setFont(ModuleLookAndFeel::getLabelsFont());
-	
+	volumeLabel.setText("Volume", juce::dontSendNotification);
+	volumeLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+
 	gainSlider.labels.add({ 0.f, "0dB" });
-	gainSlider.labels.add({ 1.f, "80dB" });
+	gainSlider.labels.add({ 1.f, "40dB" });
 	mixSlider.labels.add({ 0.f, "0%" });
 	mixSlider.labels.add({ 1.f, "100%" });
-	
+	volumeSlider.labels.add({ 0.f, "0%" });
+	volumeSlider.labels.add({ 1.f, "100%" });
+
 	bypassButton.setLookAndFeel(&lnf);
 
 	auto safePtr = juce::Component::SafePointer<AnalogClipperModuleGUI>(this);
@@ -203,7 +215,8 @@ AnalogClipperModuleGUI::AnalogClipperModuleGUI(PluginState& p, unsigned int para
 	bypassButton.setTooltip("Bypass this module");
 	gainSlider.setTooltip("Select the amount of gain to be applied to the module input signal");
 	mixSlider.setTooltip("Select the blend between the unprocessed and processed signal");
-	
+	volumeSlider.setTooltip("Select the volume of the processed signal");
+
 	for (auto* comp : getAllComps())
 	{
 		addAndMakeVisible(comp);
@@ -224,9 +237,11 @@ std::vector<juce::Component*> AnalogClipperModuleGUI::getAllComps()
 		&transferFunctionGraph,
 		&gainSlider,
 		&mixSlider,
+		&volumeSlider,
 		// labels
 		&gainLabel,
 		&mixLabel,
+		&volumeLabel,
 		// bypass
 		&bypassButton
 	};
@@ -237,6 +252,7 @@ std::vector<juce::Component*> AnalogClipperModuleGUI::getParamComps()
 	return {
 		&gainSlider,
 		&mixSlider,
+		&volumeSlider
 	};
 }
 
@@ -247,16 +263,19 @@ void AnalogClipperModuleGUI::updateParameters(const juce::Array<juce::var>& valu
 	bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
 	gainSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 	mixSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
+	volumeSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
 }
 
 void AnalogClipperModuleGUI::resetParameters(unsigned int parameterNumber)
 {
 	auto gain = pluginState.apvts.getParameter("Analog Clipper Gain " + std::to_string(parameterNumber));
 	auto mix = pluginState.apvts.getParameter("Analog Clipper Mix " + std::to_string(parameterNumber));
+	auto volume = pluginState.apvts.getParameter("Analog Clipper Volume " + std::to_string(parameterNumber));
 	auto bypassed = pluginState.apvts.getParameter("Analog Clipper Bypassed " + std::to_string(parameterNumber));
 
 	gain->setValueNotifyingHost(gain->getDefaultValue());
 	mix->setValueNotifyingHost(mix->getDefaultValue());
+	volume->setValueNotifyingHost(volume->getDefaultValue());
 	bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
 }
 
@@ -267,6 +286,7 @@ juce::Array<juce::var> AnalogClipperModuleGUI::getParamValues()
 	values.add(juce::var(bypassButton.getToggleState()));
 	values.add(juce::var(gainSlider.getValue()));
 	values.add(juce::var(mixSlider.getValue()));
+	values.add(juce::var(volumeSlider.getValue()));
 
 	return values;
 }
@@ -301,12 +321,14 @@ void AnalogClipperModuleGUI::resized()
 	temp = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
 	auto gainLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
 	auto mixLabelArea = temp;
-	
+	auto volumeLabelArea = topLabelsArea.removeFromRight(topLabelsArea.getWidth() * (1.f / 2.f));
+
 	// slider areas
 	temp = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
 	auto gainArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
 	auto mixArea = temp;
-	
+	auto volumeArea = topArea.removeFromRight(topArea.getWidth() * (1.f / 2.f));
+
 	juce::Rectangle<int> renderArea;
 	renderArea.setSize(gainArea.getWidth(), gainArea.getWidth());
 	
@@ -326,4 +348,10 @@ void AnalogClipperModuleGUI::resized()
 	mixSlider.setBounds(renderArea);
 	mixLabel.setBounds(mixLabelArea);
 	mixLabel.setJustificationType(juce::Justification::centred);
+	
+	renderArea.setCentre(volumeArea.getCentre());
+	renderArea.setY(volumeArea.getTopLeft().getY());
+	volumeSlider.setBounds(renderArea);
+	volumeLabel.setBounds(volumeLabelArea);
+	volumeLabel.setJustificationType(juce::Justification::centred);
 }

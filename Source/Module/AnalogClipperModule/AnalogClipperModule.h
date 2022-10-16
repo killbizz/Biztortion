@@ -42,7 +42,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 struct AnalogClipperSettings
 {
-	float mix{ 0 }, gain{ 0 };
+	float mix{ 0 }, gain{ 0 }, volume{ 0 };
 	bool bypassed{ false };
 };
 
@@ -64,7 +64,7 @@ class AnalogClipperModuleDSP : public DSPModule
 
 		bool bypassed = false;
 		juce::AudioBuffer<float> wetBuffer, tempBuffer;
-		juce::LinearSmoothedValue<float> gainGain, dryGain, wetGain;
+		juce::LinearSmoothedValue<float> gainGain, dryGain, wetGain, volumeValue;
 
 		/*static const size_t numChannels = 2;
 		static const size_t oversamplingOrder = 4;
@@ -106,9 +106,9 @@ class AnalogClipperModuleGUI : public GUIModule
 
 		TransferFunctionGraphComponent transferFunctionGraph;
 
-		juce::Label gainLabel, mixLabel;
-		RotarySliderWithLabels gainSlider, mixSlider;
-		Attachment gainSliderAttachment, mixSliderAttachment;
+		juce::Label gainLabel, mixLabel, volumeLabel;
+		RotarySliderWithLabels gainSlider, mixSlider, volumeSlider;
+		Attachment gainSliderAttachment, mixSliderAttachment, volumeSliderAttachment;
 
 		PowerButton bypassButton;
 
