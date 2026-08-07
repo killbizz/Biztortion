@@ -29,6 +29,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "GUIModule.h"
 
+#include "../Shared/GUIStuff.h"
+
 GUIModule::GUIModule() : remapper(0.f, 100.f, 1.f, 1.3f) // exponential remapping for a smoother lightness fx in the outline
 {
     std::random_device rd; // obtain a random number from hardware
@@ -42,30 +44,17 @@ GUIModule::GUIModule() : remapper(0.f, 100.f, 1.f, 1.3f) // exponential remappin
 
 void GUIModule::drawContainer(juce::Graphics& g)
 {
+    applyModuleAccentToSliders();
 
-    // container border and background
-    g.setColour(juce::Colour(132, 135, 138));
-    g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
-    g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
+    auto container = getContainerArea().toFloat();
+    g.setColour(BiztortionTheme::surface);
+    g.fillRoundedRectangle(container, 7.0f);
+    g.setColour(BiztortionTheme::border);
+    g.drawRoundedRectangle(container, 7.0f, 1.0f);
 
-    // content border
-    g.setColour(juce::Colours::black);
-    auto renderArea = getContentRenderArea().toFloat();
-    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
-
-    // module outline
-    renderArea.expand(5.5, 5.5);
-    moduleColor = moduleColor.withLightness(remapper.convertTo0to1((float)brightnessCounter));
+    auto accent = container.removeFromLeft(4.0f).reduced(0.0f, 10.0f);
     g.setColour(moduleColor);
-    g.drawRoundedRectangle(renderArea, 4.f, 4.f);
-
-    if (brightnessCounter == 70) {
-        addingFactor = -1;
-    }
-    else if (brightnessCounter == 45) {
-        addingFactor = 1;
-    }
-    brightnessCounter = brightnessCounter + addingFactor;
+    g.fillRoundedRectangle(accent, 2.0f);
 
 }
 
@@ -87,7 +76,20 @@ void GUIModule::handleParamCompsEnablement(bool bypass)
 
 void GUIModule::paint(juce::Graphics& g)
 {
+    applyModuleAccentToSliders();
     drawContainer(g);
+}
+
+void GUIModule::applyModuleAccentToSliders()
+{
+    const auto accent = moduleColor.isTransparent()
+        ? BiztortionTheme::controlAccent
+        : moduleColor;
+
+    for (int index = 0; index < getNumChildComponents(); ++index)
+        if (auto* slider = dynamic_cast<juce::Slider*>(getChildComponent(index)))
+            if (!slider->isColourSpecified(juce::Slider::thumbColourId))
+                slider->setColour(juce::Slider::thumbColourId, accent);
 }
 
 void GUIModule::timerCallback()

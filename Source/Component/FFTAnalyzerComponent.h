@@ -55,17 +55,21 @@ struct FFTAnalyzerComponent : juce::Component,
     PathProducer& getLeftPathProducer();
     PathProducer& getRightPathProducer();
     void toggleFFTanaysis(bool shouldEnableFFTanalysis);
+    void setStereoView(bool shouldShowStereo);
 
 private:
 
     PluginState& pluginState;
 
     bool enableFFTanalysis = true;
+    bool stereoView = false;
 
     juce::Image background;
 
     // for the FFT analyzer
     PathProducer leftPathProducer, rightPathProducer;
+    AnalyzerPathGenerator<juce::Path> stereoPathGenerator;
+    juce::Path stereoFFTPath;
 
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysysArea();

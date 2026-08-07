@@ -461,17 +461,10 @@ void WaveshaperModuleGUI::resized()
 {
     auto waveshaperArea = getContentRenderArea();
 
-    // bypass
-    auto temp = waveshaperArea;
-    auto bypassButtonArea = temp.removeFromTop(25);
-
-    auto size = 32.f;
-    bypassButtonArea.setSize(size, size);
-    bypassButton.setBounds(bypassButtonArea);
-    bypassButton.setCentreRelative(0.23f, 0.088f);
-
-    auto titleAndBypassArea = waveshaperArea.removeFromTop(30);
-    titleAndBypassArea.translate(0, 4);
+    auto titleAndBypassArea = waveshaperArea.removeFromTop(36);
+    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+        { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
+    juce::Rectangle<int> temp;
 
     auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (4.f / 10.f));
     waveshaperGraphArea.reduce(10, 10);
@@ -518,7 +511,7 @@ void WaveshaperModuleGUI::resized()
     renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
     
     title.setBounds(titleAndBypassArea);
-    title.setJustificationType(juce::Justification::centredBottom);
+    title.setJustificationType(juce::Justification::centred);
 
     transferFunctionGraph.setBounds(waveshaperGraphArea);
 

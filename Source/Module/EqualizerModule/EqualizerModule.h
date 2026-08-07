@@ -213,15 +213,18 @@ private:
         lowCutBypassButton, 
         highCutBypassButton;
     AnalyzerButton analyzerButton;
+    juce::TextButton analyzerViewButton{ "Stereo" };
 
     ButtonAttachment bypassButtonAttachment,
         peak1BypassButtonAttachment,
         peak2BypassButtonAttachment,
         lowCutBypassButtonAttachment,
         highCutBypassButtonAttachment,
-        analyzerButtonAttachment;
+        analyzerButtonAttachment,
+        analyzerViewButtonAttachment;
 
     ButtonsLookAndFeel lnf;
+    ModuleLookAndFeel analyzerViewLnf;
     
     ResponseCurveComponent responseCurveComponent;
     FFTAnalyzerComponent filterFftAnalyzerComponent;
@@ -230,5 +233,7 @@ private:
     void handleHighCutParamsBypass(EqualizerModuleGUI* comp);
     void handlePeak1ParamsBypass(EqualizerModuleGUI* comp);
     void handlePeak2ParamsBypass(EqualizerModuleGUI* comp);
+    void updateFilterControlEnablement();
+    void updateAnalyzerView();
 
 };

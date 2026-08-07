@@ -94,11 +94,13 @@ public:
     ModuleLookAndFeel newModuleLookAndFeel;
     juce::TextButton newModule{ "+" };
     ModuleLookAndFeel newModuleSelectorLookAndFeel;
-    BizComboBox newModuleSelector{ &newModule };
 
     // deleteModule
     ModuleLookAndFeel deleteModuleLookAndFeel;
     juce::DrawableButton deleteModule{"Delete", juce::DrawableButton::ButtonStyle::ImageFitted };
+
+    ButtonsLookAndFeel bypassLookAndFeel;
+    PowerButton bypassButton;
 
     // currentModuleActivator
     ModuleLookAndFeel currentModuleActivatorLookAndFeel;
@@ -122,9 +124,13 @@ private:
     juce::AffineTransform getCableTransform();
     std::unique_ptr<Drawable> getRightCable(unsigned int chainPosition);
 
-    juce::AffineTransform getDragIconTransform();
-
     bool somethingIsBeingDraggedOver = false;
+
+    using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    std::unique_ptr<ButtonAttachment> bypassButtonAttachment;
+
+    void showNewModuleMenu();
+    juce::String getBypassParameterID() const;
 
 protected:
 

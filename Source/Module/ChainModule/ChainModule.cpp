@@ -35,7 +35,8 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     : GUIModule(), pluginState(ps), guiState(gs), chainPosition(_chainPosition), moduleGenerator(pluginState)
 {
     chainPositionLabel.setText(juce::String(chainPosition), juce::dontSendNotification);
-    chainPositionLabel.setFont(Font("Courier New", 14, juce::Font::bold));
+    chainPositionLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    chainPositionLabel.setColour(juce::Label::textColourId, BiztortionTheme::textMuted);
     addAndMakeVisible(chainPositionLabel);
 
     // newModule
@@ -51,10 +52,17 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     addAndMakeVisible(deleteModule);
     deleteModule.setVisible(false);
     deleteModule.setTooltip("Delete this module");
-    deleteModule.setImages(&*juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize));
+    auto deleteIcon = juce::Drawable::createFromImageData(BinaryData::trash_svg, BinaryData::trash_svgSize);
+    deleteIcon->replaceColour(juce::Colours::black, BiztortionTheme::textMuted);
+    deleteModule.setImages(deleteIcon.get());
 
     setupDeleteModuleColours(deleteModuleLookAndFeel);
     deleteModule.setLookAndFeel(&deleteModuleLookAndFeel);
+
+    addAndMakeVisible(bypassButton);
+    bypassButton.setVisible(false);
+    bypassButton.setLookAndFeel(&bypassLookAndFeel);
+    bypassButton.setTooltip("Bypass this module");
 
     // currentModuleActivator
     addAndMakeVisible(currentModuleActivator);
@@ -65,47 +73,11 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
     currentModuleActivator.setLookAndFeel(&currentModuleActivatorLookAndFeel);
 
-    // newModuleSelector
-    newModuleSelector.setJustificationType(juce::Justification::centred);
-    // 999 id for the default text entry
-    newModuleSelector.addItem("Select the module to create", 999);
-    newModuleSelector.addSeparator();
-    for (auto type : moduleType_names) {
-        if (type.first != ModuleType::Meter) {
-            newModuleSelector.addItem(moduleType_names.at(type.first), type.first);
-        }
-        if (type.first == ModuleType::Equalizer) {
-            newModuleSelector.addSeparator();
-        }
-    }
-
-    newModuleSelector.setSelectedId(999);
-    //newModuleSelector.setTooltip("Select the module to create");
-    
-    setupNewModuleSelectorColours(newModuleSelectorLookAndFeel);
-    newModuleSelector.setLookAndFeel(&newModuleSelectorLookAndFeel);
-
-    newModuleSelector.getRootMenu()->setLookAndFeel(&newModuleSelectorLookAndFeel);
-
     // lambdas
 
     newModule.onClick = [this] {
-        guiState.editor.removeChildComponent(&newModuleSelector);
-        guiState.editor.addAndMakeVisible(newModuleSelector);
-        newModuleSelector.setVisible(newModule.getToggleState());
-        newModuleSelector.grabKeyboardFocus();
-        juce::Rectangle<int> rect{310, 50};
-        rect.setCentre(guiState.currentGUIModule->getBounds().getCentre());
-        newModuleSelector.setBounds(rect);
-        if (newModule.getToggleState()) {
-            newModuleSelector.showPopup();
-        }
-    };
-
-    newModuleSelector.onChange = [this] {
-        ModuleType type = static_cast<ModuleType>(newModuleSelector.getSelectedId());
-        if(type != 999)
-            addNewModule(type);
+        if (newModule.getToggleState())
+            showNewModuleMenu();
     };
 
     deleteModule.onClick = [this] {
@@ -127,6 +99,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
 
     // Drag-And-Drop Icon
     dragIcon = juce::Drawable::createFromImageData(BinaryData::draghorizontal_svg, BinaryData::draghorizontal_svgSize);
+    dragIcon->replaceColour(juce::Colours::black, juce::Colours::white);
     addAndMakeVisible(*dragIcon);
     dragIcon->setVisible(false);
     dragIcon->setAlwaysOnTop(true);
@@ -136,6 +109,7 @@ ChainModuleGUI::~ChainModuleGUI()
 {
     newModule.setLookAndFeel(nullptr);
     deleteModule.setLookAndFeel(nullptr);
+    bypassButton.setLookAndFeel(nullptr);
     currentModuleActivator.setLookAndFeel(nullptr);
 }
 
@@ -212,28 +186,32 @@ void ChainModuleGUI::resized()
 {
     auto bounds = getContentRenderArea();
 
-    juce::Rectangle<int> newModuleBounds, deleteModuleBounds, currentModuleActivatorBounds;
-    newModuleBounds = deleteModuleBounds = currentModuleActivatorBounds = bounds;
-    newModuleBounds.reduce(20, 40);
-    deleteModuleBounds.reduce(30, 46);
-    currentModuleActivatorBounds.reduce(2, 38);
+    auto statusArea = bounds.removeFromTop(22);
 
-    auto chainPositionLabelArea = bounds.removeFromTop(bounds.getHeight() * (1.f / 4.f));
-
-    chainPositionLabel.setBounds(chainPositionLabelArea);
+    chainPositionLabel.setBounds(statusArea);
     chainPositionLabel.setJustificationType(juce::Justification::centred);
 
-    if (moduleType == ModuleType::Uninstantiated) {
-        newModule.setBounds(newModuleBounds);
-        newModule.setCentreRelative(0.5f, 0.5f);
+    if (moduleType != ModuleType::Uninstantiated)
+    {
+        auto dragArea = statusArea.withSizeKeepingCentre(22, 14);
+        dragIcon->setTransformToFit(dragArea.toFloat(), juce::RectanglePlacement::centred);
     }
-    else {
-        deleteModule.setBounds(deleteModuleBounds);
-        deleteModule.setCentreRelative(0.5f, 0.75f);
-        currentModuleActivator.setBounds(currentModuleActivatorBounds);
-        currentModuleActivator.setCentreRelative(0.5f, 0.5f);
-        // Drag-And-Drop Icon
-        dragIcon->setTransform(getDragIconTransform());
+
+    auto actionArea = bounds.removeFromBottom(32).withSizeKeepingCentre(70, 28);
+    auto moduleArea = bounds.reduced(6, 5);
+    auto moduleButtonArea = juce::Rectangle<int>(moduleArea.getWidth(), 44)
+        .withCentre(moduleArea.getCentre());
+
+    if (moduleType == ModuleType::Uninstantiated)
+    {
+        newModule.setBounds(juce::Rectangle<int>(42, 36).withCentre(moduleButtonArea.getCentre()));
+    }
+    else
+    {
+        currentModuleActivator.setBounds(moduleButtonArea);
+        bypassButton.setBounds(actionArea.removeFromLeft(28));
+        actionArea.removeFromLeft(14);
+        deleteModule.setBounds(actionArea.removeFromLeft(28));
     }
 
     // Audio Cables 
@@ -247,9 +225,35 @@ void ChainModuleGUI::timerCallback() {}
 std::vector<juce::Component*> ChainModuleGUI::getAllComps()
 {
     return {
-        &newModule,
-        &newModuleSelector
+        &newModule
     };
+}
+
+void ChainModuleGUI::showNewModuleMenu()
+{
+    juce::PopupMenu menu;
+    menu.setLookAndFeel(&newModuleSelectorLookAndFeel);
+    menu.addItem(ModuleType::Oscilloscope, "Oscilloscope");
+    menu.addItem(ModuleType::Equalizer, "Equalizer");
+    menu.addSeparator();
+    menu.addItem(ModuleType::Waveshaper, "Waveshaper");
+    menu.addItem(ModuleType::ClassicBitcrusher, "Classic Bitcrusher");
+    menu.addItem(ModuleType::SpectrumBitcrusher, "Spectrum Bitcrusher");
+    menu.addItem(ModuleType::SlewLimiter, "Slew Limiter");
+
+    auto safePtr = juce::Component::SafePointer<ChainModuleGUI>(this);
+    menu.showMenuAsync(juce::PopupMenu::Options()
+                           .withTargetComponent(&newModule)
+                           .withMinimumWidth(250)
+                           .withStandardItemHeight(34),
+        [safePtr](int result) {
+            if (auto* comp = safePtr.getComponent())
+            {
+                comp->newModule.setToggleState(false, juce::dontSendNotification);
+                if (result > 0)
+                    comp->addNewModule(static_cast<ModuleType>(result));
+            }
+        });
 }
 
 std::vector<juce::Component*> ChainModuleGUI::getParamComps()
@@ -259,8 +263,8 @@ std::vector<juce::Component*> ChainModuleGUI::getParamComps()
 
 void ChainModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
-    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
+    laf.setColour(juce::TextButton::buttonColourId, BiztortionTheme::surfaceRaised);
+    laf.setColour(juce::TextButton::textColourOffId, BiztortionTheme::text);
 
     laf.setColour(juce::TextButton::buttonOnColourId, laf.findColour(juce::TextButton::textColourOffId));
     laf.setColour(juce::TextButton::textColourOnId, laf.findColour(juce::TextButton::buttonColourId));
@@ -268,22 +272,22 @@ void ChainModuleGUI::setupNewModuleColours(juce::LookAndFeel& laf)
 
 void ChainModuleGUI::setupNewModuleSelectorColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::ComboBox::backgroundColourId, juce::Colours::darkgrey.withAlpha(0.75f));
-    laf.setColour(juce::ComboBox::textColourId, juce::Colours::white);
-    laf.setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
-    laf.setColour(juce::PopupMenu::backgroundColourId, laf.findColour(juce::ComboBox::backgroundColourId));
+    laf.setColour(juce::PopupMenu::backgroundColourId, BiztortionTheme::surfaceRaised);
+    laf.setColour(juce::PopupMenu::textColourId, BiztortionTheme::text);
+    laf.setColour(juce::PopupMenu::highlightedBackgroundColourId, BiztortionTheme::controlAccent.withAlpha(0.22f));
+    laf.setColour(juce::PopupMenu::highlightedTextColourId, BiztortionTheme::text);
 }
 
 void ChainModuleGUI::setupDeleteModuleColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::DrawableButton::ColourIds::backgroundOnColourId, moduleType_colors.at(moduleType));
-    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
+    laf.setColour(juce::DrawableButton::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
+    laf.setColour(juce::DrawableButton::ColourIds::backgroundOnColourId, juce::Colours::transparentBlack);
 }
 
 void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 {
-    laf.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
-    laf.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
+    laf.setColour(juce::TextButton::buttonColourId, BiztortionTheme::surfaceRaised);
+    laf.setColour(juce::TextButton::textColourOffId, BiztortionTheme::text);
 
     laf.setColour(juce::TextButton::buttonOnColourId, moduleType_colors.at(moduleType));
     laf.setColour(juce::TextButton::textColourOnId, juce::Colours::black);
@@ -294,9 +298,11 @@ void ChainModuleGUI::setup(const ModuleType type)
     //chainPositionLabel - newModule - deleteModule - dragIcon - currentModuleActivator setup
     moduleType = type;
     if (type == ModuleType::Uninstantiated) {
+        bypassButtonAttachment.reset();
         chainPositionLabel.setVisible(true);
         newModule.setVisible(true);
         deleteModule.setVisible(false);
+        bypassButton.setVisible(false);
 
         dragIcon->setVisible(false);
         currentModuleActivator.setVisible(false);
@@ -305,21 +311,39 @@ void ChainModuleGUI::setup(const ModuleType type)
         chainPositionLabel.setVisible(false);
         newModule.setVisible(false);
         deleteModule.setVisible(true);
+        bypassButton.setVisible(true);
 
         dragIcon->setVisible(true);
         juce::String typeString = moduleType_names.at(type);
         currentModuleActivator.setVisible(true);
         currentModuleActivator.setButtonText(typeString);
-        currentModuleActivator.changeWidthToFitText(10);
+        bypassLookAndFeel.color = moduleType_colors.at(type);
+        bypassButtonAttachment = std::make_unique<ButtonAttachment>(
+            pluginState.apvts, getBypassParameterID(), bypassButton);
     }
-    newModuleSelector.setSelectedId(999);
-    newModuleSelector.setVisible(false);
     newModule.setToggleState(false, juce::NotificationType::dontSendNotification);
 
     setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
     setupDeleteModuleColours(deleteModuleLookAndFeel);
 
     resized();
+}
+
+juce::String ChainModuleGUI::getBypassParameterID() const
+{
+    const auto number = std::to_string(
+        pluginState.getParameterNumberFromDSPmodule(moduleType, chainPosition));
+
+    switch (moduleType)
+    {
+        case ModuleType::Oscilloscope:       return "Oscilloscope Bypassed " + number;
+        case ModuleType::Equalizer:          return "Filter Bypassed " + number;
+        case ModuleType::Waveshaper:         return "Waveshaper Bypassed " + number;
+        case ModuleType::ClassicBitcrusher:  return CLASSIC_BITCRUSHER_ID + "Bypassed " + number;
+        case ModuleType::SpectrumBitcrusher: return SPECTRUM_BITCRUSHER_ID + "Bypassed " + number;
+        case ModuleType::SlewLimiter:         return "SlewLimiter Bypassed " + number;
+        default:                              return {};
+    }
 }
 
 // These methods implement the DragAndDropTarget interface, and allow our component
@@ -441,7 +465,7 @@ void ChainModuleGUI::addModuleToGUI(GUIModule* module)
 {
     guiState.updateCurrentGUIModule(module);
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
-    this->deleteModule.setToggleState(true, juce::NotificationType::dontSendNotification);
+    this->deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
     for (auto it = guiState.chainModules.begin(); it < guiState.chainModules.end(); ++it) {
         auto& chainModule = **it;
         if (chainModule.getChainPosition() != getChainPosition()) {
@@ -460,7 +484,10 @@ juce::AffineTransform ChainModuleGUI::getCableTransform()
         .translated(
             (JUCE_LIVE_CONSTANT(68.8f) + 112.1f * (chainPosition - 1)),
             JUCE_LIVE_CONSTANT(451.86f));*/
-    return juce::AffineTransform::scale(0.2f, 0.2f).translated(68.8f + 112.1f*(chainPosition-1), 451.86f);
+    const auto bounds = getBounds();
+    return juce::AffineTransform::scale(0.2f, 0.2f)
+        .translated(bounds.getX() + bounds.getWidth() * 0.61f + 8.0f,
+                    bounds.getY() + 19.0f);
 }
 
 std::unique_ptr<Drawable> ChainModuleGUI::getRightCable(unsigned int chainPosition)
@@ -480,19 +507,18 @@ std::unique_ptr<Drawable> ChainModuleGUI::getRightCable(unsigned int chainPositi
     
 }
 
-juce::AffineTransform ChainModuleGUI::getDragIconTransform()
-{
-    return juce::AffineTransform::scale(0.9f, 0.9f).translated(45.6715f, 18.7671);
-}
-
 void ChainModuleGUI::drawContainer(juce::Graphics& g)
 {
-    // container margin
-    g.setColour(juce::Colour(132, 135, 138));
-    g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
-    g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
-    // content margin
-    g.setColour(juce::Colours::black);
-    auto renderArea = getContentRenderArea();
-    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
+    auto container = getContainerArea().toFloat();
+    g.setColour(BiztortionTheme::surface);
+    g.fillRoundedRectangle(container, 7.0f);
+    g.setColour(somethingIsBeingDraggedOver ? BiztortionTheme::controlAccent : BiztortionTheme::border);
+    g.drawRoundedRectangle(container, 7.0f, somethingIsBeingDraggedOver ? 2.0f : 1.0f);
+
+    if (moduleType != ModuleType::Uninstantiated)
+    {
+        auto accent = container.removeFromTop(3.0f).reduced(12.0f, 0.0f);
+        g.setColour(moduleType_colors.at(moduleType));
+        g.fillRoundedRectangle(accent, 1.5f);
+    }
 }

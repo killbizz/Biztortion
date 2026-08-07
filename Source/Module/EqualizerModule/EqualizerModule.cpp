@@ -195,6 +195,7 @@ void EqualizerModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Param
 
         layout.add(std::make_unique<AudioParameterBool>("Filter Bypassed " + std::to_string(i), "Filter Bypassed " + std::to_string(i), false, "Filter " + std::to_string(i)));
         layout.add(std::make_unique<AudioParameterBool>("Filter Analyzer Enabled " + std::to_string(i), "Filter Analyzer Enabled " + std::to_string(i), true, "Filter " + std::to_string(i)));
+        layout.add(std::make_unique<AudioParameterBool>("Filter Analyzer Stereo " + std::to_string(i), "Filter Analyzer Stereo " + std::to_string(i), true, "Filter " + std::to_string(i)));
     }
 
 }
@@ -313,7 +314,8 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
     peak1BypassButtonAttachment(pluginState.apvts, "Peak1 Bypassed " + std::to_string(parameterNumber), peak1BypassButton),
     peak2BypassButtonAttachment(pluginState.apvts, "Peak2 Bypassed " + std::to_string(parameterNumber), peak2BypassButton),
     highCutBypassButtonAttachment(pluginState.apvts, "HighCut Bypassed " + std::to_string(parameterNumber), highCutBypassButton),
-    analyzerButtonAttachment(pluginState.apvts, "Filter Analyzer Enabled " + std::to_string(parameterNumber), analyzerButton)
+    analyzerButtonAttachment(pluginState.apvts, "Filter Analyzer Enabled " + std::to_string(parameterNumber), analyzerButton),
+    analyzerViewButtonAttachment(pluginState.apvts, "Filter Analyzer Stereo " + std::to_string(parameterNumber), analyzerViewButton)
 {
     // title setup
     title.setText("Equalizer", juce::dontSendNotification);
@@ -354,28 +356,16 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
     peak2BypassButton.setLookAndFeel(&lnf);
     highCutBypassButton.setLookAndFeel(&lnf);
     analyzerButton.setLookAndFeel(&lnf);
+    analyzerViewButton.setClickingTogglesState(true);
+    analyzerViewButton.setLookAndFeel(&analyzerViewLnf);
+    analyzerViewLnf.setColour(juce::TextButton::buttonOnColourId, moduleColor);
+    analyzerViewLnf.setColour(juce::TextButton::textColourOnId, BiztortionTheme::canvas);
 
     auto safePtr = juce::Component::SafePointer<EqualizerModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
     {
         if (auto* comp = safePtr.getComponent())
-        {
-            auto bypassed = comp->bypassButton.getToggleState();
-            comp->lowCutBypassButton.setEnabled(!bypassed);
-            comp->peak1BypassButton.setEnabled(!bypassed);
-            comp->peak2BypassButton.setEnabled(!bypassed);
-            comp->highCutBypassButton.setEnabled(!bypassed);
-            if (!bypassed) {
-                comp->handleParamCompsEnablement(bypassed);
-            }
-            else {
-                comp->handleLowCutParamsBypass(comp);
-                comp->handleHighCutParamsBypass(comp);
-                comp->handlePeak1ParamsBypass(comp);
-                comp->handlePeak2ParamsBypass(comp);
-            }
-            
-        }
+            comp->updateFilterControlEnablement();
     };
 
     lowCutBypassButton.onClick = [safePtr]()
@@ -419,7 +409,14 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
         }
     };
 
+    analyzerViewButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+            comp->updateAnalyzerView();
+    };
+
     filterFftAnalyzerComponent.toggleFFTanaysis(analyzerButton.getToggleState());
+    updateAnalyzerView();
 
     // tooltips
     bypassButton.setTooltip("Bypass this module");
@@ -428,6 +425,7 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
     peak1BypassButton.setTooltip("Bypass the first peak filter");
     peak2BypassButton.setTooltip("Bypass the second peak filter");
     analyzerButton.setTooltip("Enable the spectrum analyzer");
+    analyzerViewButton.setTooltip("Switch between separate left/right spectra and one stereo-average spectrum");
     lowCutFreqSlider.setTooltip("Set the lowcut filter frequency");
     lowCutSlopeSlider.setTooltip("Set the lowcut filter slope");
     peak1FreqSlider.setTooltip("Set the peak filter frequency");
@@ -444,13 +442,14 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
         addAndMakeVisible(comp);
     }
 
-    handleParamCompsEnablement(bypassButton.getToggleState());
+    updateFilterControlEnablement();
 }
 
     EqualizerModuleGUI::~EqualizerModuleGUI()
 {
     bypassButton.setLookAndFeel(nullptr);
     analyzerButton.setLookAndFeel(nullptr);
+    analyzerViewButton.setLookAndFeel(nullptr);
     lowCutBypassButton.setLookAndFeel(nullptr);
     highCutBypassButton.setLookAndFeel(nullptr);
     peak1BypassButton.setLookAndFeel(nullptr);
@@ -478,6 +477,7 @@ std::vector<juce::Component*> EqualizerModuleGUI::getAllComps()
         // bypass
         &bypassButton,
         &analyzerButton,
+        &analyzerViewButton,
         &lowCutBypassButton,
         &highCutBypassButton,
         &peak1BypassButton,
@@ -521,6 +521,11 @@ void EqualizerModuleGUI::updateParameters(const juce::Array<juce::var>& values)
     peak1BypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     peak2BypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     highCutBypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    if (value != values.end())
+        analyzerViewButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+
+    updateAnalyzerView();
+    updateFilterControlEnablement();
 }
 
 void EqualizerModuleGUI::resetParameters(unsigned int parameterNumber)
@@ -537,6 +542,7 @@ void EqualizerModuleGUI::resetParameters(unsigned int parameterNumber)
     auto highcutSlope = pluginState.apvts.getParameter("HighCut Slope " + std::to_string(parameterNumber));
     auto bypassed = pluginState.apvts.getParameter("Filter Bypassed " + std::to_string(parameterNumber));
     auto analyzerEnabled = pluginState.apvts.getParameter("Filter Analyzer Enabled " + std::to_string(parameterNumber));
+    auto analyzerStereo = pluginState.apvts.getParameter("Filter Analyzer Stereo " + std::to_string(parameterNumber));
     auto lowCutBypassed = pluginState.apvts.getParameter("LowCut Bypassed " + std::to_string(parameterNumber));
     auto peak1Bypassed = pluginState.apvts.getParameter("Peak1 Bypassed " + std::to_string(parameterNumber));
     auto peak2Bypassed = pluginState.apvts.getParameter("Peak2 Bypassed " + std::to_string(parameterNumber));
@@ -554,6 +560,7 @@ void EqualizerModuleGUI::resetParameters(unsigned int parameterNumber)
     highcutSlope->setValueNotifyingHost(highcutSlope->getDefaultValue());
     bypassed->setValueNotifyingHost(bypassed->getDefaultValue());
     analyzerEnabled->setValueNotifyingHost(analyzerEnabled->getDefaultValue());
+    analyzerStereo->setValueNotifyingHost(analyzerStereo->getDefaultValue());
     lowCutBypassed->setValueNotifyingHost(lowCutBypassed->getDefaultValue());
     highCutBypassed->setValueNotifyingHost(highCutBypassed->getDefaultValue());
     peak1Bypassed->setValueNotifyingHost(peak1Bypassed->getDefaultValue());
@@ -580,6 +587,7 @@ juce::Array<juce::var> EqualizerModuleGUI::getParamValues()
     values.add(juce::var(peak1BypassButton.getToggleState()));
     values.add(juce::var(peak2BypassButton.getToggleState()));
     values.add(juce::var(highCutBypassButton.getToggleState()));
+    values.add(juce::var(analyzerViewButton.getToggleState()));
 
     return values;
 }
@@ -587,122 +595,83 @@ juce::Array<juce::var> EqualizerModuleGUI::getParamValues()
 void EqualizerModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
-    // filter types
-    g.setColour(juce::Colours::white);
+    g.setColour(BiztortionTheme::text);
     g.setFont(ModuleLookAndFeel::getLabelsFont());
 
-    int y = -17;
-    
-    g.drawFittedText("LowCut", lowCutFreqSlider.getBounds().translated(0, y), juce::Justification::centredTop, 1);
-    g.drawFittedText("HighCut", highCutFreqSlider.getBounds().translated(0, y), juce::Justification::centredTop, 1);
+    auto drawSectionLabel = [&g](const juce::String& text, juce::Rectangle<int> bounds,
+                                 juce::Justification justification = juce::Justification::centred) {
+        g.drawFittedText(text, bounds, justification, 1);
+    };
 
-    int peakExpandX = 14;
-    int peakY = -12;
-    auto peak1Bounds = peak1BypassButton.getBounds();
-    peak1Bounds.expand(peakExpandX, 0);
-    auto peak2Bounds = peak2BypassButton.getBounds();
-    peak2Bounds.expand(peakExpandX, 0);
+    drawSectionLabel("Low Cut", { lowCutFreqSlider.getX(), lowCutFreqSlider.getY() - 20,
+                                    lowCutFreqSlider.getWidth(), 18 });
+    drawSectionLabel("High Cut", { highCutFreqSlider.getX(), highCutFreqSlider.getY() - 20,
+                                     highCutFreqSlider.getWidth(), 18 });
 
-    g.drawFittedText("Peak 1", peak1Bounds.translated(0, peakY), juce::Justification::centredTop, 1);
-    g.drawFittedText("Peak 2", peak2Bounds.translated(0, peakY), juce::Justification::centredTop, 1);
+    drawSectionLabel("Peak 1", { peak1BypassButton.getX(), peak1BypassButton.getY() - 19,
+                                  64, 18 }, juce::Justification::centredLeft);
+    drawSectionLabel("Peak 2", { peak2BypassButton.getX(), peak2BypassButton.getY() - 19,
+                                  64, 18 }, juce::Justification::centredLeft);
 
-    g.setColour(juce::Colours::black);
-
-    // lowCut vertical separator
-    float lowCutX = 97;
-    g.fillRect(Rectangle<float>(
-        (float)lowCutFreqSlider.getBounds().getX() + lowCutX, lowCutFreqSlider.getBounds().getY() - 16,
-        2.5f, lowCutSlopeSlider.getBounds().getBottomLeft().getY() - lowCutFreqSlider.getBounds().getY() + 11));
-    // highCut vertical separator
-    float highCutX = -20;
-    g.fillRect(Rectangle<float>(
-        (float)highCutFreqSlider.getBounds().getX() + highCutX, highCutFreqSlider.getBounds().getY() - 16,
-        2.5f, highCutSlopeSlider.getBounds().getBottomLeft().getY() - highCutFreqSlider.getBounds().getY() + 11));
-    // peaks horizontal separator
-    float peakSeparatorY = 1;
-    int left = peak1FreqSlider.getBounds().getX();
-    int right = peak1QualitySlider.getBounds().getRight();
-    int leftOffset = -50;
-    int rightOffset = 0;
-    g.fillRect(Rectangle<float>(
-        left + leftOffset, (float)peak1FreqSlider.getBounds().getBottom() + peakSeparatorY,
-        (right + rightOffset) - (left + leftOffset) , 2.5f));
+    g.setColour(BiztortionTheme::border.withAlpha(0.75f));
+    const auto leftSeparator = (lowCutFreqSlider.getRight() + peak1BypassButton.getX()) / 2;
+    const auto rightSeparator = (peak1QualitySlider.getRight() + highCutFreqSlider.getX()) / 2;
+    const auto top = lowCutFreqSlider.getY() - 18;
+    const auto bottom = lowCutSlopeSlider.getBottom();
+    g.drawVerticalLine(leftSeparator, (float) top, (float) bottom);
+    g.drawVerticalLine(rightSeparator, (float) top, (float) bottom);
+    const auto peakSeparator = (peak1FreqSlider.getBottom() + peak2FreqSlider.getY()) / 2;
+    g.drawHorizontalLine(peakSeparator, (float) peak1BypassButton.getX(), (float) peak1QualitySlider.getRight());
 }
 
 void EqualizerModuleGUI::resized()
 {
     auto filtersArea = getContentRenderArea();
 
-    // bypass
-    auto temp = filtersArea;
-    auto bypassButtonArea = temp.removeFromTop(25);
+    auto titleAndBypassArea = filtersArea.removeFromTop(36);
+    const auto titleArea = titleAndBypassArea;
+    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+        { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
 
-    auto size = 32.f;
-    bypassButtonArea.setSize(size, size);
-    bypassButton.setBounds(bypassButtonArea);
-    bypassButton.setCentreRelative(0.23f,0.088f);
+    auto analyzerControls = titleAndBypassArea.removeFromRight(138).reduced(2, 1);
+    analyzerButton.setBounds(analyzerControls.removeFromLeft(48));
+    analyzerControls.removeFromLeft(6);
+    analyzerViewButton.setBounds(analyzerControls.removeFromLeft(78));
 
-    // analyzer button
-    auto temp2 = filtersArea;
-    auto analyzerButtonArea = temp2.removeFromTop(25);
-
-    analyzerButtonArea.setWidth(50.f);
-    analyzerButtonArea.setX(466.626f);
-    analyzerButtonArea.setY(22.f);
-
-    analyzerButton.setBounds(analyzerButtonArea);
-
-    auto titleAndBypassArea = filtersArea.removeFromTop(30);
-    titleAndBypassArea.translate(0, 4);
-
-    auto responseCurveArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
-    responseCurveArea.reduce(10, 10);
+    auto responseCurveArea = filtersArea.removeFromTop(juce::roundToInt(filtersArea.getHeight() * 0.46f));
+    responseCurveArea.reduce(8, 6);
 
     // lowCut - highCut filters
-    int lowHighFiltersWidth = filtersArea.getWidth() * (1.f / 4.f);
+    int lowHighFiltersWidth = filtersArea.getWidth() * 0.2f;
     auto lowCutArea = filtersArea.removeFromLeft(lowHighFiltersWidth);
-    lowCutArea.reduce(0, 7);
+    lowCutArea.reduce(4, 8);
     auto highCutArea = filtersArea.removeFromRight(lowHighFiltersWidth);
-    highCutArea.reduce(0, 7);
+    highCutArea.reduce(4, 8);
     auto lfArea = lowCutArea.removeFromTop(lowCutArea.getHeight() * (1.f / 2.f));
     auto lsArea = lowCutArea;
     auto hfArea = highCutArea.removeFromTop(highCutArea.getHeight() * (1.f / 2.f));
     auto hsArea = highCutArea;
 
-    auto lowCutButtonArea = bypassButtonArea;
-    lowCutButtonArea.setWidth(21);
-    lowCutButtonArea.setCentre(lfArea.getX() + 29, lfArea.getY() - 4);
-
-    auto highCutButtonArea = bypassButtonArea;
-    highCutButtonArea.setWidth(21.f);
-    highCutButtonArea.setCentre(hfArea.getX() + 121, hfArea.getY() - 4);
+    auto lowCutButtonArea = juce::Rectangle<int>(24, 24).withCentre({ lfArea.getX() + 18, lfArea.getY() + 5 });
+    auto highCutButtonArea = juce::Rectangle<int>(24, 24).withCentre({ hfArea.getRight() - 18, hfArea.getY() + 5 });
 
     // peak filters
-    int reduceX = 10;
     auto leftPeakArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     auto rightPeakArea = filtersArea;
 
-    auto tempBypassArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 6.f));
-    auto peak1ButtonArea = bypassButtonArea;
-    peak1ButtonArea.setWidth(21);
-    peak1ButtonArea.setCentre(tempBypassArea.getCentre().translated(0, 3));
+    auto tempBypassArea = leftPeakArea.removeFromLeft(48);
+    auto peak1ButtonArea = juce::Rectangle<int>(24, 24)
+        .withPosition(tempBypassArea.getX() + 6, tempBypassArea.getY() + 21);
     auto leftPeakFreqArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 3.f));
-    leftPeakFreqArea.reduce(reduceX, 0);
     auto leftPeakGainArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 2.f));
-    leftPeakGainArea.reduce(reduceX, 0);
     auto leftPeakQualityArea = leftPeakArea;
-    leftPeakQualityArea.reduce(reduceX, 0);
 
-    tempBypassArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 6.f));
-    auto peak2ButtonArea = bypassButtonArea;
-    peak2ButtonArea.setWidth(21);
-    peak2ButtonArea.setCentre(tempBypassArea.getCentre().translated(0, 8));
+    tempBypassArea = rightPeakArea.removeFromLeft(48);
+    auto peak2ButtonArea = juce::Rectangle<int>(24, 24)
+        .withPosition(tempBypassArea.getX() + 6, tempBypassArea.getY() + 21);
     auto rightPeakFreqArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 3.f));
-    rightPeakFreqArea.reduce(reduceX, 0);
     auto rightPeakGainArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 2.f));
-    rightPeakGainArea.reduce(reduceX, 0);
     auto rightPeakQualityArea = rightPeakArea;
-    rightPeakQualityArea.reduce(reduceX, 0);
 
     lowCutBypassButton.setBounds(lowCutButtonArea);
     peak1BypassButton.setBounds(peak1ButtonArea);
@@ -710,13 +679,14 @@ void EqualizerModuleGUI::resized()
     highCutBypassButton.setBounds(highCutButtonArea);
 
     juce::Rectangle<int> renderArea;
-    renderArea.setSize(lfArea.getHeight(), lfArea.getHeight());
-    const int offset = 6;
+    const auto cutKnobSize = juce::jmin(lfArea.getWidth(), lfArea.getHeight() - 6);
+    renderArea.setSize(cutKnobSize, cutKnobSize);
+    const int offset = 4;
 
     // title
 
-    title.setBounds(titleAndBypassArea);
-    title.setJustificationType(juce::Justification::centredBottom);
+    title.setBounds(titleArea);
+    title.setJustificationType(juce::Justification::centred);
 
     // fft analyzer & response curve
 
@@ -745,20 +715,19 @@ void EqualizerModuleGUI::resized()
 
     // peaks
 
-    int peak1YOffset = -4;
-    int paek1SliderSize = leftPeakFreqArea.getHeight() - 7;
-    renderArea.setSize(paek1SliderSize + 16, paek1SliderSize);
+    const auto peakKnobSize = juce::jmin(leftPeakFreqArea.getWidth(), leftPeakFreqArea.getHeight() - 5);
+    renderArea.setSize(peakKnobSize, peakKnobSize);
 
     renderArea.setCentre(leftPeakFreqArea.getCentre());
-    renderArea.setY(leftPeakFreqArea.getTopLeft().getY() + offset + peak1YOffset);
+    renderArea.setY(leftPeakFreqArea.getTopLeft().getY() + offset);
     peak1FreqSlider.setBounds(renderArea);
 
     renderArea.setCentre(leftPeakGainArea.getCentre());
-    renderArea.setY(leftPeakGainArea.getTopLeft().getY() + offset + peak1YOffset);
+    renderArea.setY(leftPeakGainArea.getTopLeft().getY() + offset);
     peak1GainSlider.setBounds(renderArea);
 
     renderArea.setCentre(leftPeakQualityArea.getCentre());
-    renderArea.setY(leftPeakQualityArea.getTopLeft().getY() + offset + peak1YOffset);
+    renderArea.setY(leftPeakQualityArea.getTopLeft().getY() + offset);
     peak1QualitySlider.setBounds(renderArea);
 
     renderArea.setCentre(rightPeakFreqArea.getCentre());
@@ -774,23 +743,30 @@ void EqualizerModuleGUI::resized()
     peak2QualitySlider.setBounds(renderArea);
 }
 
+void EqualizerModuleGUI::updateAnalyzerView()
+{
+    const auto stereo = analyzerViewButton.getToggleState();
+    analyzerViewButton.setButtonText(stereo ? "Stereo" : "L / R");
+    filterFftAnalyzerComponent.setStereoView(stereo);
+}
+
 void EqualizerModuleGUI::handleLowCutParamsBypass(EqualizerModuleGUI* comp)
 {
-    auto bypassed = comp->lowCutBypassButton.getToggleState();
+    auto bypassed = comp->bypassButton.getToggleState() || comp->lowCutBypassButton.getToggleState();
     comp->lowCutFreqSlider.setEnabled(!bypassed);
     comp->lowCutSlopeSlider.setEnabled(!bypassed);
 }
 
 void EqualizerModuleGUI::handleHighCutParamsBypass(EqualizerModuleGUI* comp)
 {
-    auto bypassed = comp->highCutBypassButton.getToggleState();
+    auto bypassed = comp->bypassButton.getToggleState() || comp->highCutBypassButton.getToggleState();
     comp->highCutFreqSlider.setEnabled(!bypassed);
     comp->highCutSlopeSlider.setEnabled(!bypassed);
 }
 
 void EqualizerModuleGUI::handlePeak1ParamsBypass(EqualizerModuleGUI* comp)
 {
-    auto bypassed = comp->peak1BypassButton.getToggleState();
+    auto bypassed = comp->bypassButton.getToggleState() || comp->peak1BypassButton.getToggleState();
     comp->peak1FreqSlider.setEnabled(!bypassed);
     comp->peak1GainSlider.setEnabled(!bypassed);
     comp->peak1QualitySlider.setEnabled(!bypassed);
@@ -798,8 +774,24 @@ void EqualizerModuleGUI::handlePeak1ParamsBypass(EqualizerModuleGUI* comp)
 
 void EqualizerModuleGUI::handlePeak2ParamsBypass(EqualizerModuleGUI* comp)
 {
-    auto bypassed = comp->peak2BypassButton.getToggleState();
+    auto bypassed = comp->bypassButton.getToggleState() || comp->peak2BypassButton.getToggleState();
     comp->peak2FreqSlider.setEnabled(!bypassed);
     comp->peak2GainSlider.setEnabled(!bypassed);
     comp->peak2QualitySlider.setEnabled(!bypassed);
+}
+
+void EqualizerModuleGUI::updateFilterControlEnablement()
+{
+    const auto moduleBypassed = bypassButton.getToggleState();
+    lowCutBypassButton.setEnabled(!moduleBypassed);
+    peak1BypassButton.setEnabled(!moduleBypassed);
+    peak2BypassButton.setEnabled(!moduleBypassed);
+    highCutBypassButton.setEnabled(!moduleBypassed);
+    analyzerButton.setEnabled(!moduleBypassed);
+    analyzerViewButton.setEnabled(!moduleBypassed);
+
+    handleLowCutParamsBypass(this);
+    handleHighCutParamsBypass(this);
+    handlePeak1ParamsBypass(this);
+    handlePeak2ParamsBypass(this);
 }

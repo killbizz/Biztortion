@@ -29,15 +29,19 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include "WelcomeModule.h"
 
+#include "../../Shared/GUIStuff.h"
+
 WelcomeModuleGUI::WelcomeModuleGUI()
 {
     bigNoseImg = juce::ImageFileFormat::loadFrom(BinaryData::biztortionNoseAlpha_png, BinaryData::biztortionNoseAlpha_pngSize);
 
     author.setText("(c) 2022 Gabriel Bizzo", juce::dontSendNotification);
-    author.setFont(juce::Font("Courier New", 16, 0));
+    author.setFont(juce::Font("Segoe UI", 14, juce::Font::plain));
+    author.setColour(juce::Label::textColourId, BiztortionTheme::textMuted);
 
     version.setText("version: 2.0", juce::dontSendNotification);
-    version.setFont(juce::Font("Courier New", 16, 0));
+    version.setFont(juce::Font("Segoe UI", 14, juce::Font::plain));
+    version.setColour(juce::Label::textColourId, BiztortionTheme::textMuted);
 
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 gen(rd()); // seed the generator
@@ -99,31 +103,27 @@ std::vector<juce::Component*> WelcomeModuleGUI::getParamComps()
 
 juce::AffineTransform WelcomeModuleGUI::getTransform()
 {
-    return juce::AffineTransform::scale( 0.85f, 0.7f).translated(94, 17);
+    if (!bigNoseImg.isValid())
+        return {};
+
+    auto target = getContentRenderArea().toFloat().reduced(42.0f, 30.0f);
+    target.removeFromTop(18.0f);
+
+    const auto scale = juce::jmin(target.getWidth() / bigNoseImg.getWidth(),
+                                  target.getHeight() / bigNoseImg.getHeight()) * 0.82f;
+    const auto scaledWidth = bigNoseImg.getWidth() * scale;
+    const auto scaledHeight = bigNoseImg.getHeight() * scale;
+    const auto translationX = target.getCentreX() - scaledWidth * 0.5f;
+    const auto translationY = target.getCentreY() - scaledHeight * 0.5f;
+
+    return juce::AffineTransform::scale(scale).translated(translationX, translationY);
 }
 
 void WelcomeModuleGUI::drawContainer(juce::Graphics& g)
 {
-    // container border and background
-    g.setColour(juce::Colour(132, 135, 138));
-    g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
-    g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
-
-    // content border
-    g.setColour(juce::Colours::black);
-    auto renderArea = getContentRenderArea().toFloat();
-    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
-
-    // module outline
-    renderArea.expand(5.5, 5.5);
-    g.setColour(moduleColor);
-    g.drawRoundedRectangle(renderArea, 4.f, 4.f);
-
-    if (brightnessCounter == 70) {
-        addingFactor = -1;
-    }
-    else if (brightnessCounter == 50) {
-        addingFactor = 1;
-    }
-    brightnessCounter = brightnessCounter + addingFactor;
+    auto container = getContainerArea().toFloat();
+    g.setColour(BiztortionTheme::surface);
+    g.fillRoundedRectangle(container, 7.0f);
+    g.setColour(BiztortionTheme::border);
+    g.drawRoundedRectangle(container, 7.0f, 1.0f);
 }

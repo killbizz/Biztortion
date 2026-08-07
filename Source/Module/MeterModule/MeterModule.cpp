@@ -113,7 +113,9 @@ MeterModuleGUI::MeterModuleGUI(PluginState& p, juce::String _type, foleys::Level
     levelSliderAttachment(pluginState.apvts, type + " Meter Level", levelSlider)
 {
     title.setText(type, juce::dontSendNotification);
-    title.setFont(juce::Font("Courier New", 20, juce::Font::bold));
+    title.setFont(juce::Font("Segoe UI", 18, juce::Font::bold));
+    title.setColour(juce::Label::textColourId, BiztortionTheme::text);
+    levelSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
 
     //meter.setMeterFlags(foleys::LevelMeter::MeterFlags::MaxNumber);
 
@@ -187,13 +189,9 @@ void MeterModuleGUI::resized()
 
 void MeterModuleGUI::drawContainer(juce::Graphics& g)
 {
-    // container margin
-    g.setColour(juce::Colour(132, 135, 138));
-    g.drawRoundedRectangle(getContainerArea().toFloat(), 4.f, 1.f);
-    g.fillRoundedRectangle(getContainerArea().toFloat(), 4.f);
-    // content margin
-    g.setColour(juce::Colours::black);
-    auto renderArea = getContentRenderArea();
-    renderArea.expand(3, 3);
-    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 1.f);
+    auto container = getContainerArea().toFloat();
+    g.setColour(BiztortionTheme::surface);
+    g.fillRoundedRectangle(container, 7.0f);
+    g.setColour(BiztortionTheme::border);
+    g.drawRoundedRectangle(container, 7.0f, 1.0f);
 }

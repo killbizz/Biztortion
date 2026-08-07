@@ -61,6 +61,28 @@ void FFTAnalyzerComponent::timerCallback() {
         leftPathProducer.process(fftBounds, sampleRate);
         rightPathProducer.process(fftBounds, sampleRate);
 
+        if (stereoView) {
+            const auto& leftData = leftPathProducer.getLatestFFTData();
+            const auto& rightData = rightPathProducer.getLatestFFTData();
+
+            if (!leftData.empty() && leftData.size() == rightData.size()) {
+                std::vector<float> stereoData(leftData.size());
+                for (size_t index = 0; index < stereoData.size(); ++index) {
+                    const auto magnitude = 0.5f * (juce::Decibels::decibelsToGain(leftData[index])
+                        + juce::Decibels::decibelsToGain(rightData[index]));
+                    stereoData[index] = juce::Decibels::gainToDecibels(magnitude, -48.0f);
+                }
+
+                const auto fftSize = leftPathProducer.getFFTSize();
+                const auto binWidth = sampleRate / fftSize;
+                stereoPathGenerator.generatePath(stereoData, fftBounds, fftSize,
+                                                  static_cast<float>(binWidth), -48.0f);
+
+                while (stereoPathGenerator.getNumPathsAvailable() > 0)
+                    stereoPathGenerator.getPath(stereoFFTPath);
+            }
+        }
+
         repaint();
     }
 }
@@ -80,18 +102,27 @@ void FFTAnalyzerComponent::paint(juce::Graphics& g)
 
     // FFT ANALYZER
     if (enableFFTanalysis) {
+        if (stereoView) {
+            auto path = stereoFFTPath;
+            path.applyTransform(AffineTransform::translation((float) responseArea.getX(),
+                                                              (float) responseArea.getY()));
+            g.setColour(Colour(0u, 210u, 230u));
+            g.strokePath(path, PathStrokeType(1.5f));
+            return;
+        }
+
         auto leftChannelFFTPath = leftPathProducer.getPath();
         leftChannelFFTPath.applyTransform(AffineTransform()
             .translated(responseArea.getX(), responseArea.getY())
         );
-        g.setColour(Colours::violet);
-        g.strokePath(leftChannelFFTPath, PathStrokeType(1));
+        g.setColour(Colours::cyan);
+        g.strokePath(leftChannelFFTPath, PathStrokeType(1.25f));
 
         auto rightChannelFFTPath = rightPathProducer.getPath();
         rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(),
             responseArea.getY()));
-        g.setColour(Colours::lightyellow);
-        g.strokePath(rightChannelFFTPath, PathStrokeType(1));
+        g.setColour(Colours::lightcyan);
+        g.strokePath(rightChannelFFTPath, PathStrokeType(1.25f));
     }
 }
 
@@ -204,24 +235,25 @@ void FFTAnalyzerComponent::resized()
         g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
 
-    // --- CHANNEL LABELS ---
-    String str;
-    str << "L";
+    // --- ANALYZER VIEW LABELS ---
+    String str(stereoView ? "Stereo" : "L");
     g.setFont(juce::Font(fontHeight, juce::Font::bold));
     auto textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
     Rectangle<int> r;
     r.setSize(textWidth, fontHeight);
-    r.setCentre(left + 6,  top + 8);
-    // L
-    g.setColour(juce::Colours::lightyellow);
+    r.setCentre(left + textWidth / 2 + 3, top + 8);
+    g.setColour(juce::Colours::cyan);
     g.drawFittedText(str, r, juce::Justification::centred, 1);
-    // R
+
+    if (stereoView)
+        return;
+
     str.clear();
     str << "R";
     textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
     r.setSize(textWidth, fontHeight);
-    r.setCentre(left + 14, top + 8);
-    g.setColour(juce::Colours::violet);
+    r.setCentre(left + 17, top + 8);
+    g.setColour(juce::Colours::lightcyan);
     g.drawFittedText(str, r, juce::Justification::centred, 1);
 }
 
@@ -238,6 +270,13 @@ PathProducer& FFTAnalyzerComponent::getRightPathProducer()
 void FFTAnalyzerComponent::toggleFFTanaysis(bool shouldEnableFFTanalysis)
 {
     enableFFTanalysis = shouldEnableFFTanalysis;
+}
+
+void FFTAnalyzerComponent::setStereoView(bool shouldShowStereo)
+{
+    stereoView = shouldShowStereo;
+    resized();
+    repaint();
 }
 
 juce::Rectangle<int> FFTAnalyzerComponent::getRenderArea()

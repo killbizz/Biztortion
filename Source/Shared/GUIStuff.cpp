@@ -56,14 +56,35 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
     auto bounds = Rectangle<float>(x, y, width, height);
 
     auto enabled = slider.isEnabled();
+    const auto accent = slider.isColourSpecified(juce::Slider::thumbColourId)
+        ? slider.findColour(juce::Slider::thumbColourId)
+        : BiztortionTheme::controlAccent;
+    const auto trackBounds = bounds.reduced(3.0f);
+    const auto currentAngle = jmap(sliderPosProportional, 0.0f, 1.0f,
+                                   rotaryStartAngle, rotaryEndAngle);
 
-    // drawing the slider circle
-    g.setColour(enabled ? Colours::white : Colours::darkgrey);
-    g.fillEllipse(bounds);
+    Path track;
+    track.addCentredArc(trackBounds.getCentreX(), trackBounds.getCentreY(),
+                       trackBounds.getWidth() * 0.5f, trackBounds.getHeight() * 0.5f,
+                       0.0f, rotaryStartAngle, rotaryEndAngle, true);
+    g.setColour(enabled ? BiztortionTheme::controlTrack : BiztortionTheme::controlTrack.darker());
+    g.strokePath(track, PathStrokeType(4.0f, PathStrokeType::curved, PathStrokeType::rounded));
 
-    // drawing the slider border
-    g.setColour(enabled ? Colours::black : Colours::grey);
-    g.drawEllipse(bounds, 1.f);
+    if (enabled)
+    {
+        Path valueArc;
+        valueArc.addCentredArc(trackBounds.getCentreX(), trackBounds.getCentreY(),
+                              trackBounds.getWidth() * 0.5f, trackBounds.getHeight() * 0.5f,
+                              0.0f, rotaryStartAngle, currentAngle, true);
+        g.setColour(accent);
+        g.strokePath(valueArc, PathStrokeType(4.0f, PathStrokeType::curved, PathStrokeType::rounded));
+    }
+
+    auto knobBounds = bounds.reduced(bounds.getWidth() * 0.16f);
+    g.setColour(enabled ? BiztortionTheme::surfaceRaised : BiztortionTheme::surface);
+    g.fillEllipse(knobBounds);
+    g.setColour(enabled ? BiztortionTheme::border.brighter(0.2f) : BiztortionTheme::border.darker());
+    g.drawEllipse(knobBounds, 1.0f);
 
     if (auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
     {
@@ -74,33 +95,34 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
         Rectangle<float> r;
         r.setLeft(center.getX() - 2);
         r.setRight(center.getX() + 2);
-        r.setTop(bounds.getY());
-        r.setBottom(center.getY() - rswl->getTextHeight() * 0.8);
+        r.setTop(knobBounds.getY() + 6.0f);
+        r.setBottom(center.getY() - rswl->getTextHeight() * 0.45f);
 
         p.addRoundedRectangle(r, 2.f);
 
         jassert(rotaryStartAngle < rotaryEndAngle);
 
         // mapping the normalized parameter value to a radiant angle value
-        auto sliderAngRad = jmap(sliderPosProportional, 0.f, 1.f, rotaryStartAngle, rotaryEndAngle);
+        auto sliderAngRad = currentAngle;
 
         p.applyTransform(AffineTransform().rotated(sliderAngRad, center.getX(), center.getY()));
 
+        g.setColour(enabled ? BiztortionTheme::text : BiztortionTheme::textMuted.darker());
         g.fillPath(p);
 
         // drawing slider value label
         if (rswl->userIsDragging) {
-            g.setFont(juce::Font("Prestige Elite Std", rswl->getTextHeight(), 0));
+            g.setFont(juce::Font("Segoe UI", rswl->getTextHeight() + 1.0f, juce::Font::bold));
             auto text = rswl->getDisplayString();
             auto strWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),text);
 
             r.setSize(strWidth + 2, rswl->getTextHeight() + 2);
             r.setCentre(bounds.getCentre());
 
-            g.setColour(enabled ? Colours::black.withAlpha(0.45f) : Colours::darkgrey);
-            g.fillRect(r);
+            g.setColour(enabled ? BiztortionTheme::canvas.withAlpha(0.94f) : BiztortionTheme::surface);
+            g.fillRoundedRectangle(r.toFloat(), 3.0f);
 
-            g.setColour(enabled ? Colours::white : Colours::lightgrey);
+            g.setColour(enabled ? BiztortionTheme::text : BiztortionTheme::textMuted);
             g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
         }
     }
@@ -249,8 +271,8 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto center = sliderBounds.toFloat().getCentre();
     auto radius = sliderBounds.getWidth() * 0.525f;
 
-    g.setColour(Colours::black);
-    g.setFont(juce::Font("Prestige Elite Std", getTextHeight(), 0));
+    g.setColour(isEnabled() ? BiztortionTheme::textMuted : BiztortionTheme::textMuted.darker());
+    g.setFont(juce::Font("Segoe UI", getTextHeight(), juce::Font::plain));
 
     auto numChoices = labels.size();
     for (int i = 0; i < numChoices; ++i)

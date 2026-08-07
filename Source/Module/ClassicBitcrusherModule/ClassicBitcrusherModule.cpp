@@ -498,17 +498,10 @@ void ClassicBitcrusherModuleGUI::resized()
 {
     auto bitcrusherArea = getContentRenderArea();
 
-    // bypass
-    auto temp = bitcrusherArea;
-    auto bypassButtonArea = temp.removeFromTop(25);
-
-    auto size = 32.f;
-    bypassButtonArea.setSize(size, size);
-    bypassButton.setBounds(bypassButtonArea);
-    bypassButton.setCentreRelative(0.23f, 0.088f);
-
-    auto titleAndBypassArea = bitcrusherArea.removeFromTop(30);
-    titleAndBypassArea.translate(0, 4);
+    auto titleAndBypassArea = bitcrusherArea.removeFromTop(36);
+    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+        { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
+    juce::Rectangle<int> temp;
 
     bitcrusherArea.translate(0, 8);
 
@@ -549,7 +542,7 @@ void ClassicBitcrusherModuleGUI::resized()
     renderArea.reduce(25, 25);
 
     title.setBounds(titleAndBypassArea);
-    title.setJustificationType(juce::Justification::centredBottom);
+    title.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(driveArea.getCentre());
     renderArea.setY(driveArea.getTopLeft().getY());

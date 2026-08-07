@@ -90,7 +90,11 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
                     found = true;
                 }
             }
-            newModule = new OscilloscopeModuleGUI(pluginState, oscilloscopeDSPModule->getLeftOscilloscope(), oscilloscopeDSPModule->getRightOscilloscope(), parameterNumber);
+            newModule = new OscilloscopeModuleGUI(pluginState,
+                oscilloscopeDSPModule->getLeftOscilloscope(),
+                oscilloscopeDSPModule->getRightOscilloscope(),
+                oscilloscopeDSPModule->getStereoOscilloscope(),
+                parameterNumber);
             break;
         }
         case ModuleType::Equalizer: {

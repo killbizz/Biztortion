@@ -43,32 +43,96 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 using namespace juce;
 
+namespace BiztortionTheme
+{
+inline const Colour canvas { 18, 20, 22 };
+inline const Colour surface { 29, 32, 35 };
+inline const Colour surfaceRaised { 37, 40, 44 };
+inline const Colour border { 62, 67, 72 };
+inline const Colour text { 238, 240, 242 };
+inline const Colour textMuted { 157, 164, 171 };
+inline const Colour controlTrack { 54, 59, 64 };
+inline const Colour controlAccent { 80, 202, 181 };
+}
+
 struct ModuleLookAndFeel : public LookAndFeel_V4
 {
+    ModuleLookAndFeel()
+    {
+        setColour(Label::textColourId, BiztortionTheme::text);
+        setColour(HyperlinkButton::textColourId, BiztortionTheme::textMuted);
+        setColour(TextButton::buttonColourId, BiztortionTheme::surfaceRaised);
+        setColour(TextButton::textColourOffId, BiztortionTheme::text);
+        setColour(TextButton::buttonOnColourId, BiztortionTheme::controlAccent);
+        setColour(TextButton::textColourOnId, BiztortionTheme::canvas);
+        setColour(PopupMenu::backgroundColourId, BiztortionTheme::surfaceRaised);
+        setColour(PopupMenu::textColourId, BiztortionTheme::text);
+        setColour(PopupMenu::highlightedBackgroundColourId, BiztortionTheme::controlAccent.withAlpha(0.22f));
+        setColour(PopupMenu::highlightedTextColourId, BiztortionTheme::text);
+        setColour(ComboBox::backgroundColourId, BiztortionTheme::surfaceRaised);
+        setColour(ComboBox::textColourId, BiztortionTheme::text);
+        setColour(ComboBox::outlineColourId, BiztortionTheme::border);
+        setColour(TooltipWindow::backgroundColourId, BiztortionTheme::surfaceRaised);
+        setColour(TooltipWindow::textColourId, BiztortionTheme::text);
+        setColour(TooltipWindow::outlineColourId, BiztortionTheme::border);
+    }
 
     static Font getLabelsFont() {
-        return Font("Courier New", 14, Font::bold);
+        return Font("Segoe UI", 13, Font::bold);
     }
 
     static Font getTitlesFont() {
-        return Font("Courier New", 26, Font::bold);
+        return Font("Segoe UI", 25, Font::bold);
     }
 
     Font getTextButtonFont(TextButton&, int buttonHeight) override
     {
-        return juce::Font("Courier New", buttonHeight*0.39f, Font::bold);
+        return juce::Font("Segoe UI", buttonHeight * 0.38f, Font::bold);
     }
 
     Font getAlertWindowTitleFont() override {
-        return juce::Font("Courier New", 26, 0);
+        return juce::Font("Segoe UI", 24, Font::bold);
     }
 
     Font getComboBoxFont(ComboBox&) override {
-        return juce::Font("Courier New", 18, 0);
+        return juce::Font("Segoe UI", 16, Font::plain);
     }
 
     Font getPopupMenuFont() override {
-        return juce::Font("Courier New", 16, 0);
+        return juce::Font("Segoe UI", 15, Font::plain);
+    }
+
+    Rectangle<int> getTooltipBounds(const String& tipText, Point<int> screenPos,
+                                    Rectangle<int> parentArea) override
+    {
+        const Font font("Segoe UI", 13.0f, Font::plain);
+        const auto textWidth = GlyphArrangement::getStringWidthInt(font, tipText);
+        const auto width = jlimit(80, 340, textWidth + 24);
+        const auto lines = jmax(1, (textWidth + width - 25) / (width - 24));
+        const auto height = lines * 18 + 14;
+        const auto x = screenPos.x > parentArea.getCentreX()
+            ? screenPos.x - width - 12
+            : screenPos.x + 20;
+        const auto y = screenPos.y > parentArea.getCentreY()
+            ? screenPos.y - height - 8
+            : screenPos.y + 8;
+
+        return Rectangle<int>(x, y, width, height).constrainedWithin(parentArea);
+    }
+
+    void drawTooltip(Graphics& g, const String& text, int width, int height) override
+    {
+        auto bounds = Rectangle<float>(0.0f, 0.0f, (float) width, (float) height).reduced(1.0f);
+        DropShadow(Colours::black.withAlpha(0.45f), 6, { 0, 2 })
+            .drawForRectangle(g, bounds.getSmallestIntegerContainer());
+        g.setColour(BiztortionTheme::surfaceRaised.withAlpha(0.98f));
+        g.fillRoundedRectangle(bounds, 6.0f);
+        g.setColour(BiztortionTheme::border.brighter(0.12f));
+        g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+        g.setColour(BiztortionTheme::text);
+        g.setFont(Font("Segoe UI", 13.0f, Font::plain));
+        g.drawFittedText(text, bounds.reduced(11.0f, 6.0f).toNearestInt(),
+                         Justification::centredLeft, 3);
     }
 
     void drawPopupMenuItem(Graphics& g, const Rectangle< int >& area, bool isSeparator, bool isActive, bool isHighlighted, bool isTicked, bool hasSubMenu,
@@ -92,7 +156,7 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
             if (isHighlighted && isActive)
             {
                 g.setColour(findColour(PopupMenu::highlightedBackgroundColourId));
-                g.fillRect(r);
+                g.fillRoundedRectangle(r.toFloat().reduced(2.0f), 5.0f);
 
                 g.setColour(findColour(PopupMenu::highlightedTextColourId));
             }
@@ -141,7 +205,7 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
             }
 
             r.removeFromRight(3);
-            g.drawFittedText(text, r_copy, Justification::centred, 1);
+            g.drawFittedText(text, r_copy.reduced(14, 0), Justification::centredLeft, 1);
 
             if (shortcutKeyText.isNotEmpty())
             {
@@ -193,14 +257,15 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
 
         if (width > 0 && height > 0)
         {
-            auto cornerSize = jmin(15.0f, jmin(width, height) * 0.45f);
-            auto lineThickness = cornerSize * 0.1f;
+            auto cornerSize = jmin(7.0f, jmin(width, height) * 0.3f);
+            auto lineThickness = 1.0f;
             auto halfThickness = lineThickness * 0.5f;
 
             Path outline;
-            outline.addRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness);
+            outline.addRoundedRectangle(0.5f + halfThickness, 0.5f + halfThickness,
+                                        width - lineThickness, height - lineThickness, cornerSize);
 
-            auto outlineColour = juce::Colours::black;
+            auto outlineColour = BiztortionTheme::border;
 
             g.setColour(baseColour);
             g.fillPath(outline);
@@ -255,7 +320,7 @@ struct RotarySliderWithLabels : juce::Slider
 
     void paint(juce::Graphics& g) override;
     juce::Rectangle<int> getSliderBounds() const;
-    int getTextHeight() const { return 10; }
+    int getTextHeight() const { return 11; }
     juce::String getDisplayString() const;
 
     void startedDragging() override;

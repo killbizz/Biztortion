@@ -45,6 +45,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 struct OscilloscopeSettings {
     float hZoom{ 0 };
     float vZoom{ 0 };
+    bool syncEnabled{ true };
+    bool stereoView{ true };
     bool bypassed{ false };
 };
 
@@ -54,6 +56,7 @@ public:
 
     drow::AudioOscilloscope* getLeftOscilloscope();
     drow::AudioOscilloscope* getRightOscilloscope();
+    drow::AudioOscilloscope* getStereoOscilloscope();
 
     static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
@@ -66,6 +69,7 @@ private:
     bool bypassed = false;
     drow::AudioOscilloscope leftOscilloscope;
     drow::AudioOscilloscope rightOscilloscope;
+    drow::AudioOscilloscope stereoOscilloscope;
 };
 
 //==============================================================================
@@ -76,7 +80,10 @@ private:
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(PluginState& p, drow::AudioOscilloscope* _leftOscilloscope, drow::AudioOscilloscope* _rightOscilloscope, unsigned int parameterNumber);
+    OscilloscopeModuleGUI(PluginState& p, drow::AudioOscilloscope* _leftOscilloscope,
+        drow::AudioOscilloscope* _rightOscilloscope,
+        drow::AudioOscilloscope* _stereoOscilloscope,
+        unsigned int parameterNumber);
     ~OscilloscopeModuleGUI();
 
     std::vector<juce::Component*> getAllComps() override;
@@ -89,6 +96,8 @@ public:
     void resized() override;
 
 private:
+    void updateScopeLayout();
+    void synchroniseScopes();
 
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
@@ -106,13 +115,18 @@ private:
     
     
     juce::TextButton freezeButton{ "Freeze" };
+    juce::TextButton syncButton{ "Sync" };
+    juce::TextButton stereoButton{ "Stereo" };
     PowerButton bypassButton;
 
+    ButtonAttachment syncButtonAttachment;
+    ButtonAttachment stereoButtonAttachment;
     ButtonAttachment bypassButtonAttachment;
 
     ButtonsLookAndFeel lnf;
-    ModuleLookAndFeel freezeLnf;
+    ModuleLookAndFeel scopeControlsLnf;
 
     drow::AudioOscilloscope* leftOscilloscope;
     drow::AudioOscilloscope* rightOscilloscope;
+    drow::AudioOscilloscope* stereoOscilloscope;
 };

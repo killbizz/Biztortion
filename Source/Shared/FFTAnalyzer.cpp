@@ -54,10 +54,9 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
             // notice that with these operations monoBuffer never changes size
             auto size = tempIncomingBuffer.getNumSamples();
             // left shifting of audio data in the buffer (losting the first block)
-            juce::FloatVectorOperations::copy(
-                monoBuffer.getWritePointer(0, 0),
-                monoBuffer.getReadPointer(0, size - 1),
-                monoBuffer.getNumSamples() - size);
+            std::memmove(monoBuffer.getWritePointer(0),
+                         monoBuffer.getReadPointer(0, size),
+                         sizeof(float) * static_cast<size_t>(monoBuffer.getNumSamples() - size));
             // appending fresh audio data block in the buffer
             juce::FloatVectorOperations::copy(
                 monoBuffer.getWritePointer(0, monoBuffer.getNumSamples() - size),
@@ -78,7 +77,16 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
     while (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0) {
         std::vector<float> fftData;
         if (leftChannelFFTDataGenerator.getFFTData(fftData)) {
-            pathProducer.generatePath(fftData, fftBounds, fftSize, binWidth, -48.f);
+            if (smoothedFFTData.size() != fftData.size())
+                smoothedFFTData = fftData;
+            else
+                for (size_t index = 0; index < fftData.size(); ++index) {
+                    const auto smoothing = fftData[index] > smoothedFFTData[index] ? 0.55f : 0.18f;
+                    smoothedFFTData[index] += smoothing * (fftData[index] - smoothedFFTData[index]);
+                }
+
+            pathProducer.generatePath(smoothedFFTData, fftBounds, fftSize, binWidth, -48.f);
+            latestFFTData = smoothedFFTData;
         }
     }
     /*

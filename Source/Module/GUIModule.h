@@ -59,6 +59,7 @@ protected:
     juce::Rectangle<int> getContentRenderArea();
     juce::Rectangle<int> getContainerArea();
     virtual void drawContainer(juce::Graphics& g);
+  void applyModuleAccentToSliders();
 
     juce::Colour moduleColor;
     unsigned int brightnessCounter;
