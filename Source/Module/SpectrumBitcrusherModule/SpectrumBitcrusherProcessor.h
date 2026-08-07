@@ -19,6 +19,9 @@ public:
     SpectrumBitcrusherProcessor();
     ~SpectrumBitcrusherProcessor();
 
+  int getFFTSize() const noexcept { return fftSize; }
+  int getHopSize() const noexcept { return hopSize; }
+
 private:
     void processFrameInBuffer(const int maxNumChannels) override;
 };

@@ -92,7 +92,7 @@ void SliderLookAndFeel::drawRotarySlider(juce::Graphics& g,
         if (rswl->userIsDragging) {
             g.setFont(juce::Font("Prestige Elite Std", rswl->getTextHeight(), 0));
             auto text = rswl->getDisplayString();
-            auto strWidth = g.getCurrentFont().getStringWidth(text);
+            auto strWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),text);
 
             r.setSize(strWidth + 2, rswl->getTextHeight() + 2);
             r.setCentre(bounds.getCentre());
@@ -240,8 +240,7 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
         sliderBounds.getY(),
         sliderBounds.getWidth(),
         sliderBounds.getHeight(),
-        // mapping the slider value to a normalized value
-        jmap(getValue(), range.getStart(), range.getEnd(), 0.0, 1.0),
+        static_cast<float>(valueToProportionOfLength(getValue())),
         startAng,
         endAng,
         *this);
@@ -266,7 +265,7 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
 
         Rectangle<float> r;
         auto str = labels[i].label;
-        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setSize(juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str), getTextHeight());
         r.setCentre(c);
         r.setY(r.getY() + getTextHeight());
 
@@ -294,6 +293,9 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
 // returns the parameter value or the choice name associated to the parameter as string
 juce::String RotarySliderWithLabels::getDisplayString() const
 {
+    if (displayStringForValue)
+        return displayStringForValue(getValue());
+
     if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param))
         return choiceParam->getCurrentChoiceName();
 
@@ -311,6 +313,10 @@ juce::String RotarySliderWithLabels::getDisplayString() const
         }
 
         str = juce::String(val, (addK ? 2 : 0));
+    }
+    else if (dynamic_cast<juce::AudioParameterInt*>(param) != nullptr)
+    {
+        str = juce::String(juce::roundToInt(getValue()));
     }
     else
     {

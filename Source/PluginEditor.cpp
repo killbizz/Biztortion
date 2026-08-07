@@ -107,7 +107,7 @@ void BiztortionAudioProcessorEditor::paint (juce::Graphics& g)
 
     String title{ "Biztortion" };
     g.setFont(30);
-    auto titleWidth = g.getCurrentFont().getStringWidth(title);
+    auto titleWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),title);
 
     curve.startNewSubPath(center.x, 32);
     curve.lineTo(center.x - titleWidth * 0.45f, 32);

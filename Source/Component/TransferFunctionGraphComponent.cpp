@@ -166,7 +166,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	g.setColour(juce::Colours::darkgrey);
 	// -1
 	str << "-1";
-	auto textWidth = g.getCurrentFont().getStringWidth(str);
+	auto textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
 	r.setSize(textWidth, fontHeight);
 	auto point = leftPoint;
 	point.setXY(point.getX() - 18, point.getY() - fontHeight - 38);
@@ -175,7 +175,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	// 0
 	str.clear();
 	str << "0";
-	textWidth = g.getCurrentFont().getStringWidth(str);
+	textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
 	r.setSize(textWidth, fontHeight);
 	point = bounds.getCentre().toFloat();
 	point.setXY(point.getX() - 18, point.getY() - fontHeight - 38);
@@ -184,7 +184,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	// +1
 	str.clear();
 	str << "+1";
-	textWidth = g.getCurrentFont().getStringWidth(str);
+	textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
 	r.setSize(textWidth, fontHeight);
 	point = rightPoint;
 	point.setXY(point.getX() - 33, point.getY() - fontHeight - 38);
@@ -194,7 +194,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	g.setFont(juce::Font("Courier New", fontHeight+2, Font::bold));
 	str.clear();
 	str << "input";
-	textWidth = g.getCurrentFont().getStringWidth(str);
+	textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
 	r.setSize(textWidth, fontHeight);
 	point = rightPoint;
 	point.setXY(point.getX() - textWidth - 18, point.getY() - fontHeight - 52);
@@ -206,7 +206,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	str.clear();
 	g.setFont(Font(fontHeight, Font::bold));
 	str << "-1";
-	textWidth = g.getCurrentFont().getStringWidth(str);
+	textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
 	r.setSize(textWidth, fontHeight);
 	point = bottomPoint;
 	point.setXY(point.getX() - 18, point.getY() - fontHeight - 52);
@@ -216,7 +216,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	// +1
 	str.clear();
 	str << "+1";
-	textWidth = g.getCurrentFont().getStringWidth(str);
+	textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
 	r.setSize(textWidth, fontHeight);
 	point = topPoint;
 	point.setXY(point.getX() - 16, point.getY() - fontHeight - 38);
@@ -226,7 +226,7 @@ void TransferFunctionGraphComponent::paint(juce::Graphics& g)
 	g.setFont(juce::Font("Courier New", fontHeight+2, Font::bold));
 	str.clear();
 	str << "output";
-	textWidth = g.getCurrentFont().getStringWidth(str);
+	textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
 	r.setSize(textWidth, fontHeight);
 	point = topPoint;
 	juce::AffineTransform transform;

@@ -251,6 +251,7 @@ struct RotarySliderWithLabels : juce::Slider
 
     juce::Array<LabelWithPosition> labels;
     bool userIsDragging = false;
+    std::function<juce::String(double)> displayStringForValue;
 
     void paint(juce::Graphics& g) override;
     juce::Rectangle<int> getSliderBounds() const;

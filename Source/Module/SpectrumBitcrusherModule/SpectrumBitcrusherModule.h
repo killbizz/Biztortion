@@ -45,7 +45,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 struct SpectrumBitcrusherSettings {
     float mix{ 0 }, drive{ 0 }, fxDistribution{ 0 }, bias{ 0 }, symmetry{ 0 };
-    float rateRedux{ 0 }, robotisation{ 0 };
+    float rateRedux{ 0 }, magnitudeBits{ 0 }, spectralTilt{ 0 };
+    float robotisation{ 0 }, robotPitch{ 0 };
     bool bypassed{ false }, DCoffsetRemove{ false };
 };
 
@@ -68,10 +69,16 @@ private:
 
     // parameters
     bool bypassed = false;
+    bool spectrumProcessingEnabled = false;
     juce::AudioBuffer<float> wetBuffer, tempBuffer;
     juce::LinearSmoothedValue<float> fxDistribution, bias, symmetry;
     juce::LinearSmoothedValue<float> driveGain, dryGain, wetGain;
-    juce::LinearSmoothedValue<float> rateRedux, robotisation;
+    juce::LinearSmoothedValue<float> rateRedux, magnitudeBits, spectralTilt;
+    juce::LinearSmoothedValue<float> robotisation, robotPitch;
+
+    double currentSampleRate = 44100.0;
+    double robotPhase = 0.0;
+    std::vector<float> magnitudeScratch;
 
     Filter leftDCoffsetRemoveHPF, rightDCoffsetRemoveHPF;
     bool DCoffsetRemoveEnabled = false;
@@ -117,21 +124,30 @@ private:
         biasLabel,
         symmetryLabel,
         binsReduxLabel,
-        robotisationLabel;
+        magnitudeBitsLabel,
+        spectralTiltLabel,
+        robotisationLabel,
+        robotPitchLabel;
     RotarySliderWithLabels driveSlider,
         mixSlider,
         fxDistributionSlider,
         biasSlider,
         symmetrySlider,
         binsReduxSlider,
-        robotisationSlider;
+        magnitudeBitsSlider,
+        spectralTiltSlider,
+        robotisationSlider,
+        robotPitchSlider;
     Attachment driveSliderAttachment,
         mixSliderAttachment,
         fxDistributionSliderAttachment,
         biasSliderAttachment,
         symmetrySliderAttachment,
         binsReduxSliderAttachment,
-        robotisationSliderAttachment;
+        magnitudeBitsSliderAttachment,
+        spectralTiltSliderAttachment,
+        robotisationSliderAttachment,
+        robotPitchSliderAttachment;
 
     PowerButton bypassButton;
 

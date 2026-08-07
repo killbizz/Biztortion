@@ -165,7 +165,7 @@ void FFTAnalyzerComponent::resized()
         }
         str << "Hz";
 
-        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        auto textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
         Rectangle<int> r;
         r.setSize(textWidth, fontHeight);
         r.setCentre(x, 0);
@@ -184,7 +184,7 @@ void FFTAnalyzerComponent::resized()
             str << "+";
         }
         str << gDb;
-        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        auto textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
         Rectangle<int> r;
         r.setSize(textWidth, fontHeight);
         r.setX(getWidth() - textWidth);
@@ -198,7 +198,7 @@ void FFTAnalyzerComponent::resized()
         str.clear();
         str << (gDb - 24.f);
         r.setX(1);
-        textWidth = g.getCurrentFont().getStringWidth(str);
+        textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
         r.setSize(textWidth, fontHeight);
         g.setColour(Colours::lightgrey);
         g.drawFittedText(str, r, juce::Justification::centred, 1);
@@ -208,7 +208,7 @@ void FFTAnalyzerComponent::resized()
     String str;
     str << "L";
     g.setFont(juce::Font(fontHeight, juce::Font::bold));
-    auto textWidth = g.getCurrentFont().getStringWidth(str);
+    auto textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
     Rectangle<int> r;
     r.setSize(textWidth, fontHeight);
     r.setCentre(left + 6,  top + 8);
@@ -218,7 +218,7 @@ void FFTAnalyzerComponent::resized()
     // R
     str.clear();
     str << "R";
-    textWidth = g.getCurrentFont().getStringWidth(str);
+    textWidth = juce::GlyphArrangement::getStringWidthInt(g.getCurrentFont(),str);
     r.setSize(textWidth, fontHeight);
     r.setCentre(left + 14, top + 8);
     g.setColour(juce::Colours::violet);

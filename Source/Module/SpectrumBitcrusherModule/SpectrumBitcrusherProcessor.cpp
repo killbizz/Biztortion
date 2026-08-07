@@ -21,8 +21,8 @@ void SpectrumBitcrusherProcessor::processFrameInBuffer(const int maxNumChannels)
         fft.performRealOnlyForwardTransform(fftInOutBuffer.getWritePointer(ch), true);
 
     // clear high frequency content
-    for (int ch = 0; ch < maxNumChannels; ++ch)
-        FloatVectorOperations::clear(fftInOutBuffer.getWritePointer(ch, fftSize / 2), fftSize / 2);
+    // for (int ch = 0; ch < maxNumChannels; ++ch)
+    //     FloatVectorOperations::clear(fftInOutBuffer.getWritePointer(ch, fftSize / 2), fftSize / 2);
 
     // SPECTRUM DATA ELABORATION
     spectrumProcessingCallback(fftInOutBuffer);
