@@ -35,7 +35,7 @@ WelcomeModuleGUI::WelcomeModuleGUI()
 {
     bigNoseImg = juce::ImageFileFormat::loadFrom(BinaryData::biztortionNoseAlpha_png, BinaryData::biztortionNoseAlpha_pngSize);
 
-    author.setText("(c) 2022 Gabriel Bizzo", juce::dontSendNotification);
+    author.setText("(c) 2026 Gabriel Bizzo", juce::dontSendNotification);
     author.setFont(juce::Font("Segoe UI", 14, juce::Font::plain));
     author.setColour(juce::Label::textColourId, BiztortionTheme::textMuted);
 
@@ -63,12 +63,23 @@ WelcomeModuleGUI::WelcomeModuleGUI()
 
 void WelcomeModuleGUI::paint(juce::Graphics& g)
 {
-    moduleColor = juce::Colour::fromHSL((((float)(hueCounter++)) * 0.01f) * 0.8f, 0.95f, 0.5f, 0.6f);
+    const auto pulse = 0.5f + 0.5f * std::sin((float) hueCounter++ * 0.055f);
+    const auto brightness = juce::jmap(pulse, 0.58f, 1.0f);
+    moduleColor = juce::Colour::fromFloatRGBA(brightness, brightness, brightness, 0.92f);
     drawContainer(g);
+
+    {
+        juce::Graphics::ScopedSaveState state(g);
+        g.addTransform(getTransform());
+        juce::DropShadow(juce::Colours::white.withAlpha(0.16f + pulse * 0.28f),
+                         juce::roundToInt(8.0f + pulse * 8.0f), {})
+            .drawForImage(g, bigNoseImg);
+    }
+
     g.reduceClipRegion(bigNoseImg, getTransform());
     g.setColour(moduleColor);
     g.fillAll();
-    if (hueCounter == 100)
+    if (hueCounter == 100000)
         hueCounter = 0;
 }
 

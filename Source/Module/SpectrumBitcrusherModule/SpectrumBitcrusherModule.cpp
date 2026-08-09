@@ -349,6 +349,8 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     moduleColor = moduleType_colors.at(ModuleType::SpectrumBitcrusher);
+    setModuleHelp("Spectrum Bitcrusher",
+        "Crushes frequency resolution and FFT magnitudes instead of time-domain samples. Robotisation locks the spectrum to a controllable harmonic pitch.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -430,6 +432,7 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     robotisationSlider.setTooltip("Blend toward a pitched harmonic comb with phase-locked robotisation");
     robotPitchSlider.setTooltip("Set the fundamental pitch of the robotized sound");
     DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
+    DCoffsetEnabledButton.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())
     {

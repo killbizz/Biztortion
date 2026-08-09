@@ -39,6 +39,23 @@ GUIModule::GUIModule() : remapper(0.f, 100.f, 1.f, 1.3f) // exponential remappin
 
     brightnessCounter = distr(gen);
 
+    moduleHelpButton.setVisible(false);
+    moduleHelpButton.setTooltip("About this module");
+    moduleHelpButton.setColour(juce::TextButton::buttonColourId, BiztortionTheme::surfaceRaised);
+    moduleHelpButton.setColour(juce::TextButton::textColourOffId, BiztortionTheme::text);
+    addAndMakeVisible(moduleHelpButton);
+
+    auto safePtr = juce::Component::SafePointer<GUIModule>(this);
+    moduleHelpButton.onClick = [safePtr]() {
+        if (auto* module = safePtr.getComponent())
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::NoIcon,
+                module->moduleHelpTitle,
+                module->moduleHelpDescription,
+                "Got it",
+                module);
+    };
+
     startTimerHz(10);
 }
 
@@ -56,6 +73,20 @@ void GUIModule::drawContainer(juce::Graphics& g)
     g.setColour(moduleColor);
     g.fillRoundedRectangle(accent, 2.0f);
 
+    if (moduleHelpButton.isVisible())
+    {
+        const auto content = getContentRenderArea();
+        moduleHelpButton.setBounds(content.getRight() - 26, content.getY() + 4, 24, 24);
+        moduleHelpButton.toFront(false);
+    }
+
+}
+
+void GUIModule::setModuleHelp(juce::String title, juce::String description)
+{
+    moduleHelpTitle = std::move(title);
+    moduleHelpDescription = std::move(description);
+    moduleHelpButton.setVisible(true);
 }
 
 juce::Rectangle<int> GUIModule::getContentRenderArea()

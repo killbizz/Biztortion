@@ -53,6 +53,7 @@ inline const Colour text { 238, 240, 242 };
 inline const Colour textMuted { 157, 164, 171 };
 inline const Colour controlTrack { 54, 59, 64 };
 inline const Colour controlAccent { 80, 202, 181 };
+inline constexpr int accentOutlineColourId = 0x2020400;
 }
 
 struct ModuleLookAndFeel : public LookAndFeel_V4
@@ -107,7 +108,7 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
     {
         const Font font("Segoe UI", 13.0f, Font::plain);
         const auto textWidth = GlyphArrangement::getStringWidthInt(font, tipText);
-        const auto width = jlimit(80, 340, textWidth + 24);
+        const auto width = jlimit(80, 460, textWidth + 24);
         const auto lines = jmax(1, (textWidth + width - 25) / (width - 24));
         const auto height = lines * 18 + 14;
         const auto x = screenPos.x > parentArea.getCentreX()
@@ -265,7 +266,10 @@ struct ModuleLookAndFeel : public LookAndFeel_V4
             outline.addRoundedRectangle(0.5f + halfThickness, 0.5f + halfThickness,
                                         width - lineThickness, height - lineThickness, cornerSize);
 
-            auto outlineColour = BiztortionTheme::border;
+            auto outlineColour = !button.getToggleState()
+                                     && button.isColourSpecified(BiztortionTheme::accentOutlineColourId)
+                ? button.findColour(BiztortionTheme::accentOutlineColourId)
+                : BiztortionTheme::border;
 
             g.setColour(baseColour);
             g.fillPath(outline);

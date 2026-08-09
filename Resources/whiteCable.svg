@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="152.28mm" height="59.86mm" viewBox="0 0 431.65 169.68">
+  <title>whiteCable</title>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="48.2" cy="48.2" r="38.5" fill="#121416" stroke="#f2f4f5" stroke-width="9.6"/>
+    <circle cx="382.65" cy="49.25" r="38.5" fill="#121416" stroke="#f2f4f5" stroke-width="9.6"/>
+    <circle cx="48.2" cy="48.2" r="17" fill="#9da4ab" stroke="none"/>
+    <circle cx="382.65" cy="49.25" r="17" fill="#9da4ab" stroke="none"/>
+    <path d="M48.2 48.2 C48.2 146 382.65 146 382.65 49.25" stroke="#ffffff" stroke-width="38"/>
+    <path d="M48.2 48.2 C48.2 146 382.65 146 382.65 49.25" stroke="#d8dde1" stroke-width="8" opacity="0.8"/>
+  </g>
+</svg>

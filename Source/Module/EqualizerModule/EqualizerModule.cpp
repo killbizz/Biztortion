@@ -322,6 +322,8 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     moduleColor = moduleType_colors.at(ModuleType::Equalizer);
+    setModuleHelp("Equalizer",
+        "Shapes the spectrum with low/high cuts and two peak filters. The analyzer can display separate channels or one averaged stereo spectrum.");
 
     // labels
     // peak1
@@ -633,6 +635,7 @@ void EqualizerModuleGUI::resized()
     bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
 
+    titleAndBypassArea.removeFromRight(30);
     auto analyzerControls = titleAndBypassArea.removeFromRight(138).reduced(2, 1);
     analyzerButton.setBounds(analyzerControls.removeFromLeft(48));
     analyzerControls.removeFromLeft(6);

@@ -311,6 +311,8 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     moduleColor = moduleType_colors.at(ModuleType::ClassicBitcrusher);
+    setModuleHelp("Classic Bitcrusher",
+        "Reduces sample rate and bit depth for familiar digital crunch. Use Dither to add noise and soften or exaggerate the quantisation texture.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -377,6 +379,7 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     bitcrusherRateReduxSlider.setTooltip("Set the sampling rate for the reduction of signal resolution");
     bitcrusherBitReduxSlider.setTooltip("Set the bit depth for the reduction of signal resolution");
     DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
+    DCoffsetEnabledButton.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())
     {
@@ -503,11 +506,15 @@ void ClassicBitcrusherModuleGUI::resized()
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
     juce::Rectangle<int> temp;
 
-    bitcrusherArea.translate(0, 8);
+    bitcrusherArea.reduce(8, 12);
 
     auto topArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 3.f));
     auto middleArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
     auto bottomArea = bitcrusherArea;
+
+    topArea.reduce(0, 4);
+    middleArea.reduce(0, 4);
+    bottomArea.reduce(0, 4);
 
     auto topLabelsArea = topArea.removeFromTop(14);
     auto middleLabelsArea = middleArea.removeFromTop(14);
@@ -538,38 +545,34 @@ void ClassicBitcrusherModuleGUI::resized()
     auto ditherArea = bottomArea;
 
     juce::Rectangle<int> renderArea;
-    renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
-    renderArea.reduce(25, 25);
+    const auto knobSize = juce::jmin(fxDistributionArea.getWidth() - 40,
+        juce::jmin(topArea.getHeight(), juce::jmin(middleArea.getHeight(), bottomArea.getHeight())) - 6);
+    renderArea.setSize(knobSize, knobSize);
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(driveArea.getCentre());
-    renderArea.setY(driveArea.getTopLeft().getY());
     driveSlider.setBounds(renderArea);
     driveLabel.setBounds(driveLabelArea);
     driveLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(mixArea.getCentre());
-    renderArea.setY(mixArea.getTopLeft().getY());
     mixSlider.setBounds(renderArea);
     mixLabel.setBounds(mixLabelArea);
     mixLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(fxDistributionArea.getCentre());
-    renderArea.setY(fxDistributionArea.getTopLeft().getY());
     fxDistributionSlider.setBounds(renderArea);
     fxDistributionLabel.setBounds(fxDistributionLabelArea);
     fxDistributionLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(biasArea.getCentre());
-    renderArea.setY(biasArea.getTopLeft().getY());
     biasSlider.setBounds(renderArea);
     biasLabel.setBounds(biasLabelArea);
     biasLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(symmetryArea.getCentre());
-    renderArea.setY(symmetryArea.getTopLeft().getY());
     symmetrySlider.setBounds(renderArea);
     symmetryLabel.setBounds(symmetryLabelArea);
     symmetryLabel.setJustificationType(juce::Justification::centred);
@@ -591,19 +594,16 @@ void ClassicBitcrusherModuleGUI::resized()
     // renderArea.setSize(rateArea.getHeight(), rateArea.getHeight());
 
     renderArea.setCentre(rateArea.getCentre());
-    renderArea.setY(rateArea.getTopLeft().getY());
     bitcrusherRateReduxSlider.setBounds(renderArea);
     bitcrusherRateReduxLabel.setBounds(rateLabelArea);
     bitcrusherRateReduxLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(bitArea.getCentre());
-    renderArea.setY(bitArea.getTopLeft().getY());
     bitcrusherBitReduxSlider.setBounds(renderArea);
     bitcrusherBitReduxLabel.setBounds(bitLabelArea);
     bitcrusherBitReduxLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(ditherArea.getCentre());
-    renderArea.setY(ditherArea.getTopLeft().getY());
     bitcrusherDitherSlider.setBounds(renderArea);
     bitcrusherDitherLabel.setBounds(ditherLabelArea);
     bitcrusherDitherLabel.setJustificationType(juce::Justification::centred);

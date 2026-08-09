@@ -43,10 +43,7 @@ public:
 	std::vector<juce::Component*> getComps();
 
 private:
-
-	juce::Label one, firstRow,
-		two, secondRow,
-		three, thirdRow;
+	juce::Label description;
 
 	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HelpComponent)

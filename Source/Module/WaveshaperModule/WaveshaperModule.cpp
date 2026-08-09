@@ -261,6 +261,8 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     moduleColor = moduleType_colors.at(ModuleType::Waveshaper);
+    setModuleHelp("Waveshaper",
+        "Remaps the input waveform with adjustable tanh and sine curves. Combine their amount and shape controls for soft saturation or complex folding tones.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -332,6 +334,7 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     sineAmpSlider.setTooltip("Set the sine function amplitude");
     sineFreqSlider.setTooltip("Set the sine function frequency");
     DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
+    DCoffsetEnabledButton.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())
     {

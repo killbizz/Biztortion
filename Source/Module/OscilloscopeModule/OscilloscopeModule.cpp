@@ -146,6 +146,8 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     moduleColor = moduleType_colors.at(ModuleType::Oscilloscope);
+    setModuleHelp("Oscilloscope",
+        "Shows the signal waveform. Sync stabilizes repeating shapes, Stereo combines left and right, and Freeze captures the current view.");
 
     leftOscilloscope->setTraceColour(moduleType_colors.at(ModuleType::Oscilloscope));
     rightOscilloscope->setTraceColour(moduleType_colors.at(ModuleType::Oscilloscope).interpolatedWith(juce::Colours::white, 0.55f));

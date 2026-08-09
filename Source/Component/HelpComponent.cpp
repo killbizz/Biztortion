@@ -31,24 +31,14 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 HelpComponent::HelpComponent()
 {
-	one.setFont(juce::Font("Courier New", 22, 0));
-	one.setText("1)", juce::dontSendNotification);
-
-	firstRow.setText("This software is an open-source modular distortion plugin, click on the \"About\" button for more info about author's works", juce::dontSendNotification);
-	firstRow.setFont(juce::Font("Courier New", 18, 0));
-
-
-	two.setFont(juce::Font("Courier New", 22, 0));
-	two.setText("2)", juce::dontSendNotification);
-
-	secondRow.setText("Use the slots below to link modules in series and create your own custom processing chain. You can also drag-and-drop the modules to change their position", juce::dontSendNotification);
-	secondRow.setFont(juce::Font("Courier New", 18, 0));
-
-	three.setFont(juce::Font("Courier New", 22, 0));
-	three.setText("3)", juce::dontSendNotification);
-
-	thirdRow.setText("If you need help with some module features go over the parameter in order to see a tooltip", juce::dontSendNotification);
-	thirdRow.setFont(juce::Font("Courier New", 18, 0));
+	description.setText(
+		"Build a custom distortion chain by adding processors to the slots below. "
+		"Signal flows from left to right; select a slot to edit it and drag slots to reorder them. "
+		"Hover a control or use a module's ? button whenever you need a quick explanation.",
+		juce::dontSendNotification);
+	description.setFont(juce::Font("Segoe UI", 16.0f, juce::Font::plain));
+	description.setColour(juce::Label::textColourId, juce::Colour(238, 240, 242));
+	description.setJustificationType(juce::Justification::centredLeft);
 
 	for (auto* comp : getComps())
 	{
@@ -58,45 +48,12 @@ HelpComponent::HelpComponent()
 
 void HelpComponent::resized()
 {
-	auto helpArea = getBounds();
-
-	auto numbersArea = helpArea.removeFromLeft(helpArea.getWidth() * (1.f / 10.f));
-
-	auto oneArea = numbersArea.removeFromTop(numbersArea.getHeight() * (1.f / 3.f));
-	auto twoArea = numbersArea.removeFromTop(numbersArea.getHeight() * (1.f / 2.f));
-	auto threeArea = numbersArea;
-
-	auto firstRowArea = helpArea.removeFromTop(helpArea.getHeight() * (1.f / 3.f));
-	auto secondRowArea = helpArea.removeFromTop(helpArea.getHeight() * (1.f / 2.f));
-	auto thirdRowArea = helpArea;
-
-	one.setBounds(oneArea);
-	one.setJustificationType(juce::Justification::centred);
-
-	two.setBounds(twoArea);
-	two.setJustificationType(juce::Justification::centred);
-
-	three.setBounds(threeArea);
-	three.setJustificationType(juce::Justification::centred);
-
-	firstRow.setBounds(firstRowArea);
-	firstRow.setJustificationType(juce::Justification::centredLeft);
-
-	secondRow.setBounds(secondRowArea);
-	secondRow.setJustificationType(juce::Justification::centredLeft);
-
-	thirdRow.setBounds(thirdRowArea);
-	thirdRow.setJustificationType(juce::Justification::centredLeft);
+	description.setBounds(getLocalBounds().reduced(16, 10));
 }
 
 std::vector<juce::Component*> HelpComponent::getComps()
 {
 	return {
-		&one,
-		&two,
-		&three,
-		&firstRow,
-		&secondRow,
-		&thirdRow
+		&description
 	};
 }

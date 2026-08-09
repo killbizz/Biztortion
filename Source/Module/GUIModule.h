@@ -59,10 +59,16 @@ protected:
     juce::Rectangle<int> getContentRenderArea();
     juce::Rectangle<int> getContainerArea();
     virtual void drawContainer(juce::Graphics& g);
-  void applyModuleAccentToSliders();
+    void applyModuleAccentToSliders();
+    void setModuleHelp(juce::String title, juce::String description);
 
     juce::Colour moduleColor;
     unsigned int brightnessCounter;
     int addingFactor = 1;
     juce::NormalisableRange<float> remapper;
+
+  private:
+    juce::TextButton moduleHelpButton { "?" };
+    juce::String moduleHelpTitle;
+    juce::String moduleHelpDescription;
 };

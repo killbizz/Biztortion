@@ -95,6 +95,7 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
         rightCable = getRightCable(chainPosition);
         guiState.editor.addAndMakeVisible(*rightCable);
         rightCable->setAlwaysOnTop(true);
+        startTimerHz(30);
     }
 
     // Drag-And-Drop Icon
@@ -174,11 +175,11 @@ void ChainModuleGUI::deleteTheCurrentChainModule()
 void ChainModuleGUI::paint(juce::Graphics& g)
 {
     drawContainer(g);
-    // draw a red line around the comp if the user's currently dragging something over it..
+    // draw a white line around the comp if the user's currently dragging something over it..
     if (somethingIsBeingDraggedOver)
     {
-        g.setColour(Colours::red);
-        g.drawRect(getLocalBounds(), 3);
+        g.setColour(Colours::white);
+        g.drawRect(getLocalBounds(), 3);    
     }
 }
 
@@ -220,7 +221,17 @@ void ChainModuleGUI::resized()
     }
 }
 
-void ChainModuleGUI::timerCallback() {}
+void ChainModuleGUI::timerCallback()
+{
+    if (rightCable == nullptr)
+        return;
+
+    const auto seconds = juce::Time::getMillisecondCounterHiRes() * 0.001;
+    const auto phase = juce::MathConstants<double>::twoPi
+        * (seconds * 0.72 - static_cast<double>(chainPosition - 1) * 0.13);
+    const auto wave = 0.5 + 0.5 * std::sin(phase);
+    rightCable->setAlpha(static_cast<float>(0.28 + 0.72 * wave * wave));
+}
 
 std::vector<juce::Component*> ChainModuleGUI::getAllComps()
 {
@@ -291,6 +302,8 @@ void ChainModuleGUI::setupCurrentModuleActivatorColours(juce::LookAndFeel& laf)
 
     laf.setColour(juce::TextButton::buttonOnColourId, moduleType_colors.at(moduleType));
     laf.setColour(juce::TextButton::textColourOnId, juce::Colours::black);
+    currentModuleActivator.setColour(BiztortionTheme::accentOutlineColourId,
+                                     moduleType_colors.at(moduleType));
 }
 
 void ChainModuleGUI::setup(const ModuleType type)
@@ -492,19 +505,9 @@ juce::AffineTransform ChainModuleGUI::getCableTransform()
 
 std::unique_ptr<Drawable> ChainModuleGUI::getRightCable(unsigned int chainPosition)
 {
-    switch (chainPosition) {
-
-        case 1: return juce::Drawable::createFromImageData(BinaryData::magentaCable_svg , BinaryData::magentaCable_svgSize);
-        case 2: return juce::Drawable::createFromImageData(BinaryData::cyanCable_svg , BinaryData::cyanCable_svgSize);
-        case 3: return juce::Drawable::createFromImageData(BinaryData::yellowCable_svg, BinaryData::yellowCable_svgSize);
-        case 4: return juce::Drawable::createFromImageData(BinaryData::violetCable_svg, BinaryData::violetCable_svgSize);
-        case 5: return juce::Drawable::createFromImageData(BinaryData::orangeCable_svg, BinaryData::orangeCable_svgSize);
-        case 6: return juce::Drawable::createFromImageData(BinaryData::blueCable_svg, BinaryData::blueCable_svgSize);
-        case 7: return juce::Drawable::createFromImageData(BinaryData::redCable_svg, BinaryData::redCable_svgSize);
-
-        default: return nullptr;
-    }
-    
+    juce::ignoreUnused(chainPosition);
+    return juce::Drawable::createFromImageData(BinaryData::whiteCable_svg,
+                                                BinaryData::whiteCable_svgSize);
 }
 
 void ChainModuleGUI::drawContainer(juce::Graphics& g)
@@ -512,8 +515,11 @@ void ChainModuleGUI::drawContainer(juce::Graphics& g)
     auto container = getContainerArea().toFloat();
     g.setColour(BiztortionTheme::surface);
     g.fillRoundedRectangle(container, 7.0f);
-    g.setColour(somethingIsBeingDraggedOver ? BiztortionTheme::controlAccent : BiztortionTheme::border);
-    g.drawRoundedRectangle(container, 7.0f, somethingIsBeingDraggedOver ? 2.0f : 1.0f);
+    const auto showModuleOutline = moduleType != ModuleType::Uninstantiated
+        && !currentModuleActivator.getToggleState();
+    g.setColour(showModuleOutline ? moduleType_colors.at(moduleType) : BiztortionTheme::border);
+    g.drawRoundedRectangle(container, 7.0f,
+                           somethingIsBeingDraggedOver || showModuleOutline ? 2.0f : 1.0f);
 
     if (moduleType != ModuleType::Uninstantiated)
     {

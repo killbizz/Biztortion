@@ -246,6 +246,8 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     title.setFont(ModuleLookAndFeel::getTitlesFont());
 
     moduleColor = moduleType_colors.at(ModuleType::SlewLimiter);
+    setModuleHelp("Slew Limiter",
+        "Limits how quickly the waveform can rise and fall. Slow settings round transients into smooth distortion; different Rise and Fall values create asymmetry.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -307,6 +309,7 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     slewLimiterRiseSlider.setTooltip("Set the maximum change speed of the waveform during the rising phase");
     slewLimiterFallSlider.setTooltip("Set the maximum change speed of the waveform during the falling phase");
     DCoffsetEnabledButtonLabel.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
+    DCoffsetEnabledButton.setTooltip("Enable a low-frequency highpass filter to remove any DC offset in the signal");
 
     for (auto* comp : getAllComps())
     {
@@ -426,11 +429,15 @@ void SlewLimiterModuleGUI::resized()
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
     juce::Rectangle<int> temp;
 
-    slewLimiterArea.translate(0, 8);
+    slewLimiterArea.reduce(8, 12);
 
     auto topArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 3.f));
     auto middleArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 2.f));
     auto bottomArea = slewLimiterArea;
+
+    topArea.reduce(0, 4);
+    middleArea.reduce(0, 4);
+    bottomArea.reduce(0, 4);
 
     auto topLabelsArea = topArea.removeFromTop(14);
     auto middleLabelsArea = middleArea.removeFromTop(14);
@@ -459,39 +466,35 @@ void SlewLimiterModuleGUI::resized()
     auto fallArea = bottomArea;
 
     juce::Rectangle<int> renderArea;
-    renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
-    renderArea.reduce(25, 25);
+    const auto knobSize = juce::jmin(fxDistributionArea.getWidth() - 40,
+        juce::jmin(topArea.getHeight(), juce::jmin(middleArea.getHeight(), bottomArea.getHeight())) - 6);
+    renderArea.setSize(knobSize, knobSize);
 
     title.setBounds(titleAndBypassArea);
     title.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(driveArea.getCentre());
-    renderArea.setY(driveArea.getTopLeft().getY());
     driveSlider.setBounds(renderArea);
     driveLabel.setBounds(driveLabelArea);
     driveLabel.setJustificationType(juce::Justification::centred);
 
 
     renderArea.setCentre(mixArea.getCentre());
-    renderArea.setY(mixArea.getTopLeft().getY());
     mixSlider.setBounds(renderArea);
     mixLabel.setBounds(mixLabelArea);
     mixLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(fxDistributionArea.getCentre());
-    renderArea.setY(fxDistributionArea.getTopLeft().getY());
     fxDistributionSlider.setBounds(renderArea);
     fxDistributionLabel.setBounds(fxDistributionLabelArea);
     fxDistributionLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(biasArea.getCentre());
-    renderArea.setY(biasArea.getTopLeft().getY());
     biasSlider.setBounds(renderArea);
     biasLabel.setBounds(biasLabelArea);
     biasLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(symmetryArea.getCentre());
-    renderArea.setY(symmetryArea.getTopLeft().getY());
     symmetrySlider.setBounds(renderArea);
     symmetryLabel.setBounds(symmetryLabelArea);
     symmetryLabel.setJustificationType(juce::Justification::centred);
@@ -513,13 +516,11 @@ void SlewLimiterModuleGUI::resized()
     // renderArea.setSize(riseArea.getHeight(), riseArea.getHeight());
 
     renderArea.setCentre(riseArea.getCentre());
-    renderArea.setY(riseArea.getTopLeft().getY());
     slewLimiterRiseSlider.setBounds(renderArea);
     slewLimiterRiseLabel.setBounds(riseLabelArea);
     slewLimiterRiseLabel.setJustificationType(juce::Justification::centred);
 
     renderArea.setCentre(fallArea.getCentre());
-    renderArea.setY(fallArea.getTopLeft().getY());
     slewLimiterFallSlider.setBounds(renderArea);
     slewLimiterFallLabel.setBounds(fallLabelArea);
     slewLimiterFallLabel.setJustificationType(juce::Justification::centred);

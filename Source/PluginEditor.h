@@ -92,12 +92,56 @@ private:
         BiztortionAudioProcessorEditor& editor;
     };
 
+      class HeaderIconButton : public juce::Button
+      {
+      public:
+        enum class Icon { help, github };
+
+        explicit HeaderIconButton(Icon iconToDraw)
+          : juce::Button(iconToDraw == Icon::help ? "Help" : "GitHub"), icon(iconToDraw) {}
+
+        void paintButton(juce::Graphics& g, bool highlighted, bool down) override
+        {
+          auto bounds = getLocalBounds().toFloat().reduced(1.0f);
+          g.setColour((highlighted ? BiztortionTheme::surfaceRaised.brighter(0.12f)
+                       : BiztortionTheme::surfaceRaised)
+                  .withMultipliedBrightness(down ? 0.85f : 1.0f));
+          g.fillRoundedRectangle(bounds, 6.0f);
+          g.setColour(highlighted ? BiztortionTheme::controlAccent : BiztortionTheme::border);
+          g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+          g.setColour(BiztortionTheme::text);
+
+          if (icon == Icon::help)
+          {
+            g.setFont(juce::Font("Segoe UI", 18.0f, juce::Font::bold));
+            g.drawText("?", getLocalBounds(), juce::Justification::centred);
+            return;
+          }
+
+          const auto centre = bounds.getCentre();
+          juce::Path branch;
+          branch.startNewSubPath(centre.x - 5.0f, centre.y - 7.0f);
+          branch.lineTo(centre.x - 5.0f, centre.y + 7.0f);
+          branch.startNewSubPath(centre.x - 5.0f, centre.y);
+          branch.cubicTo(centre.x + 5.0f, centre.y, centre.x + 5.0f, centre.y - 4.0f,
+                   centre.x + 5.0f, centre.y - 7.0f);
+          g.strokePath(branch, juce::PathStrokeType(1.8f, juce::PathStrokeType::curved));
+          for (auto point : { juce::Point<float>(centre.x - 5.0f, centre.y - 7.0f),
+                    juce::Point<float>(centre.x - 5.0f, centre.y + 7.0f),
+                    juce::Point<float>(centre.x + 5.0f, centre.y - 7.0f) })
+            g.fillEllipse(point.x - 2.2f, point.y - 2.2f, 4.4f, 4.4f);
+        }
+
+      private:
+        Icon icon;
+      };
+
     TitleLabel title;
 
     juce::TooltipWindow tooltipWindow;
 
-    juce::HyperlinkButton helpButton;
-    juce::HyperlinkButton githubLink;
+    HeaderIconButton helpButton { HeaderIconButton::Icon::help };
+    HeaderIconButton githubLink { HeaderIconButton::Icon::github };
 
     std::unique_ptr<AlertWindow> asyncAlertWindow;
     HelpComponent helpComponent;

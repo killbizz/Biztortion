@@ -41,7 +41,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProcessor& ap, PluginState& ps)
-    : AudioProcessorEditor (&ap), guiState(*this, ps), githubLink("About", {"https://github.com/killbizz"}), title("Biztortion", *this)
+    : AudioProcessorEditor (&ap), guiState(*this, ps), title("Biztortion", *this)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -55,15 +55,12 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProce
 
     tooltipWindow.setLookAndFeel(&laf);
 
-    helpButton.setFont(juce::Font("Segoe UI", 14, juce::Font::plain), true);
-    helpButton.setButtonText("Help");
-    helpButton.setTooltip("Show some useful informations about this software");
-    helpButton.setColour(juce::HyperlinkButton::textColourId, juce::Colours::white);
+    helpButton.setTooltip("About Biztortion");
     addAndMakeVisible(helpButton);
 
     helpButton.onClick = [this] {
-        helpComponent.setBounds(0, 0, 450, 250);
-        asyncAlertWindow = std::make_unique<AlertWindow>("Welcome to Biztortion!",
+        helpComponent.setBounds(0, 0, 430, 125);
+        asyncAlertWindow = std::make_unique<AlertWindow>("Biztortion",
             "",
             MessageBoxIconType::NoIcon);
         asyncAlertWindow->setLookAndFeel(&laf);
@@ -71,15 +68,15 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProce
         asyncAlertWindow->addCustomComponent(&helpComponent);
 
         // setting colors
-        asyncAlertWindow->setColour(juce::AlertWindow::backgroundColourId, juce::Colours::darkgrey.withAlpha(0.75f));
-        asyncAlertWindow->setColour(juce::AlertWindow::textColourId, juce::Colours::white);
-        asyncAlertWindow->setColour(juce::AlertWindow::outlineColourId, juce::Colours::black);
+        asyncAlertWindow->setColour(juce::AlertWindow::backgroundColourId, BiztortionTheme::surface);
+        asyncAlertWindow->setColour(juce::AlertWindow::textColourId, BiztortionTheme::text);
+        asyncAlertWindow->setColour(juce::AlertWindow::outlineColourId, BiztortionTheme::border);
 
         asyncAlertWindow->enterModalState(true, ModalCallbackFunction::create(AsyncAlertBoxResult{ *this }));
     };
 
-    githubLink.setFont(juce::Font("Segoe UI", 14, juce::Font::plain), true);
-    githubLink.setColour(juce::HyperlinkButton::textColourId, BiztortionTheme::textMuted);
+    githubLink.setTooltip("Open the Biztortion GitHub repository");
+    githubLink.onClick = [] { juce::URL("https://github.com/killbizz").launchInDefaultBrowser(); };
     addAndMakeVisible(githubLink);
 
     setSize(1120, 720);
@@ -114,16 +111,16 @@ void BiztortionAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
     auto bounds = getLocalBounds().reduced(10);
-    auto header = bounds.removeFromTop(42);
+    auto header = bounds.removeFromTop(32);
     auto titleBounds = header.withSizeKeepingCentre(260, header.getHeight());
 
     title.setBounds(titleBounds);
     title.setJustificationType(juce::Justification::centred);
 
-    helpButton.setBounds(header.removeFromLeft(90));
-    githubLink.setBounds(header.removeFromRight(90));
+    helpButton.setBounds(header.removeFromLeft(32));
+    githubLink.setBounds(header.removeFromRight(32));
 
-    bounds.removeFromTop(8);
+    bounds.removeFromTop(20);
     auto chainArea = bounds.removeFromBottom(170);
     bounds.removeFromBottom(8);
     auto inputMeterArea = bounds.removeFromLeft(148);
