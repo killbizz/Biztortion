@@ -64,6 +64,13 @@ private:
 
     unsigned int hueCounter;
 
+    // laid out in resized(): the logo column and the getting started column
+    juce::Rectangle<float> logoArea, guideArea;
+    // 1.0 at the smallest allowed window, growing with it so the panel scales as a whole
+    float contentScale = 1.0f;
+
+    void drawGettingStarted(juce::Graphics& g);
+
 protected:
 
     void drawContainer(juce::Graphics& g) override;

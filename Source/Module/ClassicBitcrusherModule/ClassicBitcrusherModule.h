@@ -42,7 +42,9 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
+#include "../../Component/WaveShapeVisualiser.h"
 #include "../../Shared/GUIStuff.h"
+#include "../../Shared/SharedParamsLayout.h"
 #include "../../Module/DSPModule.h"
 #include "../../Module/GUIModule.h"
 #include "../../Shared/PluginState.h"
@@ -115,8 +117,14 @@ private:
     using ButtonAttachment = APVTS::ButtonAttachment;
 
     PluginState& pluginState;
+    unsigned int parameterNumber;
 
     juce::Label title;
+
+    // left: what the bitcrusher itself is doing; centre of the hexagon: what the shared
+    // drive/mix/distribution/bias/symmetry/dc parameters are doing
+    std::unique_ptr<WaveShapeVisualiser> moduleGraph;
+    std::unique_ptr<WaveShapeVisualiser> sharedParamsGraph;
 
     juce::Label driveLabel,
         mixLabel,

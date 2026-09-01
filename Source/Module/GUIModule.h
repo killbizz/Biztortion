@@ -32,11 +32,15 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include <JuceHeader.h>
 
 #include <random>
+#include <vector>
+
+#include "../Component/HelpComponent.h"
+#include "../Shared/GUIStuff.h"
 
 class GUIModule : public juce::Component, public juce::Timer {
 public:
     GUIModule();
-    virtual ~GUIModule() = default;
+    virtual ~GUIModule();
     void handleParamCompsEnablement(bool bypass);
 
     // basic GUImodule painting (a single GUImodule can override this method to generate a more complex paint method)
@@ -55,6 +59,13 @@ public:
     // get parameter values of this GUIModule (vars in the array can be bool or double values)
     virtual juce::Array<juce::var> getParamValues() = 0;
 
+    // size of the module header buttons (bypass, help): keeps every module header coherent
+    static constexpr int headerButtonSize = 28;
+    // horizontal gap kept around the help button, so it never crowds a module's own controls
+    static constexpr int headerButtonGap = 8;
+    // width a module's resized() must leave free on the right of its header for the help button
+    static constexpr int headerHelpButtonArea = headerButtonSize + headerButtonGap * 2;
+
 protected:
     juce::Rectangle<int> getContentRenderArea();
     juce::Rectangle<int> getContainerArea();
@@ -62,13 +73,32 @@ protected:
     void applyModuleAccentToSliders();
     void setModuleHelp(juce::String title, juce::String description);
 
+    // Module-specific parameter clusters (e.g. rise/fall of the slew limiter). They are painted
+    // as a subtle tinted plate behind the knobs so they read apart from the shared parameters
+    // (drive, mix, fx distribution, fx bias, symmetry, dc filter) without adding visual noise.
+    // Call from resized(), after the knob areas have been computed.
+    void clearParameterGroups();
+    void addParameterGroup(juce::Rectangle<int> area);
+
     juce::Colour moduleColor;
     unsigned int brightnessCounter;
     int addingFactor = 1;
     juce::NormalisableRange<float> remapper;
 
   private:
+    void showModuleHelpWindow();
+    void drawParameterGroups(juce::Graphics& g);
+
     juce::TextButton moduleHelpButton { "?" };
     juce::String moduleHelpTitle;
     juce::String moduleHelpDescription;
+
+    GlyphButtonLookAndFeel moduleHelpButtonLookAndFeel;
+
+    // rendered with the same look as the plugin's "About Biztortion" window
+    ModuleLookAndFeel helpWindowLookAndFeel;
+    std::unique_ptr<HelpComponent> moduleHelpComponent;
+    std::unique_ptr<juce::AlertWindow> moduleHelpWindow;
+
+    std::vector<juce::Rectangle<int>> parameterGroups;
 };

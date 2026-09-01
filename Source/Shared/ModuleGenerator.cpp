@@ -61,6 +61,10 @@ DSPModule* ModuleGenerator::createDSPModule(ModuleType mt)
         newModule = new SlewLimiterModuleDSP(pluginState.apvts);
         break;
     }
+    case ModuleType::SpectrumAnalyzer: {
+        newModule = new SpectrumAnalyzerModuleDSP(pluginState.apvts);
+        break;
+    }
     default:
         break;
     }
@@ -91,9 +95,7 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
                 }
             }
             newModule = new OscilloscopeModuleGUI(pluginState,
-                oscilloscopeDSPModule->getLeftOscilloscope(),
-                oscilloscopeDSPModule->getRightOscilloscope(),
-                oscilloscopeDSPModule->getStereoOscilloscope(),
+                oscilloscopeDSPModule->getSampleBuffer(),
                 parameterNumber);
             break;
         }
@@ -115,6 +117,10 @@ GUIModule* ModuleGenerator::createGUIModule(ModuleType type, unsigned int parame
         }
         case ModuleType::SlewLimiter: {
             newModule = new SlewLimiterModuleGUI(pluginState, parameterNumber);
+            break;
+        }
+        case ModuleType::SpectrumAnalyzer: {
+            newModule = new SpectrumAnalyzerModuleGUI(pluginState, parameterNumber);
             break;
         }
         default:

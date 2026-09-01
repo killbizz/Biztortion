@@ -31,18 +31,31 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
+// Shared body of every help dialog: the plugin "About Biztortion" window and each
+// module's "?" window use this component so they all render with the same style.
 class HelpComponent : public juce::Component
 {
 public:
 	//==============================================================================
+	// default text = the plugin overview shown by the "About Biztortion" button
 	HelpComponent();
+	explicit HelpComponent(const juce::String& descriptionText);
+
+	void setDescription(const juce::String& descriptionText);
+	// height needed to show the current text at the given width, for sizing the dialog
+	int getPreferredHeightForWidth(int width) const;
 
 	void paint(juce::Graphics& g) override {};
 	void resized() override;
 
 	std::vector<juce::Component*> getComps();
 
+	static constexpr int horizontalMargin = 16;
+	static constexpr int verticalMargin = 10;
+
 private:
+	void applyStyle();
+
 	juce::Label description;
 
 	//==============================================================================

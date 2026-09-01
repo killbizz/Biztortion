@@ -62,6 +62,36 @@ GUIState::GUIState(juce::AudioProcessorEditor& ape, PluginState& ps)
     {
         editor.addAndMakeVisible(**it);
     }
+
+    // NOTE: restoreLastViewedModule() must NOT be called here. GUIState is the editor's first
+    // member, so the editor's own components (title, header buttons) do not exist yet, and
+    // restoring triggers editor.resized(). The editor calls it once it is fully constructed.
+}
+
+void GUIState::restoreLastViewedModule()
+{
+    const int chainPosition = pluginState.lastViewedChainPosition.getValue();
+
+    if (chainPosition < 1 || chainPosition > static_cast<int>(chainModules.size()))
+        return;
+
+    auto& chainModule = *chainModules[chainPosition - 1];
+
+    if (chainModule.getModuleType() == ModuleType::Uninstantiated)
+        return;
+
+    chainModule.openInMainView();
+}
+
+void GUIState::setLastViewedChainPosition(int chainPosition)
+{
+    pluginState.lastViewedChainPosition.setValue(chainPosition);
+}
+
+void GUIState::showWelcomeModule()
+{
+    updateCurrentGUIModule(new WelcomeModuleGUI());
+    setLastViewedChainPosition(0);
 }
 
 void GUIState::setupChainModules()
@@ -92,5 +122,8 @@ void GUIState::updateChainModules()
         (**it).deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
         (**it).dragIcon->setVisible(false);
         (**it).chainPositionLabel.setVisible(true);
+        // the slot outline depends on the selection, and toggling a child button only repaints
+        // that child's area, so the whole slot has to be refreshed explicitly
+        (**it).repaint();
     }
 }

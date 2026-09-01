@@ -31,6 +31,103 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <algorithm>
 
+//==============================================================================
+
+CableComponent::CableComponent()
+{
+    // purely decorative: never steal clicks from the chain slots underneath
+    setInterceptsMouseClicks(false, false);
+}
+
+void CableComponent::setAnimationPhase(float newPhase)
+{
+    newPhase = juce::jlimit(0.0f, 1.0f, newPhase);
+
+    if (! juce::approximatelyEqual(phase, newPhase))
+    {
+        phase = newPhase;
+        repaint();
+    }
+}
+
+void CableComponent::paint(juce::Graphics& g)
+{
+    const auto bounds = getLocalBounds().toFloat();
+
+    if (bounds.isEmpty())
+        return;
+
+    const auto scaleX = bounds.getWidth() / artworkWidth;
+    const auto scaleY = bounds.getHeight() / artworkHeight;
+    // stroke widths cannot be scaled per-axis, so use the smaller factor for them
+    const auto strokeScale = juce::jmin(scaleX, scaleY);
+    const auto toComponent = juce::AffineTransform::scale(scaleX, scaleY);
+
+    const juce::Point<float> leftPlug(48.2f, 48.2f);
+    const juce::Point<float> rightPlug(382.65f, 49.25f);
+
+    juce::Path cable;
+    cable.startNewSubPath(leftPlug);
+    cable.cubicTo({ 48.2f, 146.0f }, { 382.65f, 146.0f }, rightPlug);
+    cable.applyTransform(toComponent);
+
+    const juce::PathStrokeType bodyStroke(46.0f * strokeScale,
+        juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
+
+    juce::Path bodyShape;
+    bodyStroke.createStrokedPath(bodyShape, cable);
+
+    // --- cable body: white, brightening and dimming along its length as a sine that travels
+    // left to right, so the eye follows the audio down the chain. Filling the stroked shape
+    // with a horizontal gradient keeps it smooth: drawing it as separate segments would band
+    // where their round caps overlap.
+    const auto brightnessAt = [this](float proportion) {
+        const auto wave = 0.5f + 0.5f * std::sin(juce::MathConstants<float>::twoPi
+                                                 * (proportion - phase));
+        return juce::Colours::white.withAlpha(0.22f + 0.78f * wave);
+    };
+
+    constexpr int gradientStops = 24;
+    juce::ColourGradient flow(brightnessAt(0.0f), bounds.getX(), 0.0f,
+                              brightnessAt(1.0f), bounds.getRight(), 0.0f, false);
+
+    for (int stop = 1; stop < gradientStops; ++stop)
+    {
+        const auto proportion = (float) stop / (float) gradientStops;
+        flow.addColour(proportion, brightnessAt(proportion));
+    }
+
+    g.setGradientFill(flow);
+    g.fillPath(bodyShape);
+
+    // --- outline: a hairline that stays solid white while the body dims ---
+    g.setColour(juce::Colours::white);
+    g.strokePath(bodyShape, juce::PathStrokeType(0.5f));
+
+    // --- plugs: stable white rounded ends ---
+    const auto plugRadius = 38.5f * strokeScale;
+    const auto plugRingWidth = 7.5f * strokeScale;
+    const auto plugCoreRadius = 15.0f * strokeScale;
+
+    for (const auto& plug : { leftPlug, rightPlug })
+    {
+        const auto centre = plug.transformedBy(toComponent);
+        const auto ring = juce::Rectangle<float>(plugRadius * 2.0f, plugRadius * 2.0f)
+                              .withCentre(centre);
+
+        g.setColour(BiztortionTheme::canvas);
+        g.fillEllipse(ring);
+        g.setColour(juce::Colours::white);
+        g.drawEllipse(ring.reduced(plugRingWidth * 0.5f), plugRingWidth);
+
+        g.setColour(juce::Colours::white.withAlpha(0.85f));
+        g.fillEllipse(juce::Rectangle<float>(plugCoreRadius * 2.0f, plugCoreRadius * 2.0f)
+                          .withCentre(centre));
+    }
+}
+
+//==============================================================================
+
 ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chainPosition)
     : GUIModule(), pluginState(ps), guiState(gs), chainPosition(_chainPosition), moduleGenerator(pluginState)
 {
@@ -69,6 +166,39 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     currentModuleActivator.setClickingTogglesState(true);
     currentModuleActivator.setToggleState(false, juce::dontSendNotification);
     currentModuleActivator.setTooltip("Access this module");
+    currentModuleActivator.setWantsKeyboardFocus(true);
+    currentModuleActivator.onRenameRequested = [this] { beginRenaming(); };
+
+    // rename editor, shown on top of the slot button only while renaming
+    addChildComponent(renameLabel);
+    renameLabel.setEditable(true);
+    renameLabel.setJustificationType(juce::Justification::centred);
+    renameLabel.setFont(ModuleLookAndFeel::getLabelsFont());
+    renameLabel.setColour(juce::Label::backgroundColourId, BiztortionTheme::surfaceRaised);
+    renameLabel.setColour(juce::Label::textColourId, BiztortionTheme::text);
+    renameLabel.setColour(juce::Label::backgroundWhenEditingColourId, BiztortionTheme::surfaceRaised);
+    renameLabel.setColour(juce::Label::textWhenEditingColourId, BiztortionTheme::text);
+    renameLabel.onEditorHide = [this] { commitRename(); };
+
+    // juce::Label's editor keeps its own colours and justification, so style it when it appears
+    renameLabel.onEditorShow = [this] {
+        if (auto* editor = renameLabel.getCurrentTextEditor())
+        {
+            const auto accent = moduleType == ModuleType::Uninstantiated
+                ? BiztortionTheme::controlAccent
+                : moduleType_colors.at(moduleType);
+
+            editor->setJustification(juce::Justification::centred);
+            editor->setFont(ModuleLookAndFeel::getLabelsFont());
+            editor->setColour(juce::TextEditor::backgroundColourId, BiztortionTheme::surfaceRaised);
+            editor->setColour(juce::TextEditor::textColourId, BiztortionTheme::text);
+            editor->setColour(juce::TextEditor::outlineColourId, accent);
+            editor->setColour(juce::TextEditor::focusedOutlineColourId, accent);
+            editor->setColour(juce::TextEditor::highlightColourId, accent.withAlpha(0.35f));
+            editor->setColour(juce::TextEditor::highlightedTextColourId, BiztortionTheme::canvas);
+            editor->setSelectAllWhenFocused(true);
+        }
+    };
 
     setupCurrentModuleActivatorColours(currentModuleActivatorLookAndFeel);
     currentModuleActivator.setLookAndFeel(&currentModuleActivatorLookAndFeel);
@@ -85,14 +215,12 @@ ChainModuleGUI::ChainModuleGUI(PluginState& ps, GUIState& gs, unsigned int _chai
     };
 
     currentModuleActivator.onClick = [this] {
-        addModuleToGUI(moduleGenerator.createGUIModule(moduleType, pluginState.getParameterNumberFromDSPmodule(moduleType, getChainPosition())));
-        dragIcon->setVisible(true);
-        chainPositionLabel.setVisible(false);
+        openInMainView();
     };
 
     // Audio Cables
     if (chainPosition != 8) {
-        rightCable = getRightCable(chainPosition);
+        rightCable = std::make_unique<CableComponent>();
         guiState.editor.addAndMakeVisible(*rightCable);
         rightCable->setAlwaysOnTop(true);
         startTimerHz(30);
@@ -149,6 +277,9 @@ void ChainModuleGUI::deleteTheCurrentChainModule()
     GUIModule* guiModule = moduleGenerator.createGUIModule(moduleType, thisParamNumber);
     guiModule->resetParameters(thisParamNumber);
     delete guiModule;
+    // a deleted module must not leave its custom name behind for the next module reusing
+    // the same type/parameter number
+    pluginState.clearModuleCustomName(moduleType, thisParamNumber);
     // setup GUI
     bool atLeastOneChainModuleIsPresent = false;
     for (auto it = guiState.chainModules.begin(); !atLeastOneChainModuleIsPresent && it < guiState.chainModules.end(); ++it) {
@@ -162,7 +293,7 @@ void ChainModuleGUI::deleteTheCurrentChainModule()
         }
     }
     if (!atLeastOneChainModuleIsPresent) {
-        guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
+        guiState.showWelcomeModule();
     }
     // remove DSP module
     pluginState.removeModuleFromDSPmodules(getChainPosition());
@@ -215,9 +346,9 @@ void ChainModuleGUI::resized()
         deleteModule.setBounds(actionArea.removeFromLeft(28));
     }
 
-    // Audio Cables 
+    // Audio Cables
     if (chainPosition != 8) {
-        rightCable->setTransform(getCableTransform());
+        rightCable->setBounds(getCableBounds());
     }
 }
 
@@ -226,11 +357,13 @@ void ChainModuleGUI::timerCallback()
     if (rightCable == nullptr)
         return;
 
+    // 0.36 rev/s: half the previous 0.72 speed. The offset per chain position keeps the
+    // pulse travelling along the chain instead of every cable blinking in unison.
     const auto seconds = juce::Time::getMillisecondCounterHiRes() * 0.001;
-    const auto phase = juce::MathConstants<double>::twoPi
-        * (seconds * 0.72 - static_cast<double>(chainPosition - 1) * 0.13);
-    const auto wave = 0.5 + 0.5 * std::sin(phase);
-    rightCable->setAlpha(static_cast<float>(0.28 + 0.72 * wave * wave));
+    auto phase = seconds * 0.36 - static_cast<double>(chainPosition - 1) * 0.13;
+    phase -= std::floor(phase);
+
+    rightCable->setAnimationPhase(static_cast<float>(phase));
 }
 
 std::vector<juce::Component*> ChainModuleGUI::getAllComps()
@@ -244,13 +377,26 @@ void ChainModuleGUI::showNewModuleMenu()
 {
     juce::PopupMenu menu;
     menu.setLookAndFeel(&newModuleSelectorLookAndFeel);
-    menu.addItem(ModuleType::Oscilloscope, "Oscilloscope");
-    menu.addItem(ModuleType::Equalizer, "Equalizer");
+
+    // each entry carries the module's chain colour, so the menu also teaches the colour coding
+    const auto addModuleItem = [&menu](ModuleType type, const juce::String& name) {
+        menu.addCustomItem(type,
+            std::make_unique<ModuleMenuItemComponent>(moduleType_colors.at(type), name),
+            nullptr, name);
+    };
+
+    menu.addSectionHeader("Analysis");
+    addModuleItem(ModuleType::Oscilloscope, "Oscilloscope");
+    addModuleItem(ModuleType::SpectrumAnalyzer, "Spectrum Analyzer");
     menu.addSeparator();
-    menu.addItem(ModuleType::Waveshaper, "Waveshaper");
-    menu.addItem(ModuleType::ClassicBitcrusher, "Classic Bitcrusher");
-    menu.addItem(ModuleType::SpectrumBitcrusher, "Spectrum Bitcrusher");
-    menu.addItem(ModuleType::SlewLimiter, "Slew Limiter");
+    menu.addSectionHeader("Tone");
+    addModuleItem(ModuleType::Equalizer, "Equalizer");
+    menu.addSeparator();
+    menu.addSectionHeader("Distortion");
+    addModuleItem(ModuleType::Waveshaper, "Waveshaper");
+    addModuleItem(ModuleType::ClassicBitcrusher, "Classic Bitcrusher");
+    addModuleItem(ModuleType::SpectrumBitcrusher, "Spectrum Bitcrusher");
+    addModuleItem(ModuleType::SlewLimiter, "Slew Limiter");
 
     auto safePtr = juce::Component::SafePointer<ChainModuleGUI>(this);
     menu.showMenuAsync(juce::PopupMenu::Options()
@@ -312,6 +458,7 @@ void ChainModuleGUI::setup(const ModuleType type)
     moduleType = type;
     if (type == ModuleType::Uninstantiated) {
         bypassButtonAttachment.reset();
+        renameLabel.setVisible(false);
         chainPositionLabel.setVisible(true);
         newModule.setVisible(true);
         deleteModule.setVisible(false);
@@ -327,9 +474,8 @@ void ChainModuleGUI::setup(const ModuleType type)
         bypassButton.setVisible(true);
 
         dragIcon->setVisible(true);
-        juce::String typeString = moduleType_names.at(type);
         currentModuleActivator.setVisible(true);
-        currentModuleActivator.setButtonText(typeString);
+        updateModuleNameDisplay();
         bypassLookAndFeel.color = moduleType_colors.at(type);
         bypassButtonAttachment = std::make_unique<ButtonAttachment>(
             pluginState.apvts, getBypassParameterID(), bypassButton);
@@ -340,6 +486,7 @@ void ChainModuleGUI::setup(const ModuleType type)
     setupDeleteModuleColours(deleteModuleLookAndFeel);
 
     resized();
+    repaint();
 }
 
 juce::String ChainModuleGUI::getBypassParameterID() const
@@ -355,6 +502,7 @@ juce::String ChainModuleGUI::getBypassParameterID() const
         case ModuleType::ClassicBitcrusher:  return CLASSIC_BITCRUSHER_ID + "Bypassed " + number;
         case ModuleType::SpectrumBitcrusher: return SPECTRUM_BITCRUSHER_ID + "Bypassed " + number;
         case ModuleType::SlewLimiter:         return "SlewLimiter Bypassed " + number;
+        case ModuleType::SpectrumAnalyzer:    return "SpectrumAnalyzer Bypassed " + number;
         default:                              return {};
     }
 }
@@ -474,11 +622,77 @@ void ChainModuleGUI::mouseDrag(const MouseEvent& event)
 }
 
 
+unsigned int ChainModuleGUI::getParameterNumber() const
+{
+    return pluginState.getParameterNumberFromDSPmodule(moduleType, chainPosition);
+}
+
+// Shows the module name in the slot button, and keeps the tooltip in sync with it.
+void ChainModuleGUI::updateModuleNameDisplay()
+{
+    if (moduleType == ModuleType::Uninstantiated)
+        return;
+
+    const auto typeName = moduleType_names.at(moduleType);
+    const auto displayName = pluginState.getModuleDisplayName(moduleType, getParameterNumber());
+
+    currentModuleActivator.setButtonText(displayName);
+    currentModuleActivator.setTooltip("Access the " + displayName + " (" + typeName + ") module");
+}
+
+void ChainModuleGUI::beginRenaming()
+{
+    if (moduleType == ModuleType::Uninstantiated)
+        return;
+
+    renameLabel.setBounds(currentModuleActivator.getBounds());
+    renameLabel.setText(pluginState.getModuleDisplayName(moduleType, getParameterNumber()),
+                        juce::dontSendNotification);
+    renameLabel.setVisible(true);
+    renameLabel.toFront(true);
+    renameLabel.showEditor();
+}
+
+void ChainModuleGUI::commitRename()
+{
+    renameLabel.setVisible(false);
+
+    if (moduleType == ModuleType::Uninstantiated)
+        return;
+
+    const auto newName = renameLabel.getText().trim();
+    const auto parameterNumber = getParameterNumber();
+
+    // an empty name, or the module type name itself, means "no custom name"
+    if (newName.isEmpty() || newName == moduleType_names.at(moduleType))
+        pluginState.clearModuleCustomName(moduleType, parameterNumber);
+    else
+        pluginState.setModuleCustomName(moduleType, parameterNumber, newName);
+
+    updateModuleNameDisplay();
+    repaint();
+}
+
+void ChainModuleGUI::openInMainView()
+{
+    if (moduleType == ModuleType::Uninstantiated)
+        return;
+
+    addModuleToGUI(moduleGenerator.createGUIModule(
+        moduleType, pluginState.getParameterNumberFromDSPmodule(moduleType, getChainPosition())));
+    dragIcon->setVisible(true);
+    chainPositionLabel.setVisible(false);
+}
+
 void ChainModuleGUI::addModuleToGUI(GUIModule* module)
 {
     guiState.updateCurrentGUIModule(module);
+    // remember this slot so reopening the editor comes back to it
+    guiState.setLastViewedChainPosition(static_cast<int>(getChainPosition()));
     this->currentModuleActivator.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->deleteModule.setToggleState(false, juce::NotificationType::dontSendNotification);
+    // this slot just became the selected one: repaint it whole so its outline is complete
+    repaint();
     for (auto it = guiState.chainModules.begin(); it < guiState.chainModules.end(); ++it) {
         auto& chainModule = **it;
         if (chainModule.getChainPosition() != getChainPosition()) {
@@ -488,26 +702,18 @@ void ChainModuleGUI::addModuleToGUI(GUIModule* module)
     }
 }
 
-juce::AffineTransform ChainModuleGUI::getCableTransform()
+// The cable bridges this slot and the next one, in the editor's coordinate space.
+// Sized from the artwork's aspect ratio at the scale the SVG used to be drawn at (0.2).
+juce::Rectangle<int> ChainModuleGUI::getCableBounds() const
 {
-    /*return juce::AffineTransform::scale(0.07, 0.08).translated((39.f + 112.1f*(chainPosition-1)), 427.f);*/
-    /*return juce::AffineTransform::scale(
-        JUCE_LIVE_CONSTANT(0.2f), 
-        JUCE_LIVE_CONSTANT(0.2f))
-        .translated(
-            (JUCE_LIVE_CONSTANT(68.8f) + 112.1f * (chainPosition - 1)),
-            JUCE_LIVE_CONSTANT(451.86f));*/
     const auto bounds = getBounds();
-    return juce::AffineTransform::scale(0.2f, 0.2f)
-        .translated(bounds.getX() + bounds.getWidth() * 0.61f + 8.0f,
-                    bounds.getY() + 19.0f);
-}
+    constexpr auto scale = 0.2f;
 
-std::unique_ptr<Drawable> ChainModuleGUI::getRightCable(unsigned int chainPosition)
-{
-    juce::ignoreUnused(chainPosition);
-    return juce::Drawable::createFromImageData(BinaryData::whiteCable_svg,
-                                                BinaryData::whiteCable_svgSize);
+    return juce::Rectangle<int>(
+        bounds.getX() + juce::roundToInt(bounds.getWidth() * 0.61f) + 8,
+        bounds.getY() + 19,
+        juce::roundToInt(431.65f * scale),
+        juce::roundToInt(169.68f * scale));
 }
 
 void ChainModuleGUI::drawContainer(juce::Graphics& g)
@@ -515,11 +721,14 @@ void ChainModuleGUI::drawContainer(juce::Graphics& g)
     auto container = getContainerArea().toFloat();
     g.setColour(BiztortionTheme::surface);
     g.fillRoundedRectangle(container, 7.0f);
-    const auto showModuleOutline = moduleType != ModuleType::Uninstantiated
-        && !currentModuleActivator.getToggleState();
-    g.setColour(showModuleOutline ? moduleType_colors.at(moduleType) : BiztortionTheme::border);
+
+    // The slot whose module is currently open in the main view wears its module colour as a
+    // full outline; every other slot keeps the neutral border so only one slot stands out.
+    const auto isCurrentlyShown = moduleType != ModuleType::Uninstantiated
+        && currentModuleActivator.getToggleState();
+    g.setColour(isCurrentlyShown ? moduleType_colors.at(moduleType) : BiztortionTheme::border);
     g.drawRoundedRectangle(container, 7.0f,
-                           somethingIsBeingDraggedOver || showModuleOutline ? 2.0f : 1.0f);
+                           somethingIsBeingDraggedOver || isCurrentlyShown ? 2.0f : 1.0f);
 
     if (moduleType != ModuleType::Uninstantiated)
     {

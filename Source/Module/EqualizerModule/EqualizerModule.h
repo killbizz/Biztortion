@@ -213,7 +213,7 @@ private:
         lowCutBypassButton, 
         highCutBypassButton;
     AnalyzerButton analyzerButton;
-    juce::TextButton analyzerViewButton{ "Stereo" };
+    StereoViewButton analyzerViewButton;
 
     ButtonAttachment bypassButtonAttachment,
         peak1BypassButtonAttachment,
@@ -224,8 +224,7 @@ private:
         analyzerViewButtonAttachment;
 
     ButtonsLookAndFeel lnf;
-    ModuleLookAndFeel analyzerViewLnf;
-    
+
     ResponseCurveComponent responseCurveComponent;
     FFTAnalyzerComponent filterFftAnalyzerComponent;
 

@@ -57,6 +57,16 @@ public:
     unsigned int getParameterNumberFromDSPmodule(ModuleType moduleType, unsigned int chainPosition);
     unsigned int getChainPositionFromDSPmodule(ModuleType moduleType, unsigned int parameterNumber);
 
+    // --------- user defined module names ---------
+    // Stored in a child tree of the APVTS state (so they are saved with the session) and keyed by
+    // module identity rather than chain position, so a name follows its module when slots are
+    // reordered by drag and drop.
+    juce::String getModuleCustomName(ModuleType moduleType, unsigned int parameterNumber);
+    void setModuleCustomName(ModuleType moduleType, unsigned int parameterNumber, const juce::String& name);
+    // the custom name if there is one, otherwise the module type name
+    juce::String getModuleDisplayName(ModuleType moduleType, unsigned int parameterNumber);
+    void clearModuleCustomName(ModuleType moduleType, unsigned int parameterNumber);
+
     //==============================================================================
     
     juce::AudioProcessor& audioProcessor;
@@ -75,6 +85,9 @@ public:
     juce::Value moduleTypes;
     juce::Value moduleChainPositions;
     juce::Value moduleParameterNumbers;
+    // chain position (1-8) of the module the user was last looking at, or 0 for the homepage.
+    // Lets a reopened editor come back to that module instead of always showing the homepage.
+    juce::Value lastViewedChainPosition;
 
 private:
 

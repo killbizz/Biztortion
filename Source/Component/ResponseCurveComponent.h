@@ -94,6 +94,17 @@ struct ResponseCurveComponent : juce::Component,
     void paint(juce::Graphics& g) override;
     void resized() override;
 
+    // Interactive band handles, like any parametric equalizer: drag to change frequency (and
+    // gain, for the peaks), double click to bypass that band.
+    void mouseDown(const juce::MouseEvent& event) override;
+    void mouseDrag(const juce::MouseEvent& event) override;
+    void mouseUp(const juce::MouseEvent& event) override;
+    void mouseDoubleClick(const juce::MouseEvent& event) override;
+    // wheel over a handle changes that band's Q (peaks) or slope (cuts)
+    void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
+    void mouseMove(const juce::MouseEvent& event) override;
+    void mouseExit(const juce::MouseEvent& event) override;
+
 private:
 
     PluginState& pluginState;
@@ -109,4 +120,42 @@ private:
 
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysysArea();
+
+    //==============================================================================
+    // band handles
+
+    enum class Band { none, lowCut, peak1, peak2, highCut };
+
+    struct BandHandle
+    {
+        Band band = Band::none;
+        juce::Point<float> position;
+        bool bypassed = false;
+        // only the peaks are draggable vertically
+        bool hasGain = false;
+    };
+
+    // gain range the response curve is drawn over (matches the equalizer's gain scale)
+    static constexpr float maximumGainDb = 24.0f;
+    // click radius around a handle, in pixels
+    static constexpr float handleHitRadius = 11.0f;
+    static constexpr float handleRadius = 6.0f;
+
+    // mirrors the module bypass: the handles are drawn inert and stop responding
+    bool moduleBypassed = false;
+
+    std::vector<BandHandle> getBandHandles();
+    Band findBandAt(juce::Point<float> position);
+    juce::String getBandParameterID(Band band, const juce::String& parameter) const;
+    juce::RangedAudioParameter* getBandParameter(Band band, const juce::String& parameter) const;
+
+    float frequencyToX(float frequency);
+    float xToFrequency(float x);
+    float gainToY(float gainDb);
+    float yToGainDb(float y);
+
+    void setBandParameterValue(Band band, const juce::String& parameter, float value);
+
+    Band draggedBand = Band::none;
+    Band hoveredBand = Band::none;
 };

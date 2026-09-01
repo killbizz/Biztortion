@@ -39,6 +39,33 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 //==============================================================================
 
+/* Audio cable linking two chain slots */
+
+//==============================================================================
+
+// Painted instead of tinting the whole whiteCable.svg drawable, so the parts can animate
+// independently: the plugs and the cable body stay a stable white while only the inner
+// core pulses to suggest the signal flowing left to right.
+class CableComponent : public juce::Component
+{
+public:
+    CableComponent();
+
+    // 0..1 animation position of the inner core
+    void setAnimationPhase(float newPhase);
+
+    void paint(juce::Graphics& g) override;
+
+private:
+    float phase = 0.0f;
+
+    // geometry of the original whiteCable.svg artwork, kept so the cable keeps its shape
+    static constexpr float artworkWidth = 431.65f;
+    static constexpr float artworkHeight = 169.68f;
+};
+
+//==============================================================================
+
 /* ChainModule GUI */
 
 //==============================================================================
@@ -76,6 +103,8 @@ public:
     void setupCurrentModuleActivatorColours(juce::LookAndFeel& laf);
 
     void addModuleToGUI(GUIModule* module);
+    // shows this slot's module in the main view (what clicking the slot button does)
+    void openInMainView();
     void setup(ModuleType type);
 
     // These methods implement the DragAndDropTarget interface, and allow our component
@@ -109,6 +138,9 @@ public:
     BizLabel chainPositionLabel;
     std::unique_ptr<juce::Drawable> dragIcon;
 
+    // inline editor shown over the slot button while renaming the module
+    juce::Label renameLabel;
+
 private:
 
     PluginState& pluginState;
@@ -120,9 +152,8 @@ private:
     ModuleGenerator moduleGenerator;
 
     // nullptr only in the 8° module
-    std::unique_ptr<Drawable> rightCable;
-    juce::AffineTransform getCableTransform();
-    std::unique_ptr<Drawable> getRightCable(unsigned int chainPosition);
+    std::unique_ptr<CableComponent> rightCable;
+    juce::Rectangle<int> getCableBounds() const;
 
     bool somethingIsBeingDraggedOver = false;
 
@@ -131,6 +162,12 @@ private:
 
     void showNewModuleMenu();
     juce::String getBypassParameterID() const;
+
+    // module renaming
+    void beginRenaming();
+    void commitRename();
+    void updateModuleNameDisplay();
+    unsigned int getParameterNumber() const;
 
 protected:
 

@@ -36,13 +36,15 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.h"
 #include "../Module/SlewLimiterModule/SlewLimiterModule.h"
 #include "../Module/OscilloscopeModule/OscilloscopeModule.h"
+#include "../Module/SpectrumAnalyzerModule/SpectrumAnalyzerModule.h"
 
 PluginState::PluginState(juce::AudioProcessor& ap) :
     audioProcessor(ap),
     apvts(ap, nullptr, "Parameters", createParameterLayout()),
     moduleTypes(var(juce::Array<juce::var>())),
     moduleChainPositions(var(juce::Array<juce::var>())),
-    moduleParameterNumbers(var(juce::Array<juce::var>()))
+    moduleParameterNumbers(var(juce::Array<juce::var>())),
+    lastViewedChainPosition(var(0))
 {
     DSPModule* inputMeter = new MeterModuleDSP(apvts, "Input");
     DSPmodules.push_back(std::unique_ptr<DSPModule>(inputMeter));
@@ -63,6 +65,12 @@ PluginState::PluginState(juce::AudioProcessor& ap) :
         apvts.state.setProperty("moduleParameterNumbers", var(juce::Array<juce::var>()), nullptr);
     }
     moduleParameterNumbers.referTo(apvts.state.getPropertyAsValue("moduleParameterNumbers", nullptr));
+
+    // absent for a freshly created plugin instance => the homepage is shown
+    if (!apvts.state.hasProperty("lastViewedChainPosition")) {
+        apvts.state.setProperty("lastViewedChainPosition", var(0), nullptr);
+    }
+    lastViewedChainPosition.referTo(apvts.state.getPropertyAsValue("lastViewedChainPosition", nullptr));
 }
 
 void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPosition)
@@ -70,7 +78,7 @@ void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPos
     // insert module to DSPmodules vector
     bool inserted = false;
     for (auto it = DSPmodules.begin(); !inserted; ++it) {
-        // end = 8° grid cell
+        // end = 8ï¿½ grid cell
         if ((**it).getChainPosition() == 9) {
             inserted = true;
             it = DSPmodules.insert(it, std::unique_ptr<DSPModule>(module));
@@ -85,8 +93,8 @@ void PluginState::addModuleToDSPmodules(DSPModule* module, unsigned int chainPos
         }
         // else continue to iterate to find the right grid position
     }
-    // module is a filter => FIFO allocation for FFT data
-    if (module->getModuleType() == ModuleType::Equalizer) {
+    // module analyses the spectrum => FIFO allocation for FFT data
+    if (moduleTypeOwnsAnalyzerFIFO(module->getModuleType())) {
         insertNewAnalyzerFIFO(chainPosition);
     }
 }
@@ -160,8 +168,8 @@ void PluginState::removeModuleFromDSPmodules(unsigned int chainPosition)
         if ((**it).getChainPosition() == chainPosition) {
             found = true;
             audioProcessor.suspendProcessing(true);
-            // remove fft analyzer FIFO associated with **it if it's a filter
-            if ((&**it)->getModuleType() == ModuleType::Equalizer) {
+            // remove fft analyzer FIFO associated with **it if it analyses the spectrum
+            if (moduleTypeOwnsAnalyzerFIFO((&**it)->getModuleType())) {
                 deleteOldAnalyzerFIFO(chainPosition);
             }
             it = DSPmodules.erase(it);
@@ -218,7 +226,7 @@ unsigned int PluginState::getSampleFifoIndexOfCorrespondingModule(unsigned int c
             found = true;
             continue;
         }
-        if ((&**it)->getModuleType() == ModuleType::Equalizer) {
+        if (moduleTypeOwnsAnalyzerFIFO((&**it)->getModuleType())) {
             moduleCounter++;
         }
     }
@@ -296,6 +304,54 @@ unsigned int PluginState::getChainPositionFromDSPmodule(ModuleType moduleType, u
     return chainPosition;
 }
 
+namespace
+{
+    const juce::Identifier moduleNamesTreeId { "moduleNames" };
+
+    juce::Identifier makeModuleNameId(ModuleType moduleType, unsigned int parameterNumber)
+    {
+        return juce::Identifier("m" + juce::String(static_cast<int>(moduleType))
+            + "_" + juce::String(static_cast<int>(parameterNumber)));
+    }
+}
+
+juce::String PluginState::getModuleCustomName(ModuleType moduleType, unsigned int parameterNumber)
+{
+    auto names = apvts.state.getChildWithName(moduleNamesTreeId);
+
+    if (!names.isValid())
+        return {};
+
+    return names.getProperty(makeModuleNameId(moduleType, parameterNumber), juce::String()).toString();
+}
+
+void PluginState::setModuleCustomName(ModuleType moduleType, unsigned int parameterNumber,
+                                      const juce::String& name)
+{
+    auto names = apvts.state.getOrCreateChildWithName(moduleNamesTreeId, nullptr);
+    names.setProperty(makeModuleNameId(moduleType, parameterNumber), name, nullptr);
+}
+
+void PluginState::clearModuleCustomName(ModuleType moduleType, unsigned int parameterNumber)
+{
+    auto names = apvts.state.getChildWithName(moduleNamesTreeId);
+
+    if (names.isValid())
+        names.removeProperty(makeModuleNameId(moduleType, parameterNumber), nullptr);
+}
+
+juce::String PluginState::getModuleDisplayName(ModuleType moduleType, unsigned int parameterNumber)
+{
+    const auto customName = getModuleCustomName(moduleType, parameterNumber);
+
+    if (customName.isNotEmpty())
+        return customName;
+
+    const auto defaultName = moduleType_names.find(moduleType);
+
+    return defaultName != moduleType_names.end() ? defaultName->second : juce::String();
+}
+
 juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
@@ -308,6 +364,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginState::createParameter
     ClassicBitcrusherModuleDSP::addParameters(layout);
     SpectrumBitcrusherModuleDSP::addParameters(layout);
     SlewLimiterModuleDSP::addParameters(layout);
+    SpectrumAnalyzerModuleDSP::addParameters(layout);
 
     return layout;
 }

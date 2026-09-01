@@ -233,7 +233,7 @@ void WaveshaperModuleDSP::updateDSPState(double)
 //==============================================================================
 
 WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterNumber)
-    : GUIModule(), pluginState(p),
+    : GUIModule(), pluginState(p), parameterNumber(parameterNumber),
     driveSlider(*pluginState.apvts.getParameter("Waveshaper Drive " + std::to_string(parameterNumber)), "dB"),
     mixSlider(*pluginState.apvts.getParameter("Waveshaper Mix " + std::to_string(parameterNumber)), "%"),
     fxDistributionSlider(*pluginState.apvts.getParameter("Waveshaper Fx Distribution " + std::to_string(parameterNumber)), "%"),
@@ -263,6 +263,27 @@ WaveshaperModuleGUI::WaveshaperModuleGUI(PluginState& p, unsigned int parameterN
     moduleColor = moduleType_colors.at(ModuleType::Waveshaper);
     setModuleHelp("Waveshaper",
         "Remaps the input waveform with adjustable tanh and sine curves. Combine their amount and shape controls for soft saturation or complex folding tones.");
+
+    transferFunctionGraph.setTooltip(
+        "The curve this module maps the input through: the horizontal axis is the incoming "
+        "sample and the vertical one what comes out. Tanh amp and slope set the amount and "
+        "hardness of the saturating S curve, while sin amp and freq add a folding ripple on top; "
+        "anything beyond +/-1 is clipped.");
+
+    // the transfer function graph already shows what this module does, so only the shared
+    // parameters need their own graph in the middle of the hexagon
+    sharedParamsGraph = std::make_unique<WaveShapeVisualiser>(moduleColor,
+        [this](std::vector<float>& samples) {
+            const auto settings = WaveshaperModuleDSP::getSettings(pluginState.apvts, this->parameterNumber);
+            SharedParamsLayout::applySharedParameters(samples, settings.drive, settings.mix,
+                settings.fxDistribution, settings.bias, settings.symmetry, settings.DCoffsetRemove);
+        });
+    sharedParamsGraph->setTooltip(
+        "The transfer function these controls apply to the signal, drawn over the faint input "
+        "curve. Drive sets how hard the signal is pushed into the effect, fx bias marks the "
+        "threshold that splits the waveform and fx distribution chooses how much of the effect "
+        "each side of it receives, symmetry weights the positive against the negative half, the "
+        "dc filter recentres the result on zero, and mix blends it back with the clean signal.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -355,6 +376,7 @@ std::vector<juce::Component*> WaveshaperModuleGUI::getAllComps()
     return {
         &title,
         &transferFunctionGraph,
+        sharedParamsGraph.get(),
         &driveSlider,
         &mixSlider,
         &fxDistributionSlider,
@@ -462,127 +484,72 @@ juce::Array<juce::var> WaveshaperModuleGUI::getParamValues()
 
 void WaveshaperModuleGUI::resized()
 {
-    auto waveshaperArea = getContentRenderArea();
+    auto area = getContentRenderArea();
 
-    auto titleAndBypassArea = waveshaperArea.removeFromTop(36);
-    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+    auto titleAndBypassArea = area.removeFromTop(36);
+    const auto titleArea = titleAndBypassArea;
+    bypassButton.setBounds(juce::Rectangle<int>(headerButtonSize, headerButtonSize).withCentre(
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
-    juce::Rectangle<int> temp;
 
-    auto waveshaperGraphArea = waveshaperArea.removeFromLeft(waveshaperArea.getWidth() * (4.f / 10.f));
-    waveshaperGraphArea.reduce(10, 10);
-
-    waveshaperArea.translate(0, 8);
-
-    auto topArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 3.f));
-    auto middleArea = waveshaperArea.removeFromTop(waveshaperArea.getHeight() * (1.f / 2.f));
-    auto bottomArea = waveshaperArea;
-
-    auto topLabelsArea = topArea.removeFromTop(14);
-    auto middleLabelsArea = middleArea.removeFromTop(14);
-    auto bottomLabelsArea = bottomArea.removeFromTop(14);
-
-    // label areas
-    auto driveLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto mixLabelArea = topLabelsArea;
-    temp = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
-    auto fxDistributionLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto biasLabelArea = temp;
-    auto symmetryLabelArea = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveLabelArea = middleLabelsArea;
-    temp = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
-    auto tanhAmpLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto tanhSlopeLabelArea = temp;
-    auto sineAmpLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
-    auto sineFreqLabelArea = bottomLabelsArea;
-
-    // slider areas
-    auto driveArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto mixArea = topArea;
-    temp = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
-    auto fxDistributionArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto biasArea = temp;
-    auto symmetryArea = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveArea = middleArea;
-    temp = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
-    auto tanhAmpArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto tanhSlopeArea = temp;
-    auto sineAmpArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
-    auto sineFreqArea = bottomArea;
-
-    juce::Rectangle<int> renderArea;
-    renderArea.setSize(fxDistributionArea.getWidth(), fxDistributionArea.getWidth());
-    
-    title.setBounds(titleAndBypassArea);
+    title.setBounds(titleArea);
     title.setJustificationType(juce::Justification::centred);
 
-    transferFunctionGraph.setBounds(waveshaperGraphArea);
+    area.reduce(6, 8);
 
-    renderArea.setCentre(driveArea.getCentre());
-    renderArea.setY(driveArea.getTopLeft().getY());
-    driveSlider.setBounds(renderArea);
-    driveLabel.setBounds(driveLabelArea);
-    driveLabel.setJustificationType(juce::Justification::centred);
+    // left: this module's own graph and parameters - right: the shared parameters hexagon
+    auto moduleSide = area.removeFromLeft(juce::roundToInt(area.getWidth() * 0.46f));
+    area.removeFromLeft(10);
+    auto sharedSide = area;
 
-    renderArea.setCentre(mixArea.getCentre());
-    renderArea.setY(mixArea.getTopLeft().getY());
-    mixSlider.setBounds(renderArea);
-    mixLabel.setBounds(mixLabelArea);
-    mixLabel.setJustificationType(juce::Justification::centred);
+    // --- module side ---
+    transferFunctionGraph.setBounds(moduleSide.removeFromTop(juce::roundToInt(moduleSide.getHeight() * 0.48f)));
+    moduleSide.removeFromTop(8);
 
-    renderArea.setCentre(fxDistributionArea.getCentre());
-    renderArea.setY(fxDistributionArea.getTopLeft().getY());
-    fxDistributionSlider.setBounds(renderArea);
-    fxDistributionLabel.setBounds(fxDistributionLabelArea);
-    fxDistributionLabel.setJustificationType(juce::Justification::centred);
+    // the module's own parameters keep their subtle plate
+    clearParameterGroups();
+    addParameterGroup(moduleSide);
 
-    renderArea.setCentre(biasArea.getCentre());
-    renderArea.setY(biasArea.getTopLeft().getY());
-    biasSlider.setBounds(renderArea);
-    biasLabel.setBounds(biasLabelArea);
-    biasLabel.setJustificationType(juce::Justification::centred);
+    const auto placeKnob = [](juce::Rectangle<int> cell, juce::Slider& slider, juce::Label& label) {
+        label.setBounds(cell.removeFromTop(14));
+        label.setJustificationType(juce::Justification::centred);
+        const auto size = juce::jmin(cell.getWidth() - 6, cell.getHeight() - 6);
+        slider.setBounds(juce::Rectangle<int>(size, size).withCentre(cell.getCentre()));
+    };
 
-    renderArea.setCentre(symmetryArea.getCentre());
-    renderArea.setY(symmetryArea.getTopLeft().getY());
-    symmetrySlider.setBounds(renderArea);
-    symmetryLabel.setBounds(symmetryLabelArea);
-    symmetryLabel.setJustificationType(juce::Justification::centred);
+    // the four transfer function parameters, two per row
+    auto moduleKnobs = moduleSide.reduced(4, 6);
+    auto firstRow = moduleKnobs.removeFromTop(moduleKnobs.getHeight() / 2);
+    auto secondRow = moduleKnobs;
 
-    DCoffsetRemoveArea.reduce(19.f, 21.6355f);
-    /*DCoffsetRemoveArea.reduce(JUCE_LIVE_CONSTANT(85.f), 
-        JUCE_LIVE_CONSTANT(65.f));*/
-    DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
-    /*DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(JUCE_LIVE_CONSTANT(1.f)).translated(
-        JUCE_LIVE_CONSTANT(-8.45953f),
-        JUCE_LIVE_CONSTANT(-10.31)));*/
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(1.f).translated(-5.56252f, -14.2353f));
-    DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
+    placeKnob(firstRow.removeFromLeft(firstRow.getWidth() / 2), tanhAmpSlider, tanhAmpLabel);
+    placeKnob(firstRow, tanhSlopeSlider, tanhSlopeLabel);
+    placeKnob(secondRow.removeFromLeft(secondRow.getWidth() / 2), sineAmpSlider, sineAmpLabel);
+    placeKnob(secondRow, sineFreqSlider, sineFreqLabel);
+
+    // --- shared side: the six common parameters on a hexagon, with their graph in the middle ---
+    const auto hexagon = SharedParamsLayout::build(sharedSide);
+    sharedParamsGraph->setBounds(hexagon.centre);
+
+    const auto placeSlot = [](const SharedParamsLayout::Slot& slot, juce::Slider& slider, juce::Label& label) {
+        label.setBounds(slot.label);
+        label.setJustificationType(juce::Justification::centred);
+        slider.setBounds(slot.control);
+    };
+
+    placeSlot(hexagon.slots[0], driveSlider, driveLabel);
+    placeSlot(hexagon.slots[1], mixSlider, mixLabel);
+    placeSlot(hexagon.slots[2], symmetrySlider, symmetryLabel);
+    placeSlot(hexagon.slots[3], biasSlider, biasLabel);
+    placeSlot(hexagon.slots[4], fxDistributionSlider, fxDistributionLabel);
+
+    // the dc filter toggle takes the last vertex
+    const auto& dcSlot = hexagon.slots[5];
+    DCoffsetEnabledButtonLabel.setBounds(dcSlot.label);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
-    /*DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f),
-        JUCE_LIVE_CONSTANT(0.4327f));*/
-    DCoffsetEnabledButtonLabel.setCentreRelative(0.9f, 0.4327f);
-
-    renderArea.setCentre(tanhAmpArea.getCentre());
-    renderArea.setY(tanhAmpArea.getTopLeft().getY());
-    tanhAmpSlider.setBounds(renderArea);
-    tanhAmpLabel.setBounds(tanhAmpLabelArea);
-    tanhAmpLabel.setJustificationType(juce::Justification::centred);
-
-    renderArea.setCentre(tanhSlopeArea.getCentre());
-    renderArea.setY(tanhSlopeArea.getTopLeft().getY());
-    tanhSlopeSlider.setBounds(renderArea);
-    tanhSlopeLabel.setBounds(tanhSlopeLabelArea);
-    tanhSlopeLabel.setJustificationType(juce::Justification::centred);
-
-    renderArea.setCentre(sineAmpArea.getCentre());
-    renderArea.setY(sineAmpArea.getTopLeft().getY());
-    sineAmpSlider.setBounds(renderArea);
-    sineAmpLabel.setBounds(sineAmpLabelArea);
-    sineAmpLabel.setJustificationType(juce::Justification::centred);
-
-    renderArea.setCentre(sineFreqArea.getCentre());
-    renderArea.setY(sineFreqArea.getTopLeft().getY());
-    sineFreqSlider.setBounds(renderArea);
-    sineFreqLabel.setBounds(sineFreqLabelArea);
-    sineFreqLabel.setJustificationType(juce::Justification::centred);
+    // the tick box is drawn at the left of the button, so size the button around it to centre it
+    DCoffsetEnabledButton.setTransform({});
+    const auto toggleHeight = juce::jmin(28, dcSlot.control.getHeight());
+    const auto toggleWidth = juce::roundToInt(toggleHeight * 0.825f) + 8;
+    DCoffsetEnabledButton.setBounds(
+        juce::Rectangle<int>(toggleWidth, toggleHeight).withCentre(dcSlot.control.getCentre()));
 }

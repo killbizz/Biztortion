@@ -91,6 +91,271 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));
 
+    // --- band handles ---
+    const auto accent = moduleType_colors.at(ModuleType::Equalizer);
+
+    for (const auto& handle : getBandHandles())
+    {
+        const auto isActive = !handle.bypassed && !moduleBypassed;
+        const auto isHovered = handle.band == hoveredBand || handle.band == draggedBand;
+        const auto radius = handleRadius + (isHovered ? 1.5f : 0.0f);
+        const auto area = Rectangle<float>(radius * 2.0f, radius * 2.0f).withCentre(handle.position);
+
+        // a soft halo makes the handle readable on top of the spectrum
+        g.setColour((isActive ? accent : BiztortionTheme::textMuted).withAlpha(isHovered ? 0.35f : 0.2f));
+        g.fillEllipse(area.expanded(3.0f));
+
+        g.setColour(isActive ? accent : BiztortionTheme::surfaceRaised);
+        g.fillEllipse(area);
+
+        g.setColour(isActive ? Colours::white : BiztortionTheme::textMuted);
+        g.drawEllipse(area, isHovered ? 2.0f : 1.4f);
+
+        // a bypassed band keeps its handle, struck through
+        if (!isActive)
+        {
+            const auto slash = area.reduced(radius * 0.32f);
+            g.drawLine(slash.getX(), slash.getBottom(), slash.getRight(), slash.getY(), 1.4f);
+        }
+    }
+}
+
+//==============================================================================
+// band handles
+
+float ResponseCurveComponent::frequencyToX(float frequency)
+{
+    const auto area = getAnalysysArea();
+
+    return (float) area.getX()
+        + (float) area.getWidth() * juce::mapFromLog10(frequency, 20.0f, 20000.0f);
+}
+
+float ResponseCurveComponent::xToFrequency(float x)
+{
+    const auto area = getAnalysysArea();
+    const auto proportion = juce::jlimit(0.0f, 1.0f,
+        ((float) x - (float) area.getX()) / (float) juce::jmax(1, area.getWidth()));
+
+    return juce::mapToLog10(proportion, 20.0f, 20000.0f);
+}
+
+float ResponseCurveComponent::gainToY(float gainDb)
+{
+    const auto area = getAnalysysArea();
+
+    return juce::jmap(juce::jlimit(-maximumGainDb, maximumGainDb, gainDb),
+        -maximumGainDb, maximumGainDb, (float) area.getBottom(), (float) area.getY());
+}
+
+float ResponseCurveComponent::yToGainDb(float y)
+{
+    const auto area = getAnalysysArea();
+
+    return juce::jlimit(-maximumGainDb, maximumGainDb,
+        juce::jmap((float) y, (float) area.getBottom(), (float) area.getY(),
+                   -maximumGainDb, maximumGainDb));
+}
+
+juce::String ResponseCurveComponent::getBandParameterID(Band band, const juce::String& parameter) const
+{
+    const auto number = juce::String(static_cast<int>(parameterNumber));
+
+    switch (band)
+    {
+        case Band::lowCut:  return "LowCut " + parameter + " " + number;
+        case Band::peak1:   return "Peak1 " + parameter + " " + number;
+        case Band::peak2:   return "Peak2 " + parameter + " " + number;
+        case Band::highCut: return "HighCut " + parameter + " " + number;
+        default:            return {};
+    }
+}
+
+juce::RangedAudioParameter* ResponseCurveComponent::getBandParameter(Band band,
+                                                                    const juce::String& parameter) const
+{
+    const auto id = getBandParameterID(band, parameter);
+
+    return id.isEmpty() ? nullptr : pluginState.apvts.getParameter(id);
+}
+
+std::vector<ResponseCurveComponent::BandHandle> ResponseCurveComponent::getBandHandles()
+{
+    std::vector<BandHandle> handles;
+
+    const auto settings = EqualizerModuleDSP::getSettings(pluginState.apvts, parameterNumber);
+    // cut filters have no gain, so their handles ride the 0 dB line
+    const auto zeroGainY = gainToY(0.0f);
+
+    handles.push_back({ Band::lowCut, { frequencyToX(settings.lowCutFreq), zeroGainY },
+                        settings.lowCutBypassed, false });
+    handles.push_back({ Band::peak1,
+                        { frequencyToX(settings.peak1Freq), gainToY(settings.peak1GainInDecibels) },
+                        settings.peak1Bypassed, true });
+    handles.push_back({ Band::peak2,
+                        { frequencyToX(settings.peak2Freq), gainToY(settings.peak2GainInDecibels) },
+                        settings.peak2Bypassed, true });
+    handles.push_back({ Band::highCut, { frequencyToX(settings.highCutFreq), zeroGainY },
+                        settings.highCutBypassed, false });
+
+    return handles;
+}
+
+ResponseCurveComponent::Band ResponseCurveComponent::findBandAt(juce::Point<float> position)
+{
+    // single gate for dragging, double-clicking and hovering: while the module is bypassed
+    // there is nothing to edit, so no handle is ever hit
+    if (moduleBypassed)
+        return Band::none;
+
+    auto closest = Band::none;
+    auto closestDistance = handleHitRadius;
+
+    for (const auto& handle : getBandHandles())
+    {
+        const auto distance = handle.position.getDistanceFrom(position);
+
+        if (distance <= closestDistance)
+        {
+            closestDistance = distance;
+            closest = handle.band;
+        }
+    }
+
+    return closest;
+}
+
+void ResponseCurveComponent::setBandParameterValue(Band band, const juce::String& parameter, float value)
+{
+    if (auto* param = getBandParameter(band, parameter))
+        param->setValueNotifyingHost(param->convertTo0to1(value));
+}
+
+void ResponseCurveComponent::mouseDown(const juce::MouseEvent& event)
+{
+    draggedBand = findBandAt(event.position);
+
+    if (draggedBand == Band::none)
+        return;
+
+    if (auto* freq = getBandParameter(draggedBand, "Freq"))
+        freq->beginChangeGesture();
+
+    if (draggedBand == Band::peak1 || draggedBand == Band::peak2)
+        if (auto* gain = getBandParameter(draggedBand, "Gain"))
+            gain->beginChangeGesture();
+
+    repaint();
+}
+
+void ResponseCurveComponent::mouseDrag(const juce::MouseEvent& event)
+{
+    if (draggedBand == Band::none)
+        return;
+
+    setBandParameterValue(draggedBand, "Freq", xToFrequency(event.position.x));
+
+    if (draggedBand == Band::peak1 || draggedBand == Band::peak2)
+        setBandParameterValue(draggedBand, "Gain", yToGainDb(event.position.y));
+}
+
+void ResponseCurveComponent::mouseUp(const juce::MouseEvent&)
+{
+    if (draggedBand == Band::none)
+        return;
+
+    if (auto* freq = getBandParameter(draggedBand, "Freq"))
+        freq->endChangeGesture();
+
+    if (draggedBand == Band::peak1 || draggedBand == Band::peak2)
+        if (auto* gain = getBandParameter(draggedBand, "Gain"))
+            gain->endChangeGesture();
+
+    draggedBand = Band::none;
+    repaint();
+}
+
+void ResponseCurveComponent::mouseDoubleClick(const juce::MouseEvent& event)
+{
+    const auto band = findBandAt(event.position);
+
+    if (band == Band::none)
+        return;
+
+    if (auto* bypassed = getBandParameter(band, "Bypassed"))
+    {
+        const auto isBypassed = bypassed->getValue() > 0.5f;
+        bypassed->setValueNotifyingHost(isBypassed ? 0.0f : 1.0f);
+    }
+
+    repaint();
+}
+
+// Scrolling on a handle tightens or widens that band: Q for the peaks, slope for the cuts.
+void ResponseCurveComponent::mouseWheelMove(const juce::MouseEvent& event,
+                                            const juce::MouseWheelDetails& wheel)
+{
+    const auto band = findBandAt(event.position);
+
+    if (band == Band::none || juce::approximatelyEqual(wheel.deltaY, 0.0f))
+    {
+        // not on a handle: let whatever is underneath deal with it
+        Component::mouseWheelMove(event, wheel);
+        return;
+    }
+
+    const auto direction = (wheel.deltaY > 0.0f ? 1.0f : -1.0f) * (wheel.isReversed ? -1.0f : 1.0f);
+    const auto isPeak = band == Band::peak1 || band == Band::peak2;
+
+    if (auto* param = getBandParameter(band, isPeak ? "Quality" : "Slope"))
+    {
+        const auto& range = param->getNormalisableRange();
+
+        param->beginChangeGesture();
+
+        if (isPeak)
+        {
+            // Step in normalised space. Stepping by a proportion of the value instead made the
+            // step smaller than the parameter's snap interval at low Q, so snapToLegalValue
+            // rounded straight back and the control got stuck around 0.2.
+            param->setValueNotifyingHost(juce::jlimit(0.0f, 1.0f, param->getValue() + direction * 0.03f));
+        }
+        else
+        {
+            // the cut slope is a choice parameter: move it one option at a time
+            const auto current = range.convertFrom0to1(param->getValue());
+            const auto step = range.interval > 0.0f ? range.interval : 1.0f;
+            const auto target = range.snapToLegalValue(current + direction * step);
+
+            param->setValueNotifyingHost(range.convertTo0to1(target));
+        }
+
+        param->endChangeGesture();
+    }
+
+    repaint();
+}
+
+void ResponseCurveComponent::mouseMove(const juce::MouseEvent& event)
+{
+    const auto band = findBandAt(event.position);
+
+    if (band != hoveredBand)
+    {
+        hoveredBand = band;
+        setMouseCursor(band == Band::none ? juce::MouseCursor::NormalCursor
+                                          : juce::MouseCursor::PointingHandCursor);
+        repaint();
+    }
+}
+
+void ResponseCurveComponent::mouseExit(const juce::MouseEvent&)
+{
+    if (hoveredBand != Band::none)
+    {
+        hoveredBand = Band::none;
+        repaint();
+    }
 }
 
 void ResponseCurveComponent::resized()
@@ -209,6 +474,9 @@ void ResponseCurveComponent::updateChain()
     monoChain.setBypassed<ChainPositions::Peak2>(chainSettings.peak2Bypassed || chainSettings.bypassed);
     monoChain.setBypassed<ChainPositions::LowCut>(chainSettings.lowCutBypassed || chainSettings.bypassed);
     monoChain.setBypassed<ChainPositions::HighCut>(chainSettings.highCutBypassed || chainSettings.bypassed);
+
+    // a bypassed module has no filters to edit, so its handles go inert as well
+    moduleBypassed = chainSettings.bypassed;
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()

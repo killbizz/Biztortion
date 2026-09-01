@@ -41,6 +41,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Module/MeterModule/MeterModule.h"
 #include "../Module/OscilloscopeModule/OscilloscopeModule.h"
 #include "../Module/SlewLimiterModule/SlewLimiterModule.h"
+#include "../Module/SpectrumAnalyzerModule/SpectrumAnalyzerModule.h"
 
 class ModuleGenerator {
 public:

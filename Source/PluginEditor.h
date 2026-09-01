@@ -42,6 +42,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "Component/FFTAnalyzerComponent.h"
 #include "Component/TransferFunctionGraphComponent.h"
 #include "Component/HelpComponent.h"
+#include "Component/ModuleLegendComponent.h"
 #include "Shared/GUIStuff.h"
 #include "Shared/GUIState.h"
 #include "Module/WelcomeModule/WelcomeModule.h"
@@ -85,7 +86,7 @@ private:
             setMouseCursor(MouseCursor::PointingHandCursor);
         }
         void mouseDown(const MouseEvent& event) override {
-            editor.guiState.updateCurrentGUIModule(new WelcomeModuleGUI());
+            editor.guiState.showWelcomeModule();
         }
 
     private:
@@ -95,10 +96,12 @@ private:
       class HeaderIconButton : public juce::Button
       {
       public:
-        enum class Icon { help, github };
+        enum class Icon { help, github, legend };
 
         explicit HeaderIconButton(Icon iconToDraw)
-          : juce::Button(iconToDraw == Icon::help ? "Help" : "GitHub"), icon(iconToDraw) {}
+          : juce::Button(iconToDraw == Icon::help ? "Help"
+                       : iconToDraw == Icon::legend ? "Legend" : "GitHub"),
+            icon(iconToDraw) {}
 
         void paintButton(juce::Graphics& g, bool highlighted, bool down) override
         {
@@ -107,7 +110,7 @@ private:
                        : BiztortionTheme::surfaceRaised)
                   .withMultipliedBrightness(down ? 0.85f : 1.0f));
           g.fillRoundedRectangle(bounds, 6.0f);
-          g.setColour(highlighted ? BiztortionTheme::controlAccent : BiztortionTheme::border);
+          g.setColour(highlighted ? juce::Colour(200, 200, 200) : BiztortionTheme::border);
           g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
           g.setColour(BiztortionTheme::text);
 
@@ -115,6 +118,28 @@ private:
           {
             g.setFont(juce::Font("Segoe UI", 18.0f, juce::Font::bold));
             g.drawText("?", getLocalBounds(), juce::Justification::centred);
+            return;
+          }
+
+          if (icon == Icon::legend)
+          {
+            // a stack of coloured swatches: the same idea as the legend it opens
+            const auto swatchArea = bounds.reduced(bounds.getWidth() * 0.28f,
+                                                   bounds.getHeight() * 0.24f);
+            const auto swatchHeight = swatchArea.getHeight() / 3.0f;
+            const juce::Colour swatches[] { juce::Colours::cyan,
+                                            juce::Colours::magenta,
+                                            juce::Colour(240, 255, 0) };
+
+            for (int i = 0; i < 3; ++i)
+            {
+              const auto row = juce::Rectangle<float>(swatchArea.getX(),
+                                                      swatchArea.getY() + swatchHeight * i,
+                                                      swatchArea.getWidth(), swatchHeight)
+                                   .reduced(0.0f, swatchHeight * 0.18f);
+              g.setColour(swatches[i]);
+              g.fillRoundedRectangle(row, 1.5f);
+            }
             return;
           }
 
@@ -141,6 +166,7 @@ private:
     juce::TooltipWindow tooltipWindow;
 
     HeaderIconButton helpButton { HeaderIconButton::Icon::help };
+    HeaderIconButton legendButton { HeaderIconButton::Icon::legend };
     HeaderIconButton githubLink { HeaderIconButton::Icon::github };
 
     std::unique_ptr<AlertWindow> asyncAlertWindow;

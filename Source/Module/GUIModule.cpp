@@ -43,20 +43,55 @@ GUIModule::GUIModule() : remapper(0.f, 100.f, 1.f, 1.3f) // exponential remappin
     moduleHelpButton.setTooltip("About this module");
     moduleHelpButton.setColour(juce::TextButton::buttonColourId, BiztortionTheme::surfaceRaised);
     moduleHelpButton.setColour(juce::TextButton::textColourOffId, BiztortionTheme::text);
+    moduleHelpButton.setLookAndFeel(&moduleHelpButtonLookAndFeel);
     addAndMakeVisible(moduleHelpButton);
 
     auto safePtr = juce::Component::SafePointer<GUIModule>(this);
     moduleHelpButton.onClick = [safePtr]() {
         if (auto* module = safePtr.getComponent())
-            juce::AlertWindow::showMessageBoxAsync(
-                juce::MessageBoxIconType::NoIcon,
-                module->moduleHelpTitle,
-                module->moduleHelpDescription,
-                "Got it",
-                module);
+            module->showModuleHelpWindow();
     };
 
     startTimerHz(10);
+}
+
+GUIModule::~GUIModule()
+{
+    // the look and feel is a member, so detach it before it goes out of scope
+    moduleHelpButton.setLookAndFeel(nullptr);
+}
+
+// Mirrors the plugin's "About Biztortion" dialog (see BiztortionAudioProcessorEditor)
+// so every help window in the app shares one style.
+void GUIModule::showModuleHelpWindow()
+{
+    constexpr int contentWidth = 460;
+
+    moduleHelpComponent = std::make_unique<HelpComponent>(moduleHelpDescription);
+    moduleHelpComponent->setBounds(0, 0, contentWidth,
+        moduleHelpComponent->getPreferredHeightForWidth(contentWidth));
+
+    moduleHelpWindow = std::make_unique<juce::AlertWindow>(moduleHelpTitle, "",
+        juce::MessageBoxIconType::NoIcon);
+    moduleHelpWindow->setLookAndFeel(&helpWindowLookAndFeel);
+    moduleHelpWindow->addButton("Got it!", 1, juce::KeyPress(juce::KeyPress::returnKey, 0, 0));
+    moduleHelpWindow->addCustomComponent(moduleHelpComponent.get());
+
+    moduleHelpWindow->setColour(juce::AlertWindow::backgroundColourId, BiztortionTheme::surface);
+    moduleHelpWindow->setColour(juce::AlertWindow::textColourId, BiztortionTheme::text);
+    moduleHelpWindow->setColour(juce::AlertWindow::outlineColourId, BiztortionTheme::border);
+
+    auto safePtr = juce::Component::SafePointer<GUIModule>(this);
+    moduleHelpWindow->enterModalState(true,
+        juce::ModalCallbackFunction::create([safePtr](int) {
+            if (auto* module = safePtr.getComponent())
+            {
+                // the window owns the custom component, so tear both down together
+                module->moduleHelpWindow->setLookAndFeel(nullptr);
+                module->moduleHelpWindow.reset();
+                module->moduleHelpComponent.reset();
+            }
+        }));
 }
 
 void GUIModule::drawContainer(juce::Graphics& g)
@@ -73,13 +108,49 @@ void GUIModule::drawContainer(juce::Graphics& g)
     g.setColour(moduleColor);
     g.fillRoundedRectangle(accent, 2.0f);
 
+    drawParameterGroups(g);
+
     if (moduleHelpButton.isVisible())
     {
+        // same size as the bypass button on the opposite side of the header, and vertically
+        // centred on the same 36px header strip the modules lay out in resized()
         const auto content = getContentRenderArea();
-        moduleHelpButton.setBounds(content.getRight() - 26, content.getY() + 4, 24, 24);
+        moduleHelpButton.setBounds(juce::Rectangle<int>(headerButtonSize, headerButtonSize)
+            .withCentre({ content.getRight() - headerButtonGap - headerButtonSize / 2,
+                          content.getY() + 18 }));
         moduleHelpButton.toFront(false);
     }
 
+}
+
+void GUIModule::clearParameterGroups()
+{
+    parameterGroups.clear();
+}
+
+void GUIModule::addParameterGroup(juce::Rectangle<int> area)
+{
+    if (!area.isEmpty())
+        parameterGroups.push_back(area);
+}
+
+void GUIModule::drawParameterGroups(juce::Graphics& g)
+{
+    if (parameterGroups.empty())
+        return;
+
+    const auto accent = moduleColor.isTransparent()
+        ? BiztortionTheme::controlAccent
+        : moduleColor;
+
+    for (const auto& group : parameterGroups)
+    {
+        const auto plate = group.toFloat();
+        g.setColour(accent.withAlpha(0.055f));
+        g.fillRoundedRectangle(plate, 6.0f);
+        g.setColour(accent.withAlpha(0.32f));
+        g.drawRoundedRectangle(plate, 6.0f, 1.0f);
+    }
 }
 
 void GUIModule::setModuleHelp(juce::String title, juce::String description)

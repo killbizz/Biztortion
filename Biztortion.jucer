@@ -8,197 +8,172 @@
               companyName="KillBizz" companyEmail="gabriel.bizzo@hotmail.it"
               companyCopyright="2021 KillBizz">
   <MAINGROUP id="WGhc7c" name="Biztortion">
-    <GROUP id="{D1401801-D80E-C132-21EF-66950E436B82}" name="Resources">
-      <FILE id="LPCGa8" name="BiztortionLogoBlack.png" compile="0" resource="1"
-            file="Resources/BiztortionLogoBlack.png"/>
-      <FILE id="ddQQYe" name="BiztortionLogoWhite.png" compile="0" resource="1"
-            file="Resources/BiztortionLogoWhite.png"/>
-      <FILE id="jONRY8" name="biztortionNoseAlpha.png" compile="0" resource="1"
-            file="Resources/biztortionNoseAlpha.png"/>
-      <FILE id="jt86PH" name="blueCable.svg" compile="0" resource="1" file="Resources/blueCable.svg"/>
-      <FILE id="r1O0Sp" name="cyanCable.svg" compile="0" resource="1" file="Resources/cyanCable.svg"/>
-      <FILE id="Zn8IGD" name="drag-horizontal.svg" compile="0" resource="1"
-            file="Resources/drag-horizontal.svg"/>
-      <FILE id="qx3Mrj" name="magentaCable.svg" compile="0" resource="1"
-            file="Resources/magentaCable.svg"/>
-      <FILE id="uV3xKJ" name="orangeCable.svg" compile="0" resource="1" file="Resources/orangeCable.svg"/>
-      <FILE id="G8wzvn" name="redCable.svg" compile="0" resource="1" file="Resources/redCable.svg"/>
-      <FILE id="BvRseL" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
-      <FILE id="roECTK" name="violetCable.svg" compile="0" resource="1" file="Resources/violetCable.svg"/>
-      <FILE id="CvoPe7" name="yellowCable.svg" compile="0" resource="1" file="Resources/yellowCable.svg"/>
+    <GROUP id="{887A6F90-336F-F23D-95C3-914BBF32EF45}" name="Resources">
+      <FILE id="wywXBO" name="BiztortionLogoBlack.png" compile="0" resource="1" file="Resources/BiztortionLogoBlack.png"/>
+      <FILE id="0Aix2K" name="BiztortionLogoWhite.png" compile="0" resource="1" file="Resources/BiztortionLogoWhite.png"/>
+      <FILE id="JtBRRk" name="bizBigLogo.png" compile="0" resource="1" file="Resources/bizBigLogo.png"/>
+      <FILE id="TWeruW" name="biztortionNoseAlpha.png" compile="0" resource="1" file="Resources/biztortionNoseAlpha.png"/>
+      <FILE id="6hqoPK" name="blueCable.svg" compile="0" resource="1" file="Resources/blueCable.svg"/>
+      <FILE id="0cgTS1" name="cyanCable.svg" compile="0" resource="1" file="Resources/cyanCable.svg"/>
+      <FILE id="1Oj5Vm" name="drag-horizontal.svg" compile="0" resource="1" file="Resources/drag-horizontal.svg"/>
+      <FILE id="muCS4R" name="magentaCable.svg" compile="0" resource="1" file="Resources/magentaCable.svg"/>
+      <FILE id="P1eBem" name="orangeCable.svg" compile="0" resource="1" file="Resources/orangeCable.svg"/>
+      <FILE id="SdRYsT" name="redCable.svg" compile="0" resource="1" file="Resources/redCable.svg"/>
+      <FILE id="G8eiFq" name="trash.svg" compile="0" resource="1" file="Resources/trash.svg"/>
+      <FILE id="MvMloN" name="violetCable.svg" compile="0" resource="1" file="Resources/violetCable.svg"/>
+      <FILE id="1S8DFP" name="whiteCable.svg" compile="0" resource="1" file="Resources/whiteCable.svg"/>
+      <FILE id="5Ozl8b" name="yellowCable.svg" compile="0" resource="1" file="Resources/yellowCable.svg"/>
     </GROUP>
-    <GROUP id="{05928718-69BA-1038-2755-5C57D73D6FCD}" name="Source">
-      <GROUP id="{3CE862F7-9551-DF55-4209-CE64AF968F62}" name="Shared">
-        <FILE id="A3PsK4" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/Shared/FFTAnalyzer.cpp"/>
-        <FILE id="mVJRiw" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/Shared/FFTAnalyzer.h"/>
-        <FILE id="CYJuTM" name="GUIState.cpp" compile="1" resource="0" file="Source/Shared/GUIState.cpp"/>
-        <FILE id="SrtuIT" name="GUIState.h" compile="0" resource="0" file="Source/Shared/GUIState.h"/>
-        <FILE id="szjAV1" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
-        <FILE id="wPGj1Y" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
-        <FILE id="iZogDi" name="ModuleGenerator.cpp" compile="1" resource="0"
-              file="Source/Shared/ModuleGenerator.cpp"/>
-        <FILE id="ysiY45" name="ModuleGenerator.h" compile="0" resource="0"
-              file="Source/Shared/ModuleGenerator.h"/>
-        <FILE id="XHS35Z" name="ModuleType.h" compile="0" resource="0" file="Source/Shared/ModuleType.h"/>
-        <FILE id="xL7u1f" name="OverlappingFFTProcessor.h" compile="0" resource="0"
-              file="Source/Shared/OverlappingFFTProcessor.h"/>
-        <FILE id="jE7lxU" name="PluginState.cpp" compile="1" resource="0" file="Source/Shared/PluginState.cpp"/>
-        <FILE id="u2PZmA" name="PluginState.h" compile="0" resource="0" file="Source/Shared/PluginState.h"/>
+    <GROUP id="{1AB3EF9C-156C-7E86-B8F5-3593E0731361}" name="Source">
+      <GROUP id="{5E8E3524-44A3-A431-F600-C28A881C79F9}" name="Component">
+        <FILE id="1XFO1D" name="FFTAnalyzerComponent.cpp" compile="1" resource="0" file="Source/Component/FFTAnalyzerComponent.cpp"/>
+        <FILE id="b9tcrs" name="FFTAnalyzerComponent.h" compile="0" resource="0" file="Source/Component/FFTAnalyzerComponent.h"/>
+        <FILE id="v4HjOd" name="HelpComponent.cpp" compile="1" resource="0" file="Source/Component/HelpComponent.cpp"/>
+        <FILE id="quJCc1" name="HelpComponent.h" compile="0" resource="0" file="Source/Component/HelpComponent.h"/>
+        <FILE id="GFJ3Iz" name="ModuleLegendComponent.cpp" compile="1" resource="0" file="Source/Component/ModuleLegendComponent.cpp"/>
+        <FILE id="cKXv31" name="ModuleLegendComponent.h" compile="0" resource="0" file="Source/Component/ModuleLegendComponent.h"/>
+        <FILE id="0vJ3zR" name="ResponseCurveComponent.cpp" compile="1" resource="0" file="Source/Component/ResponseCurveComponent.cpp"/>
+        <FILE id="Uv4J3P" name="ResponseCurveComponent.h" compile="0" resource="0" file="Source/Component/ResponseCurveComponent.h"/>
+        <FILE id="Q35Aes" name="ScopeDisplay.cpp" compile="1" resource="0" file="Source/Component/ScopeDisplay.cpp"/>
+        <FILE id="BazrKE" name="ScopeDisplay.h" compile="0" resource="0" file="Source/Component/ScopeDisplay.h"/>
+        <FILE id="8swPF1" name="TransferFunctionGraphComponent.cpp" compile="1" resource="0" file="Source/Component/TransferFunctionGraphComponent.cpp"/>
+        <FILE id="xAAKk5" name="TransferFunctionGraphComponent.h" compile="0" resource="0" file="Source/Component/TransferFunctionGraphComponent.h"/>
+        <FILE id="9oaRWi" name="WaveShapeVisualiser.cpp" compile="1" resource="0" file="Source/Component/WaveShapeVisualiser.cpp"/>
+        <FILE id="1zNLBU" name="WaveShapeVisualiser.h" compile="0" resource="0" file="Source/Component/WaveShapeVisualiser.h"/>
       </GROUP>
-      <GROUP id="{D0A202A6-9C7E-68CA-1A7B-EA022F0173D3}" name="Component">
-        <FILE id="vB1U6r" name="FFTAnalyzerComponent.cpp" compile="1" resource="0"
-              file="Source/Component/FFTAnalyzerComponent.cpp"/>
-        <FILE id="MSXX8U" name="FFTAnalyzerComponent.h" compile="0" resource="0"
-              file="Source/Component/FFTAnalyzerComponent.h"/>
-        <FILE id="XyD2HS" name="HelpComponent.cpp" compile="1" resource="0"
-              file="Source/Component/HelpComponent.cpp"/>
-        <FILE id="cTK25w" name="HelpComponent.h" compile="0" resource="0" file="Source/Component/HelpComponent.h"/>
-        <FILE id="BQ82k4" name="ResponseCurveComponent.cpp" compile="1" resource="0"
-              file="Source/Component/ResponseCurveComponent.cpp"/>
-        <FILE id="SQvwHy" name="ResponseCurveComponent.h" compile="0" resource="0"
-              file="Source/Component/ResponseCurveComponent.h"/>
-        <FILE id="HmCuqy" name="TransferFunctionGraphComponent.cpp" compile="1"
-              resource="0" file="Source/Component/TransferFunctionGraphComponent.cpp"/>
-        <FILE id="G1QQAa" name="TransferFunctionGraphComponent.h" compile="0"
-              resource="0" file="Source/Component/TransferFunctionGraphComponent.h"/>
+      <GROUP id="{8951928D-4E5E-C507-70AB-2601FCDA8998}" name="Module">
+        <GROUP id="{1DEB47D5-B939-22D6-741D-6C7B6FE5AABA}" name="ChainModule">
+          <FILE id="4GsNVq" name="ChainModule.cpp" compile="1" resource="0" file="Source/Module/ChainModule/ChainModule.cpp"/>
+          <FILE id="xyZVT7" name="ChainModule.h" compile="0" resource="0" file="Source/Module/ChainModule/ChainModule.h"/>
+        </GROUP>
+        <GROUP id="{AF8C2A2A-ACE2-0C61-3718-23D98FE6EBE5}" name="ClassicBitcrusherModule">
+          <FILE id="lwTz1m" name="ClassicBitcrusherModule.cpp" compile="1" resource="0" file="Source/Module/ClassicBitcrusherModule/ClassicBitcrusherModule.cpp"/>
+          <FILE id="Nqn50f" name="ClassicBitcrusherModule.h" compile="0" resource="0" file="Source/Module/ClassicBitcrusherModule/ClassicBitcrusherModule.h"/>
+        </GROUP>
+        <GROUP id="{603A861F-0FC5-61A4-0A74-8A343652CC62}" name="EqualizerModule">
+          <FILE id="bhUgsL" name="EqualizerModule.cpp" compile="1" resource="0" file="Source/Module/EqualizerModule/EqualizerModule.cpp"/>
+          <FILE id="Y0nDKt" name="EqualizerModule.h" compile="0" resource="0" file="Source/Module/EqualizerModule/EqualizerModule.h"/>
+        </GROUP>
+        <GROUP id="{B0356C15-92C5-5652-B212-B02A8D3954E9}" name="MeterModule">
+          <FILE id="BR33C2" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule/MeterModule.cpp"/>
+          <FILE id="xm5ksG" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule/MeterModule.h"/>
+        </GROUP>
+        <GROUP id="{084CF310-E3A9-0327-BD87-000D41B0D3E9}" name="OscilloscopeModule">
+          <FILE id="mOZcxz" name="OscilloscopeModule.cpp" compile="1" resource="0" file="Source/Module/OscilloscopeModule/OscilloscopeModule.cpp"/>
+          <FILE id="2HMCVO" name="OscilloscopeModule.h" compile="0" resource="0" file="Source/Module/OscilloscopeModule/OscilloscopeModule.h"/>
+        </GROUP>
+        <GROUP id="{484BE973-E9E4-619E-1734-6AB798162A56}" name="SlewLimiterModule">
+          <FILE id="oyrCCk" name="SlewLimiterModule.cpp" compile="1" resource="0" file="Source/Module/SlewLimiterModule/SlewLimiterModule.cpp"/>
+          <FILE id="Fd1Mqx" name="SlewLimiterModule.h" compile="0" resource="0" file="Source/Module/SlewLimiterModule/SlewLimiterModule.h"/>
+        </GROUP>
+        <GROUP id="{40869412-E743-94DE-9A28-03C8DF00B99F}" name="SpectrumAnalyzerModule">
+          <FILE id="dKs9mb" name="SpectrumAnalyzerModule.cpp" compile="1" resource="0" file="Source/Module/SpectrumAnalyzerModule/SpectrumAnalyzerModule.cpp"/>
+          <FILE id="4dPGiw" name="SpectrumAnalyzerModule.h" compile="0" resource="0" file="Source/Module/SpectrumAnalyzerModule/SpectrumAnalyzerModule.h"/>
+        </GROUP>
+        <GROUP id="{BBC93EB1-DA65-9BD6-54F4-BCAA7EB80884}" name="SpectrumBitcrusherModule">
+          <FILE id="ip6Fi2" name="SpectrumBitcrusherModule.cpp" compile="1" resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.cpp"/>
+          <FILE id="X11tbd" name="SpectrumBitcrusherModule.h" compile="0" resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.h"/>
+          <FILE id="RfpzVC" name="SpectrumBitcrusherProcessor.cpp" compile="1" resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherProcessor.cpp"/>
+          <FILE id="Q12mv0" name="SpectrumBitcrusherProcessor.h" compile="0" resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherProcessor.h"/>
+        </GROUP>
+        <GROUP id="{867E33E9-EE86-8E5F-ADA9-26935529BB63}" name="WaveshaperModule">
+          <FILE id="0jXo0N" name="WaveshaperModule.cpp" compile="1" resource="0" file="Source/Module/WaveshaperModule/WaveshaperModule.cpp"/>
+          <FILE id="hx84IQ" name="WaveshaperModule.h" compile="0" resource="0" file="Source/Module/WaveshaperModule/WaveshaperModule.h"/>
+        </GROUP>
+        <GROUP id="{6AA0DA89-F17C-EEEE-6F95-8D0E8AC45745}" name="WelcomeModule">
+          <FILE id="q2bDeU" name="WelcomeModule.cpp" compile="1" resource="0" file="Source/Module/WelcomeModule/WelcomeModule.cpp"/>
+          <FILE id="IQH6Mf" name="WelcomeModule.h" compile="0" resource="0" file="Source/Module/WelcomeModule/WelcomeModule.h"/>
+        </GROUP>
+        <FILE id="NwKcP3" name="DSPModule.cpp" compile="1" resource="0" file="Source/Module/DSPModule.cpp"/>
+        <FILE id="Pq7k4P" name="DSPModule.h" compile="0" resource="0" file="Source/Module/DSPModule.h"/>
+        <FILE id="j97aGf" name="GUIModule.cpp" compile="1" resource="0" file="Source/Module/GUIModule.cpp"/>
+        <FILE id="FRPei6" name="GUIModule.h" compile="0" resource="0" file="Source/Module/GUIModule.h"/>
       </GROUP>
-      <GROUP id="{35D8389F-08CD-6D8A-9595-9DAB35801015}" name="Module">
-        <GROUP id="{8995AE95-5CBA-35B8-2835-C2D300FB24D5}" name="ChainModule">
-          <FILE id="zqUUfQ" name="ChainModule.cpp" compile="1" resource="0" file="Source/Module/ChainModule/ChainModule.cpp"/>
-          <FILE id="li1Yy7" name="ChainModule.h" compile="0" resource="0" file="Source/Module/ChainModule/ChainModule.h"/>
-        </GROUP>
-        <GROUP id="{97754550-BAC5-81ED-42B5-4EB86B99214F}" name="ClassicBitcrusherModule">
-          <FILE id="OaAM4G" name="ClassicBitcrusherModule.cpp" compile="1" resource="0"
-                file="Source/Module/ClassicBitcrusherModule/ClassicBitcrusherModule.cpp"/>
-          <FILE id="mrzPUp" name="ClassicBitcrusherModule.h" compile="0" resource="0"
-                file="Source/Module/ClassicBitcrusherModule/ClassicBitcrusherModule.h"/>
-        </GROUP>
-        <GROUP id="{51141C58-73A3-E298-61E6-A68D79849732}" name="EqualizerModule">
-          <FILE id="SrJ3V6" name="EqualizerModule.cpp" compile="1" resource="0"
-                file="Source/Module/EqualizerModule/EqualizerModule.cpp"/>
-          <FILE id="XAPP3R" name="EqualizerModule.h" compile="0" resource="0"
-                file="Source/Module/EqualizerModule/EqualizerModule.h"/>
-        </GROUP>
-        <GROUP id="{87345D9B-80A9-80EB-3050-5BB3B6751355}" name="MeterModule">
-          <FILE id="VieDcY" name="MeterModule.cpp" compile="1" resource="0" file="Source/Module/MeterModule/MeterModule.cpp"/>
-          <FILE id="C3XhgX" name="MeterModule.h" compile="0" resource="0" file="Source/Module/MeterModule/MeterModule.h"/>
-        </GROUP>
-        <GROUP id="{667407E8-54E0-F6B8-50BB-F345A5E68EEA}" name="OscilloscopeModule">
-          <FILE id="g9Mfc9" name="OscilloscopeModule.cpp" compile="1" resource="0"
-                file="Source/Module/OscilloscopeModule/OscilloscopeModule.cpp"/>
-          <FILE id="uBKNtp" name="OscilloscopeModule.h" compile="0" resource="0"
-                file="Source/Module/OscilloscopeModule/OscilloscopeModule.h"/>
-        </GROUP>
-        <GROUP id="{F47BBDB9-C362-1EC3-7AD7-C01F25BEE79F}" name="SlewLimiterModule">
-          <FILE id="WxwzpY" name="SlewLimiterModule.cpp" compile="1" resource="0"
-                file="Source/Module/SlewLimiterModule/SlewLimiterModule.cpp"/>
-          <FILE id="OlQRo0" name="SlewLimiterModule.h" compile="0" resource="0"
-                file="Source/Module/SlewLimiterModule/SlewLimiterModule.h"/>
-        </GROUP>
-        <GROUP id="{ADE1A7D8-9C79-FA6C-969E-DB527CA45E73}" name="SpectrumBitcrusherModule">
-          <FILE id="pstCE1" name="SpectrumBitcrusherModule.cpp" compile="1" resource="0"
-                file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.cpp"/>
-          <FILE id="pp96DQ" name="SpectrumBitcrusherModule.h" compile="0" resource="0"
-                file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherModule.h"/>
-          <FILE id="tWRajU" name="SpectrumBitcrusherProcessor.cpp" compile="1"
-                resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherProcessor.cpp"/>
-          <FILE id="weLbJI" name="SpectrumBitcrusherProcessor.h" compile="0"
-                resource="0" file="Source/Module/SpectrumBitcrusherModule/SpectrumBitcrusherProcessor.h"/>
-        </GROUP>
-        <GROUP id="{6DC2AAFC-F5F1-9E0A-0486-90C6679EDC4D}" name="WaveshaperModule">
-          <FILE id="FXxZPi" name="WaveshaperModule.cpp" compile="1" resource="0"
-                file="Source/Module/WaveshaperModule/WaveshaperModule.cpp"/>
-          <FILE id="lzbTL5" name="WaveshaperModule.h" compile="0" resource="0"
-                file="Source/Module/WaveshaperModule/WaveshaperModule.h"/>
-        </GROUP>
-        <GROUP id="{0899F8B5-9AC2-2139-6A98-C82D9DE789F6}" name="WelcomeModule">
-          <FILE id="bJUOXh" name="WelcomeModule.cpp" compile="1" resource="0"
-                file="Source/Module/WelcomeModule/WelcomeModule.cpp"/>
-          <FILE id="gkYD9K" name="WelcomeModule.h" compile="0" resource="0" file="Source/Module/WelcomeModule/WelcomeModule.h"/>
-        </GROUP>
-        <FILE id="yc7UDc" name="DSPModule.cpp" compile="1" resource="0" file="Source/Module/DSPModule.cpp"/>
-        <FILE id="qxoPsW" name="DSPModule.h" compile="0" resource="0" file="Source/Module/DSPModule.h"/>
-        <FILE id="bQC4aE" name="GUIModule.cpp" compile="1" resource="0" file="Source/Module/GUIModule.cpp"/>
-        <FILE id="PFdRlU" name="GUIModule.h" compile="0" resource="0" file="Source/Module/GUIModule.h"/>
+      <GROUP id="{DAAAC07F-00A3-246A-E133-3BCF89FEC78B}" name="Shared">
+        <FILE id="h0MgaS" name="FFTAnalyzer.cpp" compile="1" resource="0" file="Source/Shared/FFTAnalyzer.cpp"/>
+        <FILE id="TjPUu1" name="FFTAnalyzer.h" compile="0" resource="0" file="Source/Shared/FFTAnalyzer.h"/>
+        <FILE id="h6f8bV" name="GUIState.cpp" compile="1" resource="0" file="Source/Shared/GUIState.cpp"/>
+        <FILE id="zrh72D" name="GUIState.h" compile="0" resource="0" file="Source/Shared/GUIState.h"/>
+        <FILE id="LFNdw1" name="GUIStuff.cpp" compile="1" resource="0" file="Source/Shared/GUIStuff.cpp"/>
+        <FILE id="eTbvL5" name="GUIStuff.h" compile="0" resource="0" file="Source/Shared/GUIStuff.h"/>
+        <FILE id="uF93OM" name="ModuleGenerator.cpp" compile="1" resource="0" file="Source/Shared/ModuleGenerator.cpp"/>
+        <FILE id="XHDbjF" name="ModuleGenerator.h" compile="0" resource="0" file="Source/Shared/ModuleGenerator.h"/>
+        <FILE id="FCzwNq" name="ModuleType.h" compile="0" resource="0" file="Source/Shared/ModuleType.h"/>
+        <FILE id="GZ8j2F" name="OverlappingFFTProcessor.h" compile="0" resource="0" file="Source/Shared/OverlappingFFTProcessor.h"/>
+        <FILE id="R1yEWm" name="PluginState.cpp" compile="1" resource="0" file="Source/Shared/PluginState.cpp"/>
+        <FILE id="EKIbZ6" name="PluginState.h" compile="0" resource="0" file="Source/Shared/PluginState.h"/>
+        <FILE id="UZNpya" name="SharedParamsLayout.h" compile="0" resource="0" file="Source/Shared/SharedParamsLayout.h"/>
       </GROUP>
-      <FILE id="ZIXKn6" name="PluginProcessor.cpp" compile="1" resource="0"
-            file="Source/PluginProcessor.cpp"/>
-      <FILE id="of0qUf" name="PluginProcessor.h" compile="0" resource="0"
-            file="Source/PluginProcessor.h"/>
-      <FILE id="BEeiGF" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="CZDMBB" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="f68VAw" name="PluginEditor.cpp" compile="1" resource="0" file="Source/PluginEditor.cpp"/>
+      <FILE id="kzVRWM" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="CLR5er" name="PluginProcessor.cpp" compile="1" resource="0" file="Source/PluginProcessor.cpp"/>
+      <FILE id="iAjnuU" name="PluginProcessor.h" compile="0" resource="0" file="Source/PluginProcessor.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <VS2019 targetFolder="Builds/VisualStudio2019" smallIcon="LPCGa8" bigIcon="LPCGa8">
+    <VS2022 targetFolder="Builds/VisualStudio2022" smallIcon="wywXBO" bigIcon="wywXBO">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="Biztortion"/>
-        <CONFIGURATION isDebug="0" name="Release_x64" targetName="Biztortion"/>
-        <CONFIGURATION isDebug="0" name="Release_x32" targetName="Biztortion" winArchitecture="Win32"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Biztortion"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_dsp" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="C:/JUCE/modules"/>
-        <MODULEPATH id="juce_cryptography" path="C:/JUCE/modules"/>
-        <MODULEPATH id="dRowAudio" path="../../../LIBRERIA/Coding/drowaudio/module"/>
-        <MODULEPATH id="ff_meters" path="../../../LIBRERIA/Coding"/>
+        <MODULEPATH id="juce_audio_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="ff_meters" path=".."/>
       </MODULEPATHS>
-    </VS2019>
-    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="LPCGa8" bigIcon="LPCGa8">
+    </VS2022>
+    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="wywXBO" bigIcon="wywXBO">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_gui_extra"/>
-        <MODULEPATH id="juce_gui_basics"/>
-        <MODULEPATH id="juce_graphics"/>
-        <MODULEPATH id="juce_events"/>
-        <MODULEPATH id="juce_dsp"/>
-        <MODULEPATH id="juce_data_structures"/>
-        <MODULEPATH id="juce_cryptography"/>
-        <MODULEPATH id="juce_core"/>
-        <MODULEPATH id="juce_audio_utils"/>
-        <MODULEPATH id="juce_audio_processors"/>
-        <MODULEPATH id="juce_audio_plugin_client"/>
-        <MODULEPATH id="juce_audio_formats"/>
-        <MODULEPATH id="juce_audio_devices"/>
-        <MODULEPATH id="juce_audio_basics"/>
-        <MODULEPATH id="ff_meters"/>
-        <MODULEPATH id="dRowAudio"/>
+        <MODULEPATH id="juce_audio_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="ff_meters" path=".."/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="dRowAudio" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="ff_meters" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
-            useGlobalPath="1"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
 </JUCERPROJECT>

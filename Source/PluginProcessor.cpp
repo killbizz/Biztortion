@@ -205,7 +205,7 @@ void BiztortionAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         for (auto it = pluginState.DSPmodules.cbegin(); it < pluginState.DSPmodules.cend(); ++it) {
             auto module = &**it;
             // fft analyzer FIFOs update
-            if (module->getModuleType() == ModuleType::Equalizer) {
+            if (moduleTypeOwnsAnalyzerFIFO(module->getModuleType())) {
                 auto index = moduleCounter++;
                 pluginState.leftAnalyzerFIFOs[index]->update(buffer);
                 pluginState.rightAnalyzerFIFOs[index]->update(buffer);
@@ -268,6 +268,11 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         }
         pluginState.moduleParameterNumbers.referTo(pluginState.apvts.state.getPropertyAsValue("moduleParameterNumbers", nullptr));
 
+        if (!pluginState.apvts.state.hasProperty("lastViewedChainPosition")) {
+            pluginState.apvts.state.setProperty("lastViewedChainPosition", var(0), nullptr);
+        }
+        pluginState.lastViewedChainPosition.referTo(pluginState.apvts.state.getPropertyAsValue("lastViewedChainPosition", nullptr));
+
         // moduleTypes, chainPositions and parameterNumbers to re-create DSPmodules saved in the APVTS
 
         auto mt = pluginState.moduleTypes.getValue().getArray();
@@ -306,7 +311,9 @@ void BiztortionAudioProcessor::setStateInformation(const void* data, int sizeInB
         }
 
         if (getActiveEditor() != nullptr) {
-            dynamic_cast<BiztortionAudioProcessorEditor*>(getActiveEditor())->guiState.setupChainModules();
+            auto& guiState = dynamic_cast<BiztortionAudioProcessorEditor*>(getActiveEditor())->guiState;
+            guiState.setupChainModules();
+            guiState.restoreLastViewedModule();
         }
 
     }

@@ -31,6 +31,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
+#include "../../Component/ScopeDisplay.h"
 #include "../../Shared/GUIStuff.h"
 #include "../../Module/DSPModule.h"
 #include "../../Module/GUIModule.h"
@@ -54,9 +55,9 @@ class OscilloscopeModuleDSP : public DSPModule {
 public:
     OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts);
 
-    drow::AudioOscilloscope* getLeftOscilloscope();
-    drow::AudioOscilloscope* getRightOscilloscope();
-    drow::AudioOscilloscope* getStereoOscilloscope();
+    // raw samples the GUI renders from; keeping the samples (instead of a pre-rendered
+    // image) is what lets a frozen scope be re-drawn at a different zoom
+    ScopeSampleBuffer& getSampleBuffer();
 
     static OscilloscopeSettings getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber);
     static void addParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout);
@@ -67,9 +68,7 @@ public:
 
 private:
     bool bypassed = false;
-    drow::AudioOscilloscope leftOscilloscope;
-    drow::AudioOscilloscope rightOscilloscope;
-    drow::AudioOscilloscope stereoOscilloscope;
+    ScopeSampleBuffer sampleBuffer;
 };
 
 //==============================================================================
@@ -80,9 +79,7 @@ private:
 
 class OscilloscopeModuleGUI : public GUIModule {
 public:
-    OscilloscopeModuleGUI(PluginState& p, drow::AudioOscilloscope* _leftOscilloscope,
-        drow::AudioOscilloscope* _rightOscilloscope,
-        drow::AudioOscilloscope* _stereoOscilloscope,
+    OscilloscopeModuleGUI(PluginState& p, ScopeSampleBuffer& sampleBuffer,
         unsigned int parameterNumber);
     ~OscilloscopeModuleGUI();
 
@@ -116,7 +113,7 @@ private:
     
     juce::TextButton freezeButton{ "Freeze" };
     juce::TextButton syncButton{ "Sync" };
-    juce::TextButton stereoButton{ "Stereo" };
+    StereoViewButton stereoButton;
     PowerButton bypassButton;
 
     ButtonAttachment syncButtonAttachment;
@@ -126,7 +123,8 @@ private:
     ButtonsLookAndFeel lnf;
     ModuleLookAndFeel scopeControlsLnf;
 
-    drow::AudioOscilloscope* leftOscilloscope;
-    drow::AudioOscilloscope* rightOscilloscope;
-    drow::AudioOscilloscope* stereoOscilloscope;
+    // traces, references and gestures, all rendered from the raw samples
+    ScopeDisplay scopeDisplay;
+
+    void updateScopeView();
 };

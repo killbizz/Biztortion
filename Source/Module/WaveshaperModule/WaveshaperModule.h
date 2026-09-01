@@ -42,7 +42,9 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include <JuceHeader.h>
 
 #include "../../Shared/GUIStuff.h"
+#include "../../Shared/SharedParamsLayout.h"
 #include "../../Component/TransferFunctionGraphComponent.h"
+#include "../../Component/WaveShapeVisualiser.h"
 #include "../../Module/DSPModule.h"
 #include "../../Module/GUIModule.h"
 #include "../../Shared/PluginState.h"
@@ -162,10 +164,14 @@ private:
     using ButtonAttachment = APVTS::ButtonAttachment;
 
     PluginState& pluginState;
+    unsigned int parameterNumber;
 
     juce::Label title;
 
+    // the transfer function is this module's own graph; the hexagon of shared parameters gets
+    // its own graph in the middle
     TransferFunctionGraphComponent transferFunctionGraph;
+    std::unique_ptr<WaveShapeVisualiser> sharedParamsGraph;
 
     juce::Label driveLabel,
         mixLabel,

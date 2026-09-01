@@ -45,6 +45,14 @@ public:
     void updateCurrentGUIModule(GUIModule* module);
     void updateChainModules();
 
+    // Opens the module the user was looking at when the editor was last closed. Falls back to
+    // leaving the homepage on screen when nothing was stored (freshly created plugin) or when
+    // that chain slot no longer holds a module.
+    void restoreLastViewedModule();
+    // 1-8 for a chain slot, 0 for the homepage
+    void setLastViewedChainPosition(int chainPosition);
+    void showWelcomeModule();
+
     //==============================================================================
 
     juce::AudioProcessorEditor& editor;

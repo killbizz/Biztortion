@@ -41,7 +41,9 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #include <JuceHeader.h>
 
+#include "../../Component/WaveShapeVisualiser.h"
 #include "../../Shared/GUIStuff.h"
+#include "../../Shared/SharedParamsLayout.h"
 #include "../../Module/DSPModule.h"
 #include "../../Module/GUIModule.h"
 #include "../../Shared/PluginState.h"
@@ -86,7 +88,8 @@ private:
     const float slewMin = 0.1f;
     // maximum slope in volts per second
     const float slewMax = 10000.f;
-    float lastOutput = 0.f;
+    // running output of the limiter, one per channel
+    float lastOutput[2] = { 0.f, 0.f };
 
 };
 
@@ -116,8 +119,14 @@ private:
     using ButtonAttachment = APVTS::ButtonAttachment;
 
     PluginState& pluginState;
+    unsigned int parameterNumber;
 
     juce::Label title;
+
+    // left: what the slew limiter itself is doing; centre of the hexagon: what the shared
+    // drive/mix/distribution/bias/symmetry/dc parameters are doing
+    std::unique_ptr<WaveShapeVisualiser> moduleGraph;
+    std::unique_ptr<WaveShapeVisualiser> sharedParamsGraph;
 
     PowerButton bypassButton;
 

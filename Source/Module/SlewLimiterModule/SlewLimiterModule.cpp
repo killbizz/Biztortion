@@ -124,8 +124,8 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
 
         // internal variables
         auto Ts = 1.f / sampleRate;
-        float slewRise = slewMax * Ts * std::pow(slewMin / slewMax, rise.getNextValue());
-        float slewFall = slewMax * Ts * std::pow(slewMin / slewMax, fall.getNextValue());
+        float slewRise = slewMax * Ts * std::pow(slewMin / slewMax, fall.getNextValue());
+        float slewFall = slewMax * Ts * std::pow(slewMin / slewMax, rise.getNextValue());
 
         // TODO : aggiungo MIX tra 2 diverse computazioni dei valori slewRise e slewFall per diversi effetti
 
@@ -133,14 +133,14 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
         //float slewRise = 0.000001f / rise.getNextValue();
         //float slewFall = 0.000001f / fall.getNextValue();
 
-        // temporary variable to handle the last output at the end of the processing
-        float temp = lastOutput;
-
-        // Processing
+        // Processing.
+        // The running output is kept per channel: sharing one value meant the left channel
+        // started every block from the right channel's last sample, which slewed the two
+        // channels differently and pulled the stereo image apart.
         for (auto channel = 0; channel < 2; ++channel)
         {
             auto* channelData = wetBuffer.getWritePointer(channel);
-            float output = lastOutput;
+            float output = lastOutput[channel];
             for (auto i = 0; i < numSamples; ++i) {
 
                 auto input = channelData[i];
@@ -155,9 +155,8 @@ void SlewLimiterModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::
                 }
                 channelData[i] = output;
             }
-            temp = output;
+            lastOutput[channel] = output;
         }
-        lastOutput = temp;
 
         effectDistribution(tempBuffer, wetBuffer, fxDistribution.getNextValue(), bias.getNextValue(), numSamples);
 
@@ -223,7 +222,7 @@ SlewLimiterSettings SlewLimiterModuleDSP::getSettings(juce::AudioProcessorValueT
 //==============================================================================
 
 SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int parameterNumber)
-    : GUIModule(), pluginState(p),
+    : GUIModule(), pluginState(p), parameterNumber(parameterNumber),
     driveSlider(*pluginState.apvts.getParameter("SlewLimiter Drive " + std::to_string(parameterNumber)), "dB"),
     mixSlider(*pluginState.apvts.getParameter("SlewLimiter Mix " + std::to_string(parameterNumber)), "%"),
     fxDistributionSlider(*pluginState.apvts.getParameter("SlewLimiter Fx Distribution " + std::to_string(parameterNumber)), "%"),
@@ -248,6 +247,50 @@ SlewLimiterModuleGUI::SlewLimiterModuleGUI(PluginState& p, unsigned int paramete
     moduleColor = moduleType_colors.at(ModuleType::SlewLimiter);
     setModuleHelp("Slew Limiter",
         "Limits how quickly the waveform can rise and fall. Slow settings round transients into smooth distortion; different Rise and Fall values create asymmetry.");
+
+    // --- graphs ---
+    // Visual model of the slew limiter: the rise and fall knobs cap how much the signal may
+    // change from one sample to the next, which turns a sine into a triangle-like shape.
+    moduleGraph = std::make_unique<WaveShapeVisualiser>(moduleColor,
+        [this](std::vector<float>& samples) {
+            const auto settings = SlewLimiterModuleDSP::getSettings(pluginState.apvts, this->parameterNumber);
+            // Mirrors the DSP, where the allowed slope is slewMax * Ts * (slewMin/slewMax)^amount:
+            // 0% lets the signal through untouched and 100% limits hardest. The range is scaled
+            // to this graph, whose reference cycle has a maximum slope of
+            // 2*pi*cycles/resolution (~0.049) per sample - a linear map saturated near 30%.
+            const auto slopeFor = [](float percent) {
+                const auto normalised = juce::jlimit(0.0f, 1.0f, percent * 0.01f);
+                return 0.06f * std::pow(1.0f / 150.0f, normalised);
+            };
+            const auto riseLimit = slopeFor(settings.rise);
+            const auto fallLimit = slopeFor(settings.fall);
+
+            auto last = samples.empty() ? 0.0f : samples[0];
+            for (auto& sample : samples)
+            {
+                const auto delta = sample - last;
+                const auto limit = delta >= 0.0f ? riseLimit : fallLimit;
+                last += juce::jlimit(-limit, limit, delta);
+                sample = last;
+            }
+        });
+    moduleGraph->setTooltip(
+        "What this module does to the waveform: the signal can only rise and fall at a "
+        "limited rate, so steep slopes turn into ramps. Lower rise/fall values limit harder.");
+    moduleGraph->setCaption("slew");
+
+    sharedParamsGraph = std::make_unique<WaveShapeVisualiser>(moduleColor,
+        [this](std::vector<float>& samples) {
+            const auto settings = SlewLimiterModuleDSP::getSettings(pluginState.apvts, this->parameterNumber);
+            SharedParamsLayout::applySharedParameters(samples, settings.drive, settings.mix,
+                settings.fxDistribution, settings.bias, settings.symmetry, settings.DCoffsetRemove);
+        });
+    sharedParamsGraph->setTooltip(
+        "The transfer function these controls apply to the signal, drawn over the faint input "
+        "curve. Drive sets how hard the signal is pushed into the effect, fx bias marks the "
+        "threshold that splits the waveform and fx distribution chooses how much of the effect "
+        "each side of it receives, symmetry weights the positive against the negative half, the "
+        "dc filter recentres the result on zero, and mix blends it back with the clean signal.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -329,6 +372,8 @@ std::vector<juce::Component*> SlewLimiterModuleGUI::getAllComps()
 {
     return {
         &title,
+        moduleGraph.get(),
+        sharedParamsGraph.get(),
         &driveSlider,
         &mixSlider,
         &fxDistributionSlider,
@@ -422,107 +467,68 @@ juce::Array<juce::var> SlewLimiterModuleGUI::getParamValues()
 
 void SlewLimiterModuleGUI::resized()
 {
-    auto slewLimiterArea = getContentRenderArea();
+    auto area = getContentRenderArea();
 
-    auto titleAndBypassArea = slewLimiterArea.removeFromTop(36);
-    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+    auto titleAndBypassArea = area.removeFromTop(36);
+    const auto titleArea = titleAndBypassArea;
+    bypassButton.setBounds(juce::Rectangle<int>(headerButtonSize, headerButtonSize).withCentre(
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
-    juce::Rectangle<int> temp;
 
-    slewLimiterArea.reduce(8, 12);
-
-    auto topArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 3.f));
-    auto middleArea = slewLimiterArea.removeFromTop(slewLimiterArea.getHeight() * (1.f / 2.f));
-    auto bottomArea = slewLimiterArea;
-
-    topArea.reduce(0, 4);
-    middleArea.reduce(0, 4);
-    bottomArea.reduce(0, 4);
-
-    auto topLabelsArea = topArea.removeFromTop(14);
-    auto middleLabelsArea = middleArea.removeFromTop(14);
-    auto bottomLabelsArea = bottomArea.removeFromTop(14);
-
-    // label areas
-    auto driveLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto mixLabelArea = topLabelsArea;
-    temp = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
-    auto fxDistributionLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto biasLabelArea = temp;
-    auto symmetryLabelArea = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveLabelArea = middleLabelsArea;
-    auto riseLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
-    auto fallLabelArea = bottomLabelsArea;
-
-    // slider areas
-    auto driveArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto mixArea = topArea;
-    temp = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
-    auto fxDistributionArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto biasArea = temp;
-    auto symmetryArea = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveArea = middleArea;
-    auto riseArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
-    auto fallArea = bottomArea;
-
-    juce::Rectangle<int> renderArea;
-    const auto knobSize = juce::jmin(fxDistributionArea.getWidth() - 40,
-        juce::jmin(topArea.getHeight(), juce::jmin(middleArea.getHeight(), bottomArea.getHeight())) - 6);
-    renderArea.setSize(knobSize, knobSize);
-
-    title.setBounds(titleAndBypassArea);
+    title.setBounds(titleArea);
     title.setJustificationType(juce::Justification::centred);
 
-    renderArea.setCentre(driveArea.getCentre());
-    driveSlider.setBounds(renderArea);
-    driveLabel.setBounds(driveLabelArea);
-    driveLabel.setJustificationType(juce::Justification::centred);
+    area.reduce(6, 8);
 
+    // left: this module's own graph and parameters - right: the shared parameters hexagon
+    auto moduleSide = area.removeFromLeft(juce::roundToInt(area.getWidth() * 0.44f));
+    area.removeFromLeft(10);
+    auto sharedSide = area;
 
-    renderArea.setCentre(mixArea.getCentre());
-    mixSlider.setBounds(renderArea);
-    mixLabel.setBounds(mixLabelArea);
-    mixLabel.setJustificationType(juce::Justification::centred);
+    // --- module side ---
+    moduleGraph->setBounds(moduleSide.removeFromTop(juce::roundToInt(moduleSide.getHeight() * 0.46f)));
+    moduleSide.removeFromTop(8);
 
-    renderArea.setCentre(fxDistributionArea.getCentre());
-    fxDistributionSlider.setBounds(renderArea);
-    fxDistributionLabel.setBounds(fxDistributionLabelArea);
-    fxDistributionLabel.setJustificationType(juce::Justification::centred);
+    // the module's own parameters keep their subtle plate
+    clearParameterGroups();
+    addParameterGroup(moduleSide);
 
-    renderArea.setCentre(biasArea.getCentre());
-    biasSlider.setBounds(renderArea);
-    biasLabel.setBounds(biasLabelArea);
-    biasLabel.setJustificationType(juce::Justification::centred);
+    const auto placeKnob = [](juce::Rectangle<int> cell, juce::Slider& slider, juce::Label& label) {
+        label.setBounds(cell.removeFromTop(14));
+        label.setJustificationType(juce::Justification::centred);
+        // capped so that having only two module parameters does not blow the knobs up out of
+        // proportion with the rest of the plugin
+        const auto size = juce::jmin(104, juce::jmin(cell.getWidth() - 8, cell.getHeight() - 6));
+        slider.setBounds(juce::Rectangle<int>(size, size).withCentre(cell.getCentre()));
+    };
 
-    renderArea.setCentre(symmetryArea.getCentre());
-    symmetrySlider.setBounds(renderArea);
-    symmetryLabel.setBounds(symmetryLabelArea);
-    symmetryLabel.setJustificationType(juce::Justification::centred);
+    auto moduleKnobs = moduleSide.reduced(6, 8);
+    placeKnob(moduleKnobs.removeFromLeft(moduleKnobs.getWidth() / 2), slewLimiterRiseSlider, slewLimiterRiseLabel);
+    placeKnob(moduleKnobs, slewLimiterFallSlider, slewLimiterFallLabel);
 
-    DCoffsetRemoveArea.reduce(46.f, 19.f);
-    //DCoffsetRemoveArea.reduce(JUCE_LIVE_CONSTANT(85.f), 
-    //    JUCE_LIVE_CONSTANT(65.f));
-    DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
-    /*DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(JUCE_LIVE_CONSTANT(1.f)).translated(
-        JUCE_LIVE_CONSTANT(-8.45953f),
-        JUCE_LIVE_CONSTANT(-10.31)));*/
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(1.f).translated(-8.45953f, -8.90813f));
-    DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
+    // --- shared side: the six common parameters on a hexagon, with their graph in the middle ---
+    const auto hexagon = SharedParamsLayout::build(sharedSide);
+    sharedParamsGraph->setBounds(hexagon.centre);
+
+    const auto placeSlot = [](const SharedParamsLayout::Slot& slot, juce::Slider& slider, juce::Label& label) {
+        label.setBounds(slot.label);
+        label.setJustificationType(juce::Justification::centred);
+        slider.setBounds(slot.control);
+    };
+
+    placeSlot(hexagon.slots[0], driveSlider, driveLabel);
+    placeSlot(hexagon.slots[1], mixSlider, mixLabel);
+    placeSlot(hexagon.slots[2], symmetrySlider, symmetryLabel);
+    placeSlot(hexagon.slots[3], biasSlider, biasLabel);
+    placeSlot(hexagon.slots[4], fxDistributionSlider, fxDistributionLabel);
+
+    // the dc filter toggle takes the last vertex
+    const auto& dcSlot = hexagon.slots[5];
+    DCoffsetEnabledButtonLabel.setBounds(dcSlot.label);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
-    /*DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f),
-        JUCE_LIVE_CONSTANT(0.4327f));*/
-    DCoffsetEnabledButtonLabel.setCentreRelative(0.843f, 0.4327f);
-
-    // renderArea.setSize(riseArea.getHeight(), riseArea.getHeight());
-
-    renderArea.setCentre(riseArea.getCentre());
-    slewLimiterRiseSlider.setBounds(renderArea);
-    slewLimiterRiseLabel.setBounds(riseLabelArea);
-    slewLimiterRiseLabel.setJustificationType(juce::Justification::centred);
-
-    renderArea.setCentre(fallArea.getCentre());
-    slewLimiterFallSlider.setBounds(renderArea);
-    slewLimiterFallLabel.setBounds(fallLabelArea);
-    slewLimiterFallLabel.setJustificationType(juce::Justification::centred);
-
+    // the tick box is drawn at the left of the button, so size the button around it to centre it
+    DCoffsetEnabledButton.setTransform({});
+    const auto toggleHeight = juce::jmin(28, dcSlot.control.getHeight());
+    const auto toggleWidth = juce::roundToInt(toggleHeight * 0.825f) + 8;
+    DCoffsetEnabledButton.setBounds(
+        juce::Rectangle<int>(toggleWidth, toggleHeight).withCentre(dcSlot.control.getCentre()));
 }

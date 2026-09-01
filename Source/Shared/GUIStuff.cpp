@@ -170,15 +170,34 @@ void ButtonsLookAndFeel::drawToggleButton(juce::Graphics& g,
     }
     else if (auto* analyzerButton = dynamic_cast<AnalyzerButton*>(&toggleButton))
     {
-        // Colour(0u, 172u, 1u)
-        auto color = !toggleButton.getToggleState() ? Colours::dimgrey : this->color;
+        const auto enabled = toggleButton.isEnabled();
+        const auto on = toggleButton.getToggleState();
+        const auto bounds = toggleButton.getLocalBounds().toFloat().reduced(0.5f);
+        const auto cornerSize = jmin(7.0f, jmin(bounds.getWidth(), bounds.getHeight()) * 0.3f);
 
-        g.setColour(color);
+        // same plate as the other buttons in the app, dimmed when the control is unavailable
+        g.setColour(enabled ? BiztortionTheme::surfaceRaised
+                            : BiztortionTheme::surface.withAlpha(0.6f));
+        g.fillRoundedRectangle(bounds, cornerSize);
 
-        auto bounds = toggleButton.getLocalBounds();
-        g.drawRect(bounds);
+        const auto activeColour = enabled ? this->color : this->color.withSaturation(0.15f);
+        const auto traceColour = !enabled ? BiztortionTheme::textMuted.withAlpha(0.35f)
+                                          : (on ? activeColour : BiztortionTheme::textMuted);
 
+        g.setColour(!enabled ? BiztortionTheme::border.withAlpha(0.5f)
+                             : (on ? activeColour : BiztortionTheme::border));
+        g.drawRoundedRectangle(bounds, cornerSize, 1.0f);
+
+        g.setColour(traceColour);
         g.strokePath(analyzerButton->randomPath, PathStrokeType(1.f));
+
+        // a struck-through trace reads as "no analysis" at a glance
+        if (!enabled)
+        {
+            const auto slash = bounds.reduced(bounds.getWidth() * 0.28f, bounds.getHeight() * 0.28f);
+            g.setColour(BiztortionTheme::textMuted.withAlpha(0.55f));
+            g.drawLine(slash.getX(), slash.getBottom(), slash.getRight(), slash.getY(), 1.4f);
+        }
     }
     else
     {
@@ -367,6 +386,75 @@ void RotarySliderWithLabels::stoppedDragging()
     userIsDragging = false;
 }
 
+//==============================================================================
+
+StereoViewButton::StereoViewButton()
+    : juce::Button("Stereo view")
+{
+    setClickingTogglesState(true);
+}
+
+void StereoViewButton::setModuleColours(juce::Colour module, juce::Colour left, juce::Colour right)
+{
+    moduleColour = module;
+    leftColour = left;
+    rightColour = right;
+    repaint();
+}
+
+void StereoViewButton::paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted,
+                                   bool shouldDrawButtonAsDown)
+{
+    const auto enabled = isEnabled();
+    const auto stereo = getToggleState();
+    const auto bounds = getLocalBounds().toFloat().reduced(0.5f);
+    const auto cornerSize = jmin(7.0f, jmin(bounds.getWidth(), bounds.getHeight()) * 0.3f);
+
+    auto plate = stereo ? moduleColour : BiztortionTheme::surfaceRaised;
+    if (shouldDrawButtonAsDown)
+        plate = plate.contrasting(0.2f);
+    else if (shouldDrawButtonAsHighlighted)
+        plate = plate.contrasting(0.1f);
+
+    g.setColour(enabled ? plate : plate.withMultipliedAlpha(0.5f));
+    g.fillRoundedRectangle(bounds, cornerSize);
+
+    // the outline always carries the module colour, so the switch reads as part of the module
+    g.setColour(enabled ? moduleColour : moduleColour.withMultipliedSaturation(0.2f).withAlpha(0.5f));
+    g.drawRoundedRectangle(bounds, cornerSize, 1.0f);
+
+    const auto font = juce::Font("Segoe UI", jmax(11.0f, bounds.getHeight() * 0.42f), Font::bold);
+    g.setFont(font);
+
+    if (stereo)
+    {
+        g.setColour(enabled ? BiztortionTheme::canvas : BiztortionTheme::canvas.withAlpha(0.6f));
+        g.drawText("Stereo", getLocalBounds(), Justification::centred, false);
+        return;
+    }
+
+    // "L / R" with each letter in the colour that channel is drawn with
+    const auto separator = juce::String(" / ");
+    const auto leftWidth = (float) GlyphArrangement::getStringWidthInt(font, "L");
+    const auto rightWidth = (float) GlyphArrangement::getStringWidthInt(font, "R");
+    const auto separatorWidth = (float) GlyphArrangement::getStringWidthInt(font, separator);
+    const auto totalWidth = leftWidth + separatorWidth + rightWidth;
+
+    auto x = bounds.getCentreX() - totalWidth * 0.5f;
+    const auto drawGlyph = [&](const juce::String& text, float width, juce::Colour colour) {
+        g.setColour(enabled ? colour : colour.withMultipliedSaturation(0.2f).withAlpha(0.6f));
+        g.drawText(text, juce::Rectangle<float>(x, bounds.getY(), width, bounds.getHeight()),
+                   Justification::centred, false);
+        x += width;
+    };
+
+    drawGlyph("L", leftWidth, leftColour);
+    drawGlyph(separator, separatorWidth, BiztortionTheme::textMuted);
+    drawGlyph("R", rightWidth, rightColour);
+}
+
+//==============================================================================
+
 void AnalyzerButton::resized()
 {
     auto bounds = getLocalBounds();
@@ -402,6 +490,62 @@ void BizTextButton::mouseDrag(const MouseEvent& event)
     auto editor = dynamic_cast<juce::DragAndDropContainer*>(getParentComponent()->getParentComponent());
     if (newModule->getModuleType() != ModuleType::Uninstantiated)
         editor->startDragging("", newModule);
+}
+
+void BizTextButton::mouseDoubleClick(const MouseEvent&)
+{
+    if (onRenameRequested != nullptr)
+        onRenameRequested();
+}
+
+bool BizTextButton::keyPressed(const juce::KeyPress& key)
+{
+    if (key == juce::KeyPress::F2Key && onRenameRequested != nullptr)
+    {
+        onRenameRequested();
+        return true;
+    }
+
+    return juce::TextButton::keyPressed(key);
+}
+
+//==============================================================================
+
+ModuleMenuItemComponent::ModuleMenuItemComponent(juce::Colour moduleColour, juce::String moduleName)
+    : colour(moduleColour), name(std::move(moduleName))
+{
+}
+
+void ModuleMenuItemComponent::getIdealSize(int& idealWidth, int& idealHeight)
+{
+    idealWidth = 250;
+    idealHeight = 32;
+}
+
+void ModuleMenuItemComponent::paint(juce::Graphics& g)
+{
+    auto bounds = getLocalBounds().toFloat().reduced(3.0f, 1.0f);
+
+    if (isItemHighlighted())
+    {
+        g.setColour(colour.withAlpha(0.18f));
+        g.fillRoundedRectangle(bounds, 5.0f);
+        g.setColour(colour.withAlpha(0.55f));
+        g.drawRoundedRectangle(bounds, 5.0f, 1.0f);
+    }
+
+    bounds.removeFromLeft(8.0f);
+
+    // colour dot matching the module's colour in the chain
+    const auto dotArea = bounds.removeFromLeft(10.0f).withSizeKeepingCentre(10.0f, 10.0f);
+    g.setColour(colour);
+    g.fillEllipse(dotArea);
+
+    bounds.removeFromLeft(10.0f);
+
+    g.setColour(isItemHighlighted() ? BiztortionTheme::text : BiztortionTheme::text.withAlpha(0.88f));
+    g.setFont(juce::Font("Segoe UI", 15.0f, juce::Font::plain));
+    g.drawText(name, bounds.getSmallestIntegerContainer(), juce::Justification::centredLeft, true);
 }
 
 void BizLabel::mouseDrag(const MouseEvent& event)

@@ -38,24 +38,11 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 OscilloscopeModuleDSP::OscilloscopeModuleDSP(juce::AudioProcessorValueTreeState& _apvts)
     : DSPModule(_apvts)
 {
-    leftOscilloscope.clear();
-    rightOscilloscope.clear();
-    stereoOscilloscope.clear();
 }
 
-drow::AudioOscilloscope* OscilloscopeModuleDSP::getLeftOscilloscope()
+ScopeSampleBuffer& OscilloscopeModuleDSP::getSampleBuffer()
 {
-    return &leftOscilloscope;
-}
-
-drow::AudioOscilloscope* OscilloscopeModuleDSP::getRightOscilloscope()
-{
-    return &rightOscilloscope;
-}
-
-drow::AudioOscilloscope* OscilloscopeModuleDSP::getStereoOscilloscope()
-{
-    return &stereoOscilloscope;
+    return sampleBuffer;
 }
 
 OscilloscopeSettings OscilloscopeModuleDSP::getSettings(juce::AudioProcessorValueTreeState& apvts, unsigned int parameterNumber)
@@ -89,37 +76,24 @@ void OscilloscopeModuleDSP::addParameters(juce::AudioProcessorValueTreeState::Pa
     }
 }
 
-void OscilloscopeModuleDSP::updateDSPState(double sampleRate)
+void OscilloscopeModuleDSP::updateDSPState(double)
 {
+    // the view is applied when rendering, so the DSP only has to track the bypass here
     auto settings = getSettings(apvts, parameterNumber);
     bypassed = settings.bypassed;
-    leftOscilloscope.setHorizontalZoom(settings.hZoom);
-    leftOscilloscope.setVerticalZoom(settings.vZoom);
-    rightOscilloscope.setHorizontalZoom(settings.hZoom);
-    rightOscilloscope.setVerticalZoom(settings.vZoom);
-    stereoOscilloscope.setHorizontalZoom(settings.hZoom);
-    stereoOscilloscope.setVerticalZoom(settings.vZoom);
-    leftOscilloscope.setTriggerEnabled(settings.syncEnabled);
-    rightOscilloscope.setTriggerEnabled(settings.syncEnabled);
-    stereoOscilloscope.setTriggerEnabled(settings.syncEnabled);
 }
 
-void OscilloscopeModuleDSP::prepareToPlay(double sampleRate, int samplesPerBlock)
+void OscilloscopeModuleDSP::prepareToPlay(double sampleRate, int)
 {
-    leftOscilloscope.clear();
-    rightOscilloscope.clear();
-    stereoOscilloscope.clear();
     updateDSPState(sampleRate);
 }
 
-void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages, double sampleRate)
+void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&, double sampleRate)
 {
     updateDSPState(sampleRate);
-    if (!bypassed) {
-        leftOscilloscope.processBlock(buffer.getReadPointer(0), buffer.getNumSamples());
-        rightOscilloscope.processBlock(buffer.getReadPointer(1), buffer.getNumSamples());
-        stereoOscilloscope.processStereoBlock(buffer.getReadPointer(0), buffer.getReadPointer(1), buffer.getNumSamples());
-    }
+
+    if (!bypassed)
+        sampleBuffer.push(buffer.getReadPointer(0), buffer.getReadPointer(1), buffer.getNumSamples());
 }
 
 //==============================================================================
@@ -128,11 +102,11 @@ void OscilloscopeModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 //==============================================================================
 
-OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscilloscope* _leftOscilloscope,
-    drow::AudioOscilloscope* _rightOscilloscope, drow::AudioOscilloscope* _stereoOscilloscope,
+OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, ScopeSampleBuffer& sampleBuffer,
     unsigned int parameterNumber)
-    : GUIModule(), pluginState(p), leftOscilloscope(_leftOscilloscope),
-    rightOscilloscope(_rightOscilloscope), stereoOscilloscope(_stereoOscilloscope),
+    : GUIModule(), pluginState(p),
+    scopeDisplay(sampleBuffer, moduleType_colors.at(ModuleType::Oscilloscope),
+                 BiztortionTheme::analyzerRightChannel),
     hZoomSlider(*pluginState.apvts.getParameter("Oscilloscope H Zoom " + std::to_string(parameterNumber)), ""),
     vZoomSlider(*pluginState.apvts.getParameter("Oscilloscope V Zoom " + std::to_string(parameterNumber)), ""),
     hZoomSliderAttachment(pluginState.apvts, "Oscilloscope H Zoom " + std::to_string(parameterNumber), hZoomSlider),
@@ -147,11 +121,11 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
 
     moduleColor = moduleType_colors.at(ModuleType::Oscilloscope);
     setModuleHelp("Oscilloscope",
-        "Shows the signal waveform. Sync stabilizes repeating shapes, Stereo combines left and right, and Freeze captures the current view.");
-
-    leftOscilloscope->setTraceColour(moduleType_colors.at(ModuleType::Oscilloscope));
-    rightOscilloscope->setTraceColour(moduleType_colors.at(ModuleType::Oscilloscope).interpolatedWith(juce::Colours::white, 0.55f));
-    stereoOscilloscope->setTraceColour(moduleType_colors.at(ModuleType::Oscilloscope));
+        "Shows the signal waveform, always synced to a rising zero crossing so repeating shapes "
+        "stay still. Stereo combines the two channels, L / R shows them on separate lanes, and "
+        "Freeze holds the current view. H Zoom sets the time window and V Zoom the amplitude "
+        "scale: on the graph, scroll to magnify the amplitude, scroll sideways or hold Shift to "
+        "stretch the time window, and double click to go back to the default view.");
 
     // labels
     hZoomLabel.setText("H Zoom", juce::dontSendNotification);
@@ -178,12 +152,19 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
         }
     };
 
-    for (auto* button : { &freezeButton, &syncButton, &stereoButton })
-    {
-        button->setClickingTogglesState(true);
-        button->setLookAndFeel(&scopeControlsLnf);
-    }
+    freezeButton.setClickingTogglesState(true);
+    freezeButton.setLookAndFeel(&scopeControlsLnf);
+
+    // Sync has no button any more: it is always on, because an unsynced trace is never the
+    // useful view here. The parameter itself is kept so older sessions still load.
+    syncButton.setClickingTogglesState(true);
+    syncButton.setToggleState(true, juce::sendNotificationSync);
     freezeButton.setToggleState(false, juce::dontSendNotification);
+
+    stereoButton.setClickingTogglesState(true);
+    stereoButton.setModuleColours(moduleType_colors.at(ModuleType::Oscilloscope),
+        moduleType_colors.at(ModuleType::Oscilloscope),
+        BiztortionTheme::analyzerRightChannel);
 
     scopeControlsLnf.setColour(juce::TextButton::buttonColourId, juce::Colour(39, 42, 45));
     scopeControlsLnf.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
@@ -194,18 +175,8 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
     {
         if (auto* comp = safePtr.getComponent())
         {
-            auto freeze = comp->freezeButton.getToggleState();
-            if (freeze) {
-                comp->leftOscilloscope->stopTimer();
-                comp->rightOscilloscope->stopTimer();
-                comp->stereoOscilloscope->stopTimer();
-            }
-            else {
-                comp->leftOscilloscope->startTimerHz(59);
-                comp->rightOscilloscope->startTimerHz(59);
-                comp->stereoOscilloscope->startTimerHz(59);
-            }
-            
+            // the samples are kept, so the frozen view can still be zoomed and panned
+            comp->scopeDisplay.setFrozen(comp->freezeButton.getToggleState());
         }
     };
 
@@ -221,20 +192,33 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
             comp->updateScopeLayout();
     };
 
+    for (auto* slider : { &hZoomSlider, &vZoomSlider })
+    {
+        slider->onValueChange = [safePtr]()
+        {
+            if (auto* comp = safePtr.getComponent())
+                comp->updateScopeView();
+        };
+    }
+
+    // zooming on the graph moves the knobs, so the gesture ends up in the parameters
+    scopeDisplay.onZoomGesture = [safePtr](float horizontal, float vertical)
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            // the sliders drive the scope's zoom directly, so there is no loop to guard against
+            comp->hZoomSlider.setValue(horizontal, juce::sendNotificationSync);
+            comp->vZoomSlider.setValue(vertical, juce::sendNotificationSync);
+        }
+    };
+
+
     // tooltips
     bypassButton.setTooltip("Bypass this module");
     hZoomSlider.setTooltip("Adjust the horizontal zoom of the oscilloscope");
     vZoomSlider.setTooltip("Adjust the vertical zoom of the oscilloscope");
     freezeButton.setTooltip("Take a snapshot of the oscilloscope");
-    syncButton.setTooltip("Lock each refresh to a rising zero crossing for a stable waveform");
     stereoButton.setTooltip("Switch between separate L/R traces and one averaged stereo waveform");
-
-    if (!leftOscilloscope->isTimerRunning())
-        leftOscilloscope->startTimerHz(59);
-    if(!rightOscilloscope->isTimerRunning())
-        rightOscilloscope->startTimerHz(59);
-    if(!stereoOscilloscope->isTimerRunning())
-        stereoOscilloscope->startTimerHz(59);
 
     for (auto* comp : getAllComps())
     {
@@ -243,42 +227,26 @@ OscilloscopeModuleGUI::OscilloscopeModuleGUI(PluginState& p, drow::AudioOscillos
 
     synchroniseScopes();
     updateScopeLayout();
+    updateScopeView();
     handleParamCompsEnablement(bypassButton.getToggleState());
 }
 
 OscilloscopeModuleGUI::~OscilloscopeModuleGUI()
 {
-    if (leftOscilloscope && leftOscilloscope->isTimerRunning()) {
-        leftOscilloscope->stopTimer();
-    }
-    if (rightOscilloscope && rightOscilloscope->isTimerRunning()) {
-        rightOscilloscope->stopTimer();
-    }
-    if (stereoOscilloscope && stereoOscilloscope->isTimerRunning()) {
-        stereoOscilloscope->stopTimer();
-    }
-    leftOscilloscope = nullptr;
-    rightOscilloscope = nullptr;
-    stereoOscilloscope = nullptr;
     freezeButton.setLookAndFeel(nullptr);
-    syncButton.setLookAndFeel(nullptr);
-    stereoButton.setLookAndFeel(nullptr);
     bypassButton.setLookAndFeel(nullptr);
 }
 
 std::vector<juce::Component*> OscilloscopeModuleGUI::getAllComps()
 {
     return {
-        leftOscilloscope,
-        rightOscilloscope,
-        stereoOscilloscope,
+        &scopeDisplay,
         &title,
         &hZoomLabel,
         &vZoomLabel,
         &hZoomSlider,
         &vZoomSlider,
         &freezeButton,
-        &syncButton,
         &stereoButton,
         &bypassButton
     };
@@ -290,7 +258,6 @@ std::vector<juce::Component*> OscilloscopeModuleGUI::getParamComps()
         &hZoomSlider,
         &vZoomSlider,
         &freezeButton,
-        &syncButton,
         &stereoButton
     };
 }
@@ -302,7 +269,9 @@ void OscilloscopeModuleGUI::updateParameters(const juce::Array<juce::var>& value
     bypassButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     hZoomSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
     vZoomSlider.setValue(*(value++), juce::NotificationType::sendNotificationSync);
-    syncButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
+    // sync is always on, but the value still has to be consumed to stay in step with getParamValues()
+    ++value;
+    syncButton.setToggleState(true, juce::NotificationType::sendNotificationSync);
     stereoButton.setToggleState(*(value++), juce::NotificationType::sendNotificationSync);
     freezeButton.setToggleState(false, juce::NotificationType::sendNotificationSync);
 }
@@ -336,102 +305,26 @@ juce::Array<juce::var> OscilloscopeModuleGUI::getParamValues()
     return values;
 }
 
-void OscilloscopeModuleGUI::paintOverChildren(Graphics& g)
+void OscilloscopeModuleGUI::paintOverChildren(Graphics&)
 {
-    auto leftOscArea = leftOscilloscope->getBounds();
-    auto rightOscArea = rightOscilloscope->getBounds();
-    const auto stereo = stereoButton.getToggleState();
-
-    if (stereo)
-    {
-        const auto stereoArea = stereoOscilloscope->getBounds();
-        g.setColour(juce::Colours::darkgrey);
-        const auto left = juce::Point<float>((float)stereoArea.getX(), (float)stereoArea.getCentreY());
-        const auto right = juce::Point<float>((float)stereoArea.getRight(), (float)stereoArea.getCentreY());
-        g.drawLine({ left, right }, 1.0f);
-
-        juce::Rectangle<int> labelArea;
-        g.setColour(moduleType_colors.at(ModuleType::Oscilloscope));
-        labelArea.setBounds(stereoArea.getX() + 2, stereoArea.getY() + 2, 52, 16);
-        g.drawFittedText("Stereo", labelArea, juce::Justification::centredLeft, 1);
-
-        g.setColour(juce::Colours::darkgrey);
-        labelArea.setBounds(stereoArea.getRight() - 14, stereoArea.getY(), 14, 12);
-        g.drawFittedText("+1", labelArea, juce::Justification::centred, 1);
-        labelArea.setBounds(stereoArea.getRight() - 14, stereoArea.getCentreY() - 14, 14, 12);
-        g.drawFittedText("0", labelArea, juce::Justification::centred, 1);
-        labelArea.setBounds(stereoArea.getRight() - 14, stereoArea.getBottom() - 13, 14, 12);
-        g.drawFittedText("-1", labelArea, juce::Justification::centred, 1);
-        return;
-    }
-
-    // drawing a separation line
-    g.setColour(juce::Colour(66, 70, 74));
-    g.drawLine(juce::Line<float>(leftOscArea.getBottomLeft().toFloat(), leftOscArea.getBottomRight().toFloat()), 1.0f);
-
-    // L channel
-    g.setColour(juce::Colours::darkgrey);
-    auto left = juce::Point<float>((float)leftOscArea.getTopLeft().getX(), leftOscArea.getCentreY());
-    auto right = juce::Point<float>((float)leftOscArea.getTopRight().getX(), leftOscArea.getCentreY());
-    g.drawLine(juce::Line<float>(left, right), 1.f);
-    //g.setColour(juce::Colours::white);
-    // +1
-    juce::Rectangle<int> labelArea;
-    labelArea.setBounds(right.getX() - 14, leftOscArea.getTopRight().getY(), 14, 12);
-    g.drawFittedText("+1", labelArea, juce::Justification::centred, 1);
-    // 0
-    labelArea.setBounds(right.getX() - 14, leftOscArea.getCentreY() - 14, 14, 12);
-    g.drawFittedText("0", labelArea, juce::Justification::centred, 1);
-    // -1
-    labelArea.setBounds(right.getX() - 14, leftOscArea.getBottomRight().getY() - 13, 14, 12);
-    g.drawFittedText("-1", labelArea, juce::Justification::centred, 1);
-    // channel label
-    g.setColour(moduleType_colors.at(ModuleType::Oscilloscope));
-    labelArea.setBounds(left.getX() + 1, leftOscArea.getTopLeft().getY() + 1, 18, 16);
-    g.drawFittedText("L", labelArea, juce::Justification::centred, 1);
-
-    // R channel
-    g.setColour(juce::Colours::darkgrey);
-    left = juce::Point<float>((float)rightOscArea.getTopLeft().getX(), rightOscArea.getCentreY());
-    right = juce::Point<float>((float)rightOscArea.getTopRight().getX(), rightOscArea.getCentreY());
-    g.drawLine(juce::Line<float>(left, right), 1.f);
-    //g.setColour(juce::Colours::white);
-    // +1
-    labelArea.setBounds(right.getX() - 14, rightOscArea.getTopRight().getY(), 14, 12);
-    g.drawFittedText("+1", labelArea, juce::Justification::centred, 1);
-    // 0
-    labelArea.setBounds(right.getX() - 14, rightOscArea.getCentreY() - 14, 14, 12);
-    g.drawFittedText("0", labelArea, juce::Justification::centred, 1);
-    // -1
-    labelArea.setBounds(right.getX() - 14, rightOscArea.getBottomRight().getY() - 13, 14, 12);
-    g.drawFittedText("-1", labelArea, juce::Justification::centred, 1);
-    // channel label
-    g.setColour(moduleType_colors.at(ModuleType::Oscilloscope).interpolatedWith(juce::Colours::white, 0.55f));
-    labelArea.setBounds(left.getX() + 1, rightOscArea.getTopLeft().getY() + 2, 18, 16);
-    g.drawFittedText("R", labelArea, juce::Justification::centred, 1);
-
+    // the scope display draws its own references, traces and labels
 }
 
 void OscilloscopeModuleGUI::synchroniseScopes()
 {
-    const auto enabled = syncButton.getToggleState();
-    leftOscilloscope->setTriggerEnabled(enabled);
-    rightOscilloscope->setTriggerEnabled(enabled);
-    stereoOscilloscope->setTriggerEnabled(enabled);
-    leftOscilloscope->synchronise();
-    rightOscilloscope->synchronise();
-    stereoOscilloscope->synchronise();
+    // the display always aligns its window to a rising zero crossing
+}
+
+void OscilloscopeModuleGUI::updateScopeView()
+{
+    scopeDisplay.setSampleRate(pluginState.audioProcessor.getSampleRate());
+    scopeDisplay.setView(static_cast<float>(hZoomSlider.getValue()),
+                         static_cast<float>(vZoomSlider.getValue()));
 }
 
 void OscilloscopeModuleGUI::updateScopeLayout()
 {
-    const auto stereo = stereoButton.getToggleState();
-    leftOscilloscope->setVisible(!stereo);
-    rightOscilloscope->setVisible(!stereo);
-    stereoOscilloscope->setVisible(stereo);
-    leftOscilloscope->synchronise();
-    rightOscilloscope->synchronise();
-    stereoOscilloscope->synchronise();
+    scopeDisplay.setStereo(stereoButton.getToggleState());
     resized();
     repaint();
 }
@@ -441,20 +334,30 @@ void OscilloscopeModuleGUI::resized()
     auto oscilloscopeArea = getContentRenderArea();
 
     auto titleAndBypassArea = oscilloscopeArea.removeFromTop(36);
-    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+    const auto titleArea = titleAndBypassArea;
+    bypassButton.setBounds(juce::Rectangle<int>(headerButtonSize, headerButtonSize).withCentre(
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
 
-    auto graphArea = oscilloscopeArea.removeFromTop(oscilloscopeArea.getHeight() * 0.68f);
+    // the view switch lives in the header, leaving the help button its own slot on the right
+    titleAndBypassArea.removeFromRight(headerHelpButtonArea);
+    stereoButton.setBounds(titleAndBypassArea.removeFromRight(78).reduced(0, 3));
+
+    // the controls row keeps enough height for three full size buttons even at the smallest
+    // allowed window size, so the graph takes what is left rather than a fixed share
+    // the graph keeps ~68% of the module height; the controls row still gets enough space for
+    // full size buttons and knobs at the smallest allowed window size
+    const auto controlsHeight = juce::jlimit(92, 132, juce::roundToInt(oscilloscopeArea.getHeight() * 0.28f));
+    auto graphArea = oscilloscopeArea.removeFromTop(juce::jmax(60, oscilloscopeArea.getHeight() - controlsHeight));
     graphArea.reduce(10, 8);
 
-    auto buttonArea = oscilloscopeArea.removeFromLeft(oscilloscopeArea.getWidth() * 0.4f).reduced(12, 12);
+    auto buttonArea = oscilloscopeArea.removeFromLeft(oscilloscopeArea.getWidth() * 0.4f).reduced(12, 6);
     auto hZoomArea = oscilloscopeArea.removeFromLeft(oscilloscopeArea.getWidth() * (1.f / 2.f));
     auto hZoomLabelArea = hZoomArea.removeFromTop(14);
 
     auto vZoomArea = oscilloscopeArea;
     auto vZoomLabelArea = vZoomArea.removeFromTop(14);
 
-    title.setBounds(titleAndBypassArea);
+    title.setBounds(titleArea);
     title.setJustificationType(juce::Justification::centred);
 
     juce::Rectangle<int> renderArea;
@@ -465,18 +368,7 @@ void OscilloscopeModuleGUI::resized()
     vZoomLabel.setBounds(vZoomLabelArea);
     vZoomLabel.setJustificationType(juce::Justification::centred);
 
-    if (stereoButton.getToggleState())
-    {
-        stereoOscilloscope->setBounds(graphArea);
-    }
-    else
-    {
-        leftOscilloscope->setBounds(graphArea.removeFromTop(graphArea.getHeight() * (1.f / 2.f)));
-        rightOscilloscope->setBounds(graphArea);
-    }
-    leftOscilloscope->startTimerHz(59);
-    rightOscilloscope->startTimerHz(59);
-    stereoOscilloscope->startTimerHz(59);
+    scopeDisplay.setBounds(graphArea);
 
     renderArea.setCentre(hZoomArea.getCentre());
     renderArea.setY(hZoomArea.getTopLeft().getY());
@@ -486,10 +378,9 @@ void OscilloscopeModuleGUI::resized()
     renderArea.setY(vZoomArea.getTopLeft().getY());
     vZoomSlider.setBounds(renderArea);
 
-    const auto buttonHeight = juce::jmin(32, buttonArea.getHeight() / 3);
-    freezeButton.setBounds(buttonArea.removeFromTop(buttonHeight));
-    buttonArea.removeFromTop(5);
-    syncButton.setBounds(buttonArea.removeFromTop(buttonHeight));
-    buttonArea.removeFromTop(5);
-    stereoButton.setBounds(buttonArea.removeFromTop(buttonHeight));
+    // keep these the same size as the other text buttons in the plugin (e.g. the equalizer's
+    // analyzer view button) instead of stretching or squashing them to fit the column
+    const auto buttonHeight = juce::jlimit(24, 30, buttonArea.getHeight() / 2);
+    const auto buttonWidth = juce::jmin(84, buttonArea.getWidth());
+    freezeButton.setBounds(buttonArea.withSizeKeepingCentre(buttonWidth, buttonHeight));
 }

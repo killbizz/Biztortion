@@ -29,6 +29,8 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 
 #pragma once
 
+// WARNING: the enum values are serialized in the plugin state (see PluginState::addDSPmoduleToAPVTS),
+// so new entries must always be appended at the end to keep older sessions loadable.
 enum ModuleType {
     Uninstantiated,
     Meter,
@@ -37,7 +39,8 @@ enum ModuleType {
     Waveshaper,
     ClassicBitcrusher,
     SpectrumBitcrusher,
-    SlewLimiter
+    SlewLimiter,
+    SpectrumAnalyzer
 };
 
 const std::unordered_map<ModuleType, juce::String> moduleType_names({
@@ -47,15 +50,24 @@ const std::unordered_map<ModuleType, juce::String> moduleType_names({
     {ModuleType::Waveshaper, "Waveshaper"},
     {ModuleType::ClassicBitcrusher, "Classic Bitcrusher"},
     {ModuleType::SpectrumBitcrusher, "Spectrum Bitcrusher"},
-    {ModuleType::SlewLimiter, "Slew Limiter"}
+    {ModuleType::SlewLimiter, "Slew Limiter"},
+    {ModuleType::SpectrumAnalyzer, "Analyzer"}
     });
 
 const std::unordered_map<ModuleType, juce::Colour> moduleType_colors({
     {ModuleType::Uninstantiated, juce::Colours::black},
-    {ModuleType::Oscilloscope, juce::Colours::magenta}, 
+    {ModuleType::Oscilloscope, juce::Colours::magenta},
     {ModuleType::Equalizer, juce::Colours::cyan},
     {ModuleType::Waveshaper, juce::Colours::red},
     {ModuleType::ClassicBitcrusher, juce::Colours::orange},
     {ModuleType::SpectrumBitcrusher, juce::Colour(0,108,255)}, // "medium" blue
-    {ModuleType::SlewLimiter, juce::Colour(240,255,0)} // light yellow
+    {ModuleType::SlewLimiter, juce::Colour(240,255,0)}, // light yellow
+    {ModuleType::SpectrumAnalyzer, juce::Colour(0,230,118)} // spring green
     });
+
+// modules which analyse the spectrum own a pair of FFT analyzer FIFOs (see PluginState).
+// keep every FIFO book-keeping site in sync by asking this instead of comparing to a single type.
+inline bool moduleTypeOwnsAnalyzerFIFO(ModuleType type)
+{
+    return type == ModuleType::Equalizer || type == ModuleType::SpectrumAnalyzer;
+}

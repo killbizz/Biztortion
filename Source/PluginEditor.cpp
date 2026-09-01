@@ -59,7 +59,9 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProce
     addAndMakeVisible(helpButton);
 
     helpButton.onClick = [this] {
-        helpComponent.setBounds(0, 0, 430, 125);
+        constexpr int helpWidth = 460;
+        helpComponent.setBounds(0, 0, helpWidth,
+            helpComponent.getPreferredHeightForWidth(helpWidth));
         asyncAlertWindow = std::make_unique<AlertWindow>("Biztortion",
             "",
             MessageBoxIconType::NoIcon);
@@ -75,13 +77,33 @@ BiztortionAudioProcessorEditor::BiztortionAudioProcessorEditor (juce::AudioProce
         asyncAlertWindow->enterModalState(true, ModalCallbackFunction::create(AsyncAlertBoxResult{ *this }));
     };
 
+    legendButton.setTooltip("Show the module colour legend");
+    addAndMakeVisible(legendButton);
+
+    legendButton.onClick = [this] {
+        auto legend = std::make_unique<ModuleLegendComponent>();
+        // opens right below the button
+        juce::CallOutBox::launchAsynchronously(std::move(legend),
+            legendButton.getScreenBounds(), nullptr);
+    };
+
     githubLink.setTooltip("Open the Biztortion GitHub repository");
-    githubLink.onClick = [] { juce::URL("https://github.com/killbizz").launchInDefaultBrowser(); };
+    githubLink.onClick = [] { juce::URL("https://github.com/killbizz/Biztortion").launchInDefaultBrowser(); };
     addAndMakeVisible(githubLink);
 
     setSize(1120, 720);
     setResizable(true, true);
-    setResizeLimits(900, 577, 1680, 1080);
+    // limits chosen to match the 1120x720 ratio exactly, so the constrainer never has to
+    // fight them while dragging a corner
+    setResizeLimits(900, 579, 1680, 1080);
+
+    // resize proportionally only: stretching one axis alone wrecks the module layouts
+    if (auto* constrainer = getConstrainer())
+        constrainer->setFixedAspectRatio(1120.0 / 720.0);
+
+    // Done last: reopening the editor comes back to the module the user was looking at, and
+    // restoring lays out the editor, so every child component has to exist first.
+    guiState.restoreLastViewedModule();
 }
 
 BiztortionAudioProcessorEditor::~BiztortionAudioProcessorEditor()
@@ -118,6 +140,8 @@ void BiztortionAudioProcessorEditor::resized()
     title.setJustificationType(juce::Justification::centred);
 
     helpButton.setBounds(header.removeFromLeft(32));
+    header.removeFromLeft(8);
+    legendButton.setBounds(header.removeFromLeft(32));
     githubLink.setBounds(header.removeFromRight(32));
 
     bounds.removeFromTop(20);

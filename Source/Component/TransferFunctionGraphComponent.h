@@ -44,6 +44,7 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "../Shared/PluginState.h"
 
 class TransferFunctionGraphComponent : public juce::Component,
+	public juce::SettableTooltipClient,
 	juce::AudioProcessorParameter::Listener,
 	juce::Timer
 {

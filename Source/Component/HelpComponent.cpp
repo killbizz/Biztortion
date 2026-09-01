@@ -30,15 +30,17 @@ along with Biztortion. If not, see < http://www.gnu.org/licenses/>.
 #include "HelpComponent.h"
 
 HelpComponent::HelpComponent()
-{
-	description.setText(
+	: HelpComponent(
 		"Build a custom distortion chain by adding processors to the slots below. "
 		"Signal flows from left to right; select a slot to edit it and drag slots to reorder them. "
-		"Hover a control or use a module's ? button whenever you need a quick explanation.",
-		juce::dontSendNotification);
-	description.setFont(juce::Font("Segoe UI", 16.0f, juce::Font::plain));
-	description.setColour(juce::Label::textColourId, juce::Colour(238, 240, 242));
-	description.setJustificationType(juce::Justification::centredLeft);
+		"Hover a control or use a module's ? button whenever you need a quick explanation.")
+{
+}
+
+HelpComponent::HelpComponent(const juce::String& descriptionText)
+{
+	description.setText(descriptionText, juce::dontSendNotification);
+	applyStyle();
 
 	for (auto* comp : getComps())
 	{
@@ -46,9 +48,42 @@ HelpComponent::HelpComponent()
 	}
 }
 
+void HelpComponent::applyStyle()
+{
+	description.setFont(juce::Font("Segoe UI", 16.0f, juce::Font::plain));
+	description.setColour(juce::Label::textColourId, juce::Colour(238, 240, 242));
+	description.setJustificationType(juce::Justification::topLeft);
+	description.setMinimumHorizontalScale(1.0f);
+}
+
+void HelpComponent::setDescription(const juce::String& descriptionText)
+{
+	description.setText(descriptionText, juce::dontSendNotification);
+	resized();
+}
+
+int HelpComponent::getPreferredHeightForWidth(int width) const
+{
+	const auto textWidth = juce::jmax(1, width - horizontalMargin * 2);
+
+	juce::AttributedString attributed;
+	attributed.setWordWrap(juce::AttributedString::byWord);
+	attributed.append(description.getText(), description.getFont(),
+		description.findColour(juce::Label::textColourId));
+
+	juce::TextLayout layout;
+	layout.createLayout(attributed, static_cast<float>(textWidth));
+
+	// juce::Label derives its line count from textArea.getHeight() / font.getHeight() and
+	// elides the tail with "..." as soon as that underestimates, so add a line of slack
+	const auto slack = description.getFont().getHeight() * 1.5f;
+
+	return juce::roundToInt(layout.getHeight() + slack) + verticalMargin * 2;
+}
+
 void HelpComponent::resized()
 {
-	description.setBounds(getLocalBounds().reduced(16, 10));
+	description.setBounds(getLocalBounds().reduced(horizontalMargin, verticalMargin));
 }
 
 std::vector<juce::Component*> HelpComponent::getComps()

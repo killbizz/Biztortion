@@ -268,6 +268,11 @@ void EqualizerModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::Mi
 {
     updateDSPState(sampleRate);
 
+    // Every other module guards its processing with this; the equalizer did not, so its filter
+    // chains kept running (and kept their own per-channel state) even while bypassed.
+    if (bypassed)
+        return;
+
     juce::dsp::AudioBlock<float> block(buffer);
     auto leftBlock = block.getSingleChannelBlock(0);
     auto rightBlock = block.getSingleChannelBlock(1);
@@ -285,6 +290,26 @@ void EqualizerModuleDSP::processBlock(juce::AudioBuffer<float>& buffer, juce::Mi
 
 //==============================================================================
 
+namespace
+{
+    FFTAnalyzerComponent::Options makeEqualizerAnalyzerOptions()
+    {
+        const auto accent = moduleType_colors.at(ModuleType::Equalizer);
+
+        FFTAnalyzerComponent::Options options;
+        options.moduleType = ModuleType::Equalizer;
+        options.leftColour = accent;
+        // a warm tone for the right channel: two shades of the same cyan were hard to tell apart
+        options.rightColour = BiztortionTheme::analyzerRightChannel;
+        options.stereoColour = juce::Colour(0u, 210u, 230u);
+        // the response curve is drawn on top of the analyzer, so keep the filter gain scale
+        options.showFilterGainScale = true;
+        options.fillUnderCurve = true;
+
+        return options;
+    }
+}
+
 EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNumber)
     : GUIModule(), pluginState(p),
     peak1FreqSlider(*pluginState.apvts.getParameter("Peak1 Freq " + std::to_string(parameterNumber)), "Hz"),
@@ -298,7 +323,7 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
     lowCutSlopeSlider(*pluginState.apvts.getParameter("LowCut Slope " + std::to_string(parameterNumber)), "dB/Oct"),
     highCutSlopeSlider(*pluginState.apvts.getParameter("HighCut Slope " + std::to_string(parameterNumber)), "dB/Oct"),
     responseCurveComponent(p, parameterNumber),
-    filterFftAnalyzerComponent(p, parameterNumber),
+    filterFftAnalyzerComponent(p, parameterNumber, makeEqualizerAnalyzerOptions()),
     peak1FreqSliderAttachment(pluginState.apvts, "Peak1 Freq " + std::to_string(parameterNumber), peak1FreqSlider),
     peak1GainSliderAttachment(pluginState.apvts, "Peak1 Gain " + std::to_string(parameterNumber), peak1GainSlider),
     peak1QualitySliderAttachment(pluginState.apvts, "Peak1 Quality " + std::to_string(parameterNumber), peak1QualitySlider),
@@ -359,10 +384,11 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
     highCutBypassButton.setLookAndFeel(&lnf);
     analyzerButton.setLookAndFeel(&lnf);
     analyzerViewButton.setClickingTogglesState(true);
-    analyzerViewButton.setLookAndFeel(&analyzerViewLnf);
-    analyzerViewLnf.setColour(juce::TextButton::buttonOnColourId, moduleColor);
-    analyzerViewLnf.setColour(juce::TextButton::textColourOnId, BiztortionTheme::canvas);
-
+    {
+        const auto analyzerOptions = makeEqualizerAnalyzerOptions();
+        analyzerViewButton.setModuleColours(moduleType_colors.at(ModuleType::Equalizer),
+            analyzerOptions.leftColour, analyzerOptions.rightColour);
+    }
     auto safePtr = juce::Component::SafePointer<EqualizerModuleGUI>(this);
     bypassButton.onClick = [safePtr]()
     {
@@ -408,6 +434,7 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
         {
             auto enable = comp->analyzerButton.getToggleState();
             comp->filterFftAnalyzerComponent.toggleFFTanaysis(enable);
+            comp->updateFilterControlEnablement();
         }
     };
 
@@ -451,7 +478,6 @@ EqualizerModuleGUI::EqualizerModuleGUI(PluginState& p, unsigned int parameterNum
 {
     bypassButton.setLookAndFeel(nullptr);
     analyzerButton.setLookAndFeel(nullptr);
-    analyzerViewButton.setLookAndFeel(nullptr);
     lowCutBypassButton.setLookAndFeel(nullptr);
     highCutBypassButton.setLookAndFeel(nullptr);
     peak1BypassButton.setLookAndFeel(nullptr);
@@ -635,13 +661,16 @@ void EqualizerModuleGUI::resized()
     bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
 
-    titleAndBypassArea.removeFromRight(30);
-    auto analyzerControls = titleAndBypassArea.removeFromRight(138).reduced(2, 1);
+    // leave the help button its own slot plus an even gap on both of its sides
+    titleAndBypassArea.removeFromRight(headerHelpButtonArea);
+    auto analyzerControls = titleAndBypassArea.removeFromRight(132).reduced(0, 1);
     analyzerButton.setBounds(analyzerControls.removeFromLeft(48));
-    analyzerControls.removeFromLeft(6);
+    analyzerControls.removeFromLeft(headerButtonGap - 2);
     analyzerViewButton.setBounds(analyzerControls.removeFromLeft(78));
 
-    auto responseCurveArea = filtersArea.removeFromTop(juce::roundToInt(filtersArea.getHeight() * 0.46f));
+    // the curve is the main control surface of this module (its handles are draggable), so it
+    // takes clearly more than half of the module height
+    auto responseCurveArea = filtersArea.removeFromTop(juce::roundToInt(filtersArea.getHeight() * 0.56f));
     responseCurveArea.reduce(8, 6);
 
     // lowCut - highCut filters
@@ -662,19 +691,33 @@ void EqualizerModuleGUI::resized()
     auto leftPeakArea = filtersArea.removeFromTop(filtersArea.getHeight() * (1.f / 2.f));
     auto rightPeakArea = filtersArea;
 
-    auto tempBypassArea = leftPeakArea.removeFromLeft(48);
-    auto peak1ButtonArea = juce::Rectangle<int>(24, 24)
-        .withPosition(tempBypassArea.getX() + 6, tempBypassArea.getY() + 21);
+    auto peak1BypassColumn = leftPeakArea.removeFromLeft(48);
     auto leftPeakFreqArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 3.f));
     auto leftPeakGainArea = leftPeakArea.removeFromLeft(leftPeakArea.getWidth() * (1.f / 2.f));
     auto leftPeakQualityArea = leftPeakArea;
 
-    tempBypassArea = rightPeakArea.removeFromLeft(48);
-    auto peak2ButtonArea = juce::Rectangle<int>(24, 24)
-        .withPosition(tempBypassArea.getX() + 6, tempBypassArea.getY() + 21);
+    auto peak2BypassColumn = rightPeakArea.removeFromLeft(48);
     auto rightPeakFreqArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 3.f));
     auto rightPeakGainArea = rightPeakArea.removeFromLeft(rightPeakArea.getWidth() * (1.f / 2.f));
     auto rightPeakQualityArea = rightPeakArea;
+
+    // "Peak N" caption + bypass button form a pair (the caption is painted right above the
+    // button); centre that pair on the knobs of its own row so both align with it
+    constexpr int peakCaptionHeight = 19;
+    constexpr int peakButtonSize = 24;
+    constexpr int knobTopOffset = 4;
+    const auto peakKnobHeight = juce::jmin(leftPeakFreqArea.getWidth(), leftPeakFreqArea.getHeight() - 5);
+    const auto pairHeight = peakCaptionHeight + peakButtonSize;
+
+    const auto peakButtonY = [&](juce::Rectangle<int> knobArea) {
+        const auto knobCentreY = knobArea.getY() + knobTopOffset + peakKnobHeight / 2;
+        return knobCentreY - pairHeight / 2 + peakCaptionHeight;
+    };
+
+    auto peak1ButtonArea = juce::Rectangle<int>(peakButtonSize, peakButtonSize)
+        .withPosition(peak1BypassColumn.getX() + 6, peakButtonY(leftPeakFreqArea));
+    auto peak2ButtonArea = juce::Rectangle<int>(peakButtonSize, peakButtonSize)
+        .withPosition(peak2BypassColumn.getX() + 6, peakButtonY(rightPeakFreqArea));
 
     lowCutBypassButton.setBounds(lowCutButtonArea);
     peak1BypassButton.setBounds(peak1ButtonArea);
@@ -718,8 +761,7 @@ void EqualizerModuleGUI::resized()
 
     // peaks
 
-    const auto peakKnobSize = juce::jmin(leftPeakFreqArea.getWidth(), leftPeakFreqArea.getHeight() - 5);
-    renderArea.setSize(peakKnobSize, peakKnobSize);
+    renderArea.setSize(peakKnobHeight, peakKnobHeight);
 
     renderArea.setCentre(leftPeakFreqArea.getCentre());
     renderArea.setY(leftPeakFreqArea.getTopLeft().getY() + offset);
@@ -791,7 +833,11 @@ void EqualizerModuleGUI::updateFilterControlEnablement()
     peak2BypassButton.setEnabled(!moduleBypassed);
     highCutBypassButton.setEnabled(!moduleBypassed);
     analyzerButton.setEnabled(!moduleBypassed);
-    analyzerViewButton.setEnabled(!moduleBypassed);
+    // the L/R - Stereo switch only has an effect while the analyzer is actually running
+    analyzerViewButton.setEnabled(!moduleBypassed && analyzerButton.getToggleState());
+
+    // a bypassed module must not keep drawing a spectrum
+    filterFftAnalyzerComponent.toggleFFTanaysis(!moduleBypassed && analyzerButton.getToggleState());
 
     handleLowCutParamsBypass(this);
     handleHighCutParamsBypass(this);

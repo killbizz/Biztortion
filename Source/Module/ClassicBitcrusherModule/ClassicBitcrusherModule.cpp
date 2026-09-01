@@ -286,7 +286,7 @@ ClassicBitcrusherSettings ClassicBitcrusherModuleDSP::getSettings(juce::AudioPro
 //==============================================================================
 
 ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber)
-    : GUIModule(), pluginState(p),
+    : GUIModule(), pluginState(p), parameterNumber(parameterNumber),
     driveSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber)), "dB"),
     mixSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber)), "%"),
     fxDistributionSlider(*pluginState.apvts.getParameter(CLASSIC_BITCRUSHER_ID + "Fx Distribution " + std::to_string(parameterNumber)), "%"),
@@ -313,6 +313,63 @@ ClassicBitcrusherModuleGUI::ClassicBitcrusherModuleGUI(PluginState& p, unsigned 
     moduleColor = moduleType_colors.at(ModuleType::ClassicBitcrusher);
     setModuleHelp("Classic Bitcrusher",
         "Reduces sample rate and bit depth for familiar digital crunch. Use Dither to add noise and soften or exaggerate the quantisation texture.");
+
+    // --- graphs ---
+    // Visual model of the bitcrusher: the signal is held for several samples (rate redux) and
+    // snapped to a coarse grid of levels (bit redux), with dither noise on top.
+    moduleGraph = std::make_unique<WaveShapeVisualiser>(moduleColor,
+        [this](std::vector<float>& samples) {
+            const auto settings = ClassicBitcrusherModuleDSP::getSettings(pluginState.apvts, this->parameterNumber);
+
+            // map the 100..44100 Hz control onto a sample-and-hold length that is visible in a
+            // graph of a few hundred points
+            const auto rateProportion = juce::jlimit(0.0f, 1.0f,
+                (settings.rateRedux - 100.0f) / (44100.0f - 100.0f));
+            const auto holdLength = juce::jmax(1,
+                juce::roundToInt(juce::jmap(1.0f - std::pow(rateProportion, 0.35f), 1.0f, 44.0f)));
+
+            const auto levels = std::pow(2.0f, juce::jlimit(1.0f, 16.0f, settings.bitRedux));
+            const auto step = 2.0f / juce::jmax(2.0f, levels);
+            const auto ditherAmount = juce::jlimit(0.0f, 1.0f, settings.dither * 0.01f);
+
+            juce::Random random(1234);
+            auto held = samples.empty() ? 0.0f : samples[0];
+
+            for (size_t index = 0; index < samples.size(); ++index)
+            {
+                if (index % (size_t) holdLength == 0)
+                    held = samples[index];
+
+                // quantise to the reduced bit depth
+                auto value = std::round(held / step) * step;
+
+                // The module multiplies white noise by the signal and adds it, so dither is
+                // signal dependent and stays visible at any bit depth. Adding it before the
+                // quantiser instead would vanish at 16 bits, where the step is tiny.
+                if (ditherAmount > 0.0f)
+                    value += (random.nextFloat() - 0.5f) * 0.5f * ditherAmount * std::abs(held);
+
+                samples[index] = juce::jlimit(-1.0f, 1.0f, value);
+            }
+        }, WaveShapeVisualiser::Style::steppedWaveform);
+    moduleGraph->setTooltip(
+        "What this module does to the waveform: the signal is held for several samples "
+        "(sampling rate redux), snapped to a coarse grid of levels (bit depth redux) and "
+        "sprinkled with signal dependent noise (dither).");
+    moduleGraph->setCaption("crush");
+
+    sharedParamsGraph = std::make_unique<WaveShapeVisualiser>(moduleColor,
+        [this](std::vector<float>& samples) {
+            const auto settings = ClassicBitcrusherModuleDSP::getSettings(pluginState.apvts, this->parameterNumber);
+            SharedParamsLayout::applySharedParameters(samples, settings.drive, settings.mix,
+                settings.fxDistribution, settings.bias, settings.symmetry, settings.DCoffsetRemove);
+        });
+    sharedParamsGraph->setTooltip(
+        "The transfer function these controls apply to the signal, drawn over the faint input "
+        "curve. Drive sets how hard the signal is pushed into the effect, fx bias marks the "
+        "threshold that splits the waveform and fx distribution chooses how much of the effect "
+        "each side of it receives, symmetry weights the positive against the negative half, the "
+        "dc filter recentres the result on zero, and mix blends it back with the clean signal.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -399,6 +456,8 @@ std::vector<juce::Component*> ClassicBitcrusherModuleGUI::getAllComps()
 {
     return {
         &title,
+        moduleGraph.get(),
+        sharedParamsGraph.get(),
         &driveSlider,
         &mixSlider,
         &fxDistributionSlider,
@@ -499,112 +558,68 @@ juce::Array<juce::var> ClassicBitcrusherModuleGUI::getParamValues()
 
 void ClassicBitcrusherModuleGUI::resized()
 {
-    auto bitcrusherArea = getContentRenderArea();
+    auto area = getContentRenderArea();
 
-    auto titleAndBypassArea = bitcrusherArea.removeFromTop(36);
-    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+    auto titleAndBypassArea = area.removeFromTop(36);
+    const auto titleArea = titleAndBypassArea;
+    bypassButton.setBounds(juce::Rectangle<int>(headerButtonSize, headerButtonSize).withCentre(
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
-    juce::Rectangle<int> temp;
 
-    bitcrusherArea.reduce(8, 12);
-
-    auto topArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 3.f));
-    auto middleArea = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() * (1.f / 2.f));
-    auto bottomArea = bitcrusherArea;
-
-    topArea.reduce(0, 4);
-    middleArea.reduce(0, 4);
-    bottomArea.reduce(0, 4);
-
-    auto topLabelsArea = topArea.removeFromTop(14);
-    auto middleLabelsArea = middleArea.removeFromTop(14);
-    auto bottomLabelsArea = bottomArea.removeFromTop(14);
-
-    // label areas
-    auto driveLabelArea = topLabelsArea.removeFromLeft(topLabelsArea.getWidth() * (1.f / 2.f));
-    auto mixLabelArea = topLabelsArea;
-    temp = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
-    auto fxDistributionLabelArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto biasLabelArea = temp;
-    auto symmetryLabelArea = middleLabelsArea.removeFromLeft(middleLabelsArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveLabelArea = middleLabelsArea;
-    auto rateLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 3.f));
-    auto bitLabelArea = bottomLabelsArea.removeFromLeft(bottomLabelsArea.getWidth() * (1.f / 2.f));
-    auto ditherLabelArea = bottomLabelsArea;
-
-    // slider areas
-    auto driveArea = topArea.removeFromLeft(topArea.getWidth() * (1.f / 2.f));
-    auto mixArea = topArea;
-    temp = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
-    auto fxDistributionArea = temp.removeFromLeft(temp.getWidth() * (1.f / 2.f));
-    auto biasArea = temp;
-    auto symmetryArea = middleArea.removeFromLeft(middleArea.getWidth() * (1.f / 2.f));
-    auto DCoffsetRemoveArea = middleArea;
-    auto rateArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 3.f));
-    auto bitArea = bottomArea.removeFromLeft(bottomArea.getWidth() * (1.f / 2.f));
-    auto ditherArea = bottomArea;
-
-    juce::Rectangle<int> renderArea;
-    const auto knobSize = juce::jmin(fxDistributionArea.getWidth() - 40,
-        juce::jmin(topArea.getHeight(), juce::jmin(middleArea.getHeight(), bottomArea.getHeight())) - 6);
-    renderArea.setSize(knobSize, knobSize);
-
-    title.setBounds(titleAndBypassArea);
+    title.setBounds(titleArea);
     title.setJustificationType(juce::Justification::centred);
 
-    renderArea.setCentre(driveArea.getCentre());
-    driveSlider.setBounds(renderArea);
-    driveLabel.setBounds(driveLabelArea);
-    driveLabel.setJustificationType(juce::Justification::centred);
+    area.reduce(6, 8);
 
-    renderArea.setCentre(mixArea.getCentre());
-    mixSlider.setBounds(renderArea);
-    mixLabel.setBounds(mixLabelArea);
-    mixLabel.setJustificationType(juce::Justification::centred);
+    // left: this module's own graph and parameters - right: the shared parameters hexagon
+    auto moduleSide = area.removeFromLeft(juce::roundToInt(area.getWidth() * 0.44f));
+    area.removeFromLeft(10);
+    auto sharedSide = area;
 
-    renderArea.setCentre(fxDistributionArea.getCentre());
-    fxDistributionSlider.setBounds(renderArea);
-    fxDistributionLabel.setBounds(fxDistributionLabelArea);
-    fxDistributionLabel.setJustificationType(juce::Justification::centred);
+    // --- module side ---
+    moduleGraph->setBounds(moduleSide.removeFromTop(juce::roundToInt(moduleSide.getHeight() * 0.46f)));
+    moduleSide.removeFromTop(8);
 
-    renderArea.setCentre(biasArea.getCentre());
-    biasSlider.setBounds(renderArea);
-    biasLabel.setBounds(biasLabelArea);
-    biasLabel.setJustificationType(juce::Justification::centred);
+    // the module's own parameters keep their subtle plate
+    clearParameterGroups();
+    addParameterGroup(moduleSide);
 
-    renderArea.setCentre(symmetryArea.getCentre());
-    symmetrySlider.setBounds(renderArea);
-    symmetryLabel.setBounds(symmetryLabelArea);
-    symmetryLabel.setJustificationType(juce::Justification::centred);
+    const auto placeKnob = [](juce::Rectangle<int> cell, juce::Slider& slider, juce::Label& label) {
+        label.setBounds(cell.removeFromTop(14));
+        label.setJustificationType(juce::Justification::centred);
+        const auto size = juce::jmin(cell.getWidth() - 6, cell.getHeight() - 6);
+        slider.setBounds(juce::Rectangle<int>(size, size).withCentre(cell.getCentre()));
+    };
 
-    DCoffsetRemoveArea.reduce(46.f, 19.f);
-    //DCoffsetRemoveArea.reduce(JUCE_LIVE_CONSTANT(85.f), 
-    //    JUCE_LIVE_CONSTANT(65.f));
-    DCoffsetEnabledButton.setBounds(DCoffsetRemoveArea);
-    /*DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(JUCE_LIVE_CONSTANT(1.f)).translated(
-        JUCE_LIVE_CONSTANT(-8.45953f),
-        JUCE_LIVE_CONSTANT(-10.31)));*/
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform::scale(1.f).translated(-8.45953f, -8.90813f));
-    DCoffsetEnabledButtonLabel.setBounds(DCoffsetRemoveLabelArea);
+    auto moduleKnobs = moduleSide.reduced(4, 8);
+    const auto knobWidth = moduleKnobs.getWidth() / 3;
+    placeKnob(moduleKnobs.removeFromLeft(knobWidth), bitcrusherRateReduxSlider, bitcrusherRateReduxLabel);
+    placeKnob(moduleKnobs.removeFromLeft(knobWidth), bitcrusherBitReduxSlider, bitcrusherBitReduxLabel);
+    placeKnob(moduleKnobs, bitcrusherDitherSlider, bitcrusherDitherLabel);
+
+    // --- shared side: the six common parameters on a hexagon, with their graph in the middle ---
+    const auto hexagon = SharedParamsLayout::build(sharedSide);
+    sharedParamsGraph->setBounds(hexagon.centre);
+
+    const auto placeSlot = [](const SharedParamsLayout::Slot& slot, juce::Slider& slider, juce::Label& label) {
+        label.setBounds(slot.label);
+        label.setJustificationType(juce::Justification::centred);
+        slider.setBounds(slot.control);
+    };
+
+    placeSlot(hexagon.slots[0], driveSlider, driveLabel);
+    placeSlot(hexagon.slots[1], mixSlider, mixLabel);
+    placeSlot(hexagon.slots[2], symmetrySlider, symmetryLabel);
+    placeSlot(hexagon.slots[3], biasSlider, biasLabel);
+    placeSlot(hexagon.slots[4], fxDistributionSlider, fxDistributionLabel);
+
+    // the dc filter toggle takes the last vertex
+    const auto& dcSlot = hexagon.slots[5];
+    DCoffsetEnabledButtonLabel.setBounds(dcSlot.label);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
-    /*DCoffsetEnabledButtonLabel.setCentreRelative(JUCE_LIVE_CONSTANT(0.9f),
-        JUCE_LIVE_CONSTANT(0.4327f));*/
-    DCoffsetEnabledButtonLabel.setCentreRelative(0.843f, 0.4327f);
-
-    // renderArea.setSize(rateArea.getHeight(), rateArea.getHeight());
-
-    renderArea.setCentre(rateArea.getCentre());
-    bitcrusherRateReduxSlider.setBounds(renderArea);
-    bitcrusherRateReduxLabel.setBounds(rateLabelArea);
-    bitcrusherRateReduxLabel.setJustificationType(juce::Justification::centred);
-
-    renderArea.setCentre(bitArea.getCentre());
-    bitcrusherBitReduxSlider.setBounds(renderArea);
-    bitcrusherBitReduxLabel.setBounds(bitLabelArea);
-    bitcrusherBitReduxLabel.setJustificationType(juce::Justification::centred);
-
-    renderArea.setCentre(ditherArea.getCentre());
-    bitcrusherDitherSlider.setBounds(renderArea);
-    bitcrusherDitherLabel.setBounds(ditherLabelArea);
-    bitcrusherDitherLabel.setJustificationType(juce::Justification::centred);
+    // the tick box is drawn at the left of the button, so size the button around it to centre it
+    DCoffsetEnabledButton.setTransform({});
+    const auto toggleHeight = juce::jmin(28, dcSlot.control.getHeight());
+    const auto toggleWidth = juce::roundToInt(toggleHeight * 0.825f) + 8;
+    DCoffsetEnabledButton.setBounds(
+        juce::Rectangle<int>(toggleWidth, toggleHeight).withCentre(dcSlot.control.getCentre()));
 }

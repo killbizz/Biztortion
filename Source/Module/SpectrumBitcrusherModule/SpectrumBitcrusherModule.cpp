@@ -320,7 +320,7 @@ SpectrumBitcrusherSettings SpectrumBitcrusherModuleDSP::getSettings(juce::AudioP
 //==============================================================================
 
 SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigned int parameterNumber)
-    : GUIModule(), pluginState(p),
+    : GUIModule(), pluginState(p), parameterNumber(parameterNumber),
     driveSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Drive " + std::to_string(parameterNumber)), "dB"),
     mixSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Mix " + std::to_string(parameterNumber)), "%"),
     fxDistributionSlider(*pluginState.apvts.getParameter(SPECTRUM_BITCRUSHER_ID + "Fx Distribution " + std::to_string(parameterNumber)), "%"),
@@ -351,6 +351,87 @@ SpectrumBitcrusherModuleGUI::SpectrumBitcrusherModuleGUI(PluginState& p, unsigne
     moduleColor = moduleType_colors.at(ModuleType::SpectrumBitcrusher);
     setModuleHelp("Spectrum Bitcrusher",
         "Crushes frequency resolution and FFT magnitudes instead of time-domain samples. Robotisation locks the spectrum to a controllable harmonic pitch.");
+
+    // --- graphs ---
+    // This module works on the spectrum, so its graph shows magnitude bars rather than a
+    // waveform: bins redux merges neighbouring bars, magnitude bits quantises their height,
+    // spectral tilt slopes the whole spectrum and robotisation pulls it towards a harmonic comb.
+    moduleGraph = std::make_unique<WaveShapeVisualiser>(moduleColor,
+        [this](std::vector<float>& magnitudes) {
+            const auto settings = SpectrumBitcrusherModuleDSP::getSettings(pluginState.apvts, this->parameterNumber);
+            const auto barCount = magnitudes.size();
+
+            if (barCount == 0)
+                return;
+
+            // bins redux: 1024 = untouched, 16 = very coarse
+            const auto resolutionProportion = juce::jlimit(0.0f, 1.0f,
+                std::log(juce::jmax(16.0f, settings.rateRedux) / 16.0f) / std::log(1024.0f / 16.0f));
+            const auto groupSize = juce::jmax<size_t>(1,
+                (size_t) juce::roundToInt(juce::jmap(1.0f - resolutionProportion, 1.0f, 8.0f)));
+
+            // spectral tilt in dB across the whole range
+            for (size_t index = 0; index < barCount; ++index)
+            {
+                const auto proportion = (float) index / (float) juce::jmax<size_t>(1, barCount - 1);
+                magnitudes[index] *= juce::Decibels::decibelsToGain(settings.spectralTilt * proportion);
+            }
+
+            // robotisation pulls energy onto a harmonic comb
+            const auto robot = juce::jlimit(0.0f, 1.0f, settings.robotisation * 0.01f);
+            if (robot > 0.0f)
+            {
+                const auto spacing = juce::jmax<size_t>(2,
+                    (size_t) juce::roundToInt(juce::jmap(settings.robotPitch, 30.0f, 1000.0f, 2.0f, 7.0f)));
+
+                for (size_t index = 0; index < barCount; ++index)
+                {
+                    const auto onHarmonic = (index % spacing) == 0;
+                    const auto target = onHarmonic ? 1.0f : 0.08f;
+                    magnitudes[index] = magnitudes[index] * (1.0f - robot) + target * robot;
+                }
+            }
+
+            // bins redux: average each group so neighbouring bars merge
+            for (size_t start = 0; start < barCount; start += groupSize)
+            {
+                const auto end = juce::jmin(barCount, start + groupSize);
+                auto sum = 0.0f;
+
+                for (auto index = start; index < end; ++index)
+                    sum += magnitudes[index];
+
+                const auto average = sum / (float) (end - start);
+
+                for (auto index = start; index < end; ++index)
+                    magnitudes[index] = average;
+            }
+
+            // magnitude bits: quantise the bar heights
+            const auto levels = std::pow(2.0f, juce::jlimit(1.0f, 16.0f, settings.magnitudeBits));
+            const auto step = 1.0f / juce::jmax(2.0f, levels);
+
+            for (auto& magnitude : magnitudes)
+                magnitude = juce::jlimit(0.0f, 1.0f, std::round(magnitude / step) * step);
+        }, WaveShapeVisualiser::Style::spectrumBars);
+    moduleGraph->setTooltip(
+        "What this module does to the spectrum: neighbouring bars merge (freq resolution), "
+        "their heights are quantised (magnitude bits), the whole spectrum is sloped "
+        "(spectral tilt) and pulled onto a harmonic comb (robotisation).");
+    moduleGraph->setCaption("spectrum");
+
+    sharedParamsGraph = std::make_unique<WaveShapeVisualiser>(moduleColor,
+        [this](std::vector<float>& samples) {
+            const auto settings = SpectrumBitcrusherModuleDSP::getSettings(pluginState.apvts, this->parameterNumber);
+            SharedParamsLayout::applySharedParameters(samples, settings.drive, settings.mix,
+                settings.fxDistribution, settings.bias, settings.symmetry, settings.DCoffsetRemove);
+        });
+    sharedParamsGraph->setTooltip(
+        "The transfer function these controls apply to the signal, drawn over the faint input "
+        "curve. Drive sets how hard the signal is pushed into the effect, fx bias marks the "
+        "threshold that splits the waveform and fx distribution chooses how much of the effect "
+        "each side of it receives, symmetry weights the positive against the negative half, the "
+        "dc filter recentres the result on zero, and mix blends it back with the clean signal.");
 
     // labels
     driveLabel.setText("Drive", juce::dontSendNotification);
@@ -452,6 +533,8 @@ std::vector<juce::Component*> SpectrumBitcrusherModuleGUI::getAllComps()
 {
     return {
         &title,
+        moduleGraph.get(),
+        sharedParamsGraph.get(),
         &driveSlider,
         &mixSlider,
         &fxDistributionSlider,
@@ -566,52 +649,75 @@ juce::Array<juce::var> SpectrumBitcrusherModuleGUI::getParamValues()
 
 void SpectrumBitcrusherModuleGUI::resized()
 {
-    auto bitcrusherArea = getContentRenderArea();
+    auto area = getContentRenderArea();
 
-    auto titleAndBypassArea = bitcrusherArea.removeFromTop(36);
-    bypassButton.setBounds(juce::Rectangle<int>(28, 28).withCentre(
+    auto titleAndBypassArea = area.removeFromTop(36);
+    const auto titleArea = titleAndBypassArea;
+    bypassButton.setBounds(juce::Rectangle<int>(headerButtonSize, headerButtonSize).withCentre(
         { titleAndBypassArea.getX() + 20, titleAndBypassArea.getCentreY() }));
 
-    title.setBounds(titleAndBypassArea);
+    title.setBounds(titleArea);
     title.setJustificationType(juce::Justification::centred);
 
-    bitcrusherArea.translate(0, 8);
-    auto row1 = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() / 4);
-    auto row2 = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() / 3);
-    auto row3 = bitcrusherArea.removeFromTop(bitcrusherArea.getHeight() / 2);
-    auto row4 = bitcrusherArea;
+    area.reduce(6, 8);
 
-    auto getCell = [](juce::Rectangle<int> row, int index, int count) {
-        const auto left = row.getX() + row.getWidth() * index / count;
-        const auto right = row.getX() + row.getWidth() * (index + 1) / count;
-        return juce::Rectangle<int>(left, row.getY(), right - left, row.getHeight());
-    };
+    // left: this module's own graph and parameters - right: the shared parameters hexagon
+    auto moduleSide = area.removeFromLeft(juce::roundToInt(area.getWidth() * 0.46f));
+    area.removeFromLeft(10);
+    auto sharedSide = area;
 
-    auto placeSlider = [](juce::Rectangle<int> cell, juce::Slider& slider, juce::Label& label) {
+    // --- module side ---
+    moduleGraph->setBounds(moduleSide.removeFromTop(juce::roundToInt(moduleSide.getHeight() * 0.40f)));
+    moduleSide.removeFromTop(8);
+
+    // the module's own parameters keep their subtle plate
+    clearParameterGroups();
+    addParameterGroup(moduleSide);
+
+    const auto placeKnob = [](juce::Rectangle<int> cell, juce::Slider& slider, juce::Label& label) {
         label.setBounds(cell.removeFromTop(14));
         label.setJustificationType(juce::Justification::centred);
-        const auto controlSize = juce::jmin(cell.getWidth(), cell.getHeight());
-        slider.setBounds(juce::Rectangle<int>(controlSize, controlSize)
-            .withCentre(cell.getCentre()).reduced(5));
+        const auto size = juce::jmin(cell.getWidth() - 6, cell.getHeight() - 6);
+        slider.setBounds(juce::Rectangle<int>(size, size).withCentre(cell.getCentre()));
     };
 
-    placeSlider(getCell(row1, 0, 2), driveSlider, driveLabel);
-    placeSlider(getCell(row1, 1, 2), mixSlider, mixLabel);
+    // five module parameters: three on the first row, two on the second
+    auto moduleKnobs = moduleSide.reduced(4, 6);
+    auto firstRow = moduleKnobs.removeFromTop(moduleKnobs.getHeight() / 2);
+    auto secondRow = moduleKnobs;
 
-    placeSlider(getCell(row2, 0, 4), fxDistributionSlider, fxDistributionLabel);
-    placeSlider(getCell(row2, 1, 4), biasSlider, biasLabel);
-    placeSlider(getCell(row2, 2, 4), symmetrySlider, symmetryLabel);
-    auto dcCell = getCell(row2, 3, 4);
-    DCoffsetEnabledButtonLabel.setBounds(dcCell.removeFromTop(14));
+    const auto firstRowCell = firstRow.getWidth() / 3;
+    placeKnob(firstRow.removeFromLeft(firstRowCell), binsReduxSlider, binsReduxLabel);
+    placeKnob(firstRow.removeFromLeft(firstRowCell), magnitudeBitsSlider, magnitudeBitsLabel);
+    placeKnob(firstRow, spectralTiltSlider, spectralTiltLabel);
+
+    placeKnob(secondRow.removeFromLeft(secondRow.getWidth() / 2), robotisationSlider, robotisationLabel);
+    placeKnob(secondRow, robotPitchSlider, robotPitchLabel);
+
+    // --- shared side: the six common parameters on a hexagon, with their graph in the middle ---
+    const auto hexagon = SharedParamsLayout::build(sharedSide);
+    sharedParamsGraph->setBounds(hexagon.centre);
+
+    const auto placeSlot = [](const SharedParamsLayout::Slot& slot, juce::Slider& slider, juce::Label& label) {
+        label.setBounds(slot.label);
+        label.setJustificationType(juce::Justification::centred);
+        slider.setBounds(slot.control);
+    };
+
+    placeSlot(hexagon.slots[0], driveSlider, driveLabel);
+    placeSlot(hexagon.slots[1], mixSlider, mixLabel);
+    placeSlot(hexagon.slots[2], symmetrySlider, symmetryLabel);
+    placeSlot(hexagon.slots[3], biasSlider, biasLabel);
+    placeSlot(hexagon.slots[4], fxDistributionSlider, fxDistributionLabel);
+
+    // the dc filter toggle takes the last vertex
+    const auto& dcSlot = hexagon.slots[5];
+    DCoffsetEnabledButtonLabel.setBounds(dcSlot.label);
     DCoffsetEnabledButtonLabel.setJustificationType(juce::Justification::centred);
-    DCoffsetEnabledButton.setTransform(juce::AffineTransform());
-    DCoffsetEnabledButton.setBounds(dcCell.reduced(dcCell.getWidth() / 3, dcCell.getHeight() / 4));
-
-    placeSlider(getCell(row3, 0, 3), binsReduxSlider, binsReduxLabel);
-    placeSlider(getCell(row3, 1, 3), magnitudeBitsSlider, magnitudeBitsLabel);
-    placeSlider(getCell(row3, 2, 3), spectralTiltSlider, spectralTiltLabel);
-
-    placeSlider(getCell(row4, 0, 2), robotisationSlider, robotisationLabel);
-    placeSlider(getCell(row4, 1, 2), robotPitchSlider, robotPitchLabel);
-
+    // the tick box is drawn at the left of the button, so size the button around it to centre it
+    DCoffsetEnabledButton.setTransform({});
+    const auto toggleHeight = juce::jmin(28, dcSlot.control.getHeight());
+    const auto toggleWidth = juce::roundToInt(toggleHeight * 0.825f) + 8;
+    DCoffsetEnabledButton.setBounds(
+        juce::Rectangle<int>(toggleWidth, toggleHeight).withCentre(dcSlot.control.getCentre()));
 }
